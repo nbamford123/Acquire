@@ -9,7 +9,7 @@ test("Isn't safe when created", () => {
 
 test('Is safe when over 11 tiles', () => {
   const hotel = new Hotel('American', 'standard');
-  hotel.tiles.push(...Array.from({ length: 11 }, () => new Tile('A', 1)));
+  hotel.tiles.push(...Array.from({ length: 11 }, () => new Tile(0, 1)));
   expect(hotel.safe).toEqual(true);
 });
 
