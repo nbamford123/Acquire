@@ -42,12 +42,8 @@ export class Game {
     const startGameState: StartGameState = { playerOrder: [], tiles: {} };
     for (const player of this.players) {
       const tile = this.tiles.drawTiles(player.name, 1)[0];
-      startGameState.tiles[player.name] = {
-        col: tile.col,
-        row: tile.row,
-        location: 'board',
-      };
       tile.play();
+      startGameState.tiles[player.name] = tile.serialize();
     }
     this.players = this.players.sort((p1, p2) => {
       const p1Pos = startGameState.tiles[p1.name];
