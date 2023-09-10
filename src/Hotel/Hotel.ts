@@ -1,17 +1,7 @@
 import { Tile } from '../Tile/Tile.js';
 import { Share } from './Share';
 
-export type HOTEL_NAME =
-  | 'Worldwide'
-  | 'Sackson'
-  | 'Festival'
-  | 'Imperial'
-  | 'American'
-  | 'Continental'
-  | 'Tower';
-
-export type HOTEL_TYPE = 'economy' | 'standard' | 'luxury';
-
+import type { HOTEL_NAME, HOTEL_TYPE, IHotel } from '../types';
 export class Hotel {
   name: HOTEL_NAME;
   tiles: Array<Tile> = [];
@@ -22,6 +12,16 @@ export class Hotel {
     this.name = name;
     this.type = type;
   }
+  serialize = (): IHotel => {
+    return {
+      name: this.name,
+      type: this.type,
+      remainingShares: this.remainingShares,
+      safe: this.safe,
+      sharePrice: this.sharePrice,
+      tiles: this.tiles.map((tile) => tile.serialize()),
+    };
+  };
 
   get safe(): boolean {
     return this.tiles.length >= 11;
@@ -53,17 +53,10 @@ export class Hotel {
     }
     return allocated;
   };
-}
 
-export const Hotels: Array<Hotel> = [
-  new Hotel('Worldwide', 'economy'),
-  new Hotel('Sackson', 'economy'),
-  new Hotel('Festival', 'standard'),
-  new Hotel('Imperial', 'standard'),
-  new Hotel('American', 'standard'),
-  new Hotel('Continental', 'luxury'),
-  new Hotel('Tower', 'luxury'),
-];
+  // Add a tile to the hotel-- assumes it's already on the board
+  addTile = (tile: Tile) => this.tiles.push(tile);
+}
 
 export const SharePrices: Record<HOTEL_TYPE, Record<number, number>> = {
   economy: {
@@ -100,3 +93,12 @@ export const SharePrices: Record<HOTEL_TYPE, Record<number, number>> = {
     [Number.MAX_SAFE_INTEGER]: 1200,
   },
 };
+export const Hotels: Array<Hotel> = [
+  new Hotel('Worldwide', 'economy'),
+  new Hotel('Sackson', 'economy'),
+  new Hotel('Festival', 'standard'),
+  new Hotel('Imperial', 'standard'),
+  new Hotel('American', 'standard'),
+  new Hotel('Continental', 'luxury'),
+  new Hotel('Tower', 'luxury'),
+];
