@@ -27,19 +27,56 @@ export type IHotel = {
 export type IPlayerShares = {
   [hotel: string]: number;
 };
-export type GameState =
+export type StartGameState = {
+  tiles: { [player: string]: ITile };
+};
+
+// Part of the fun is counting up the shares and giving money at the end... can animate on client side
+export type EndGameState =
   | {
-      tiles: Array<ITile>;
-      players: Array<string>;
-      hotels: Array<IHotel>;
-      player: {
-        money: number;
-        shares: IPlayerShares;
-      };
+      players: Record<
+        string,
+        {
+          hotels: {
+            hotel: string;
+            shares: number;
+            payout: number;
+          };
+          totalCash: number;
+        }
+      >;
+      winner: string;
     }
   | { error: string };
 
-export type StartGameState = {
-  playerOrder: Array<string>;
-  tiles: { [player: string]: ITile };
+export enum GAME_STATE {
+  WAITING_FOR_PLAYERS = 'WAITING_FOR_PLAYERS',
+  PLAY_TILE = 'PLAY_TILE',
+  BUY_STOCKS = 'BUY_STOCKS',
+  START_HOTEL = 'START_HOTEL',
+  MERGE = 'MERGE',
+  GAME_OVER = 'GAME_OVER',
+}
+
+export const isError = (
+  state: ValidGameState | ErrorState,
+): state is ErrorState => {
+  return (state as ErrorState).error !== undefined;
 };
+export type ValidGameState = {
+  tiles: Array<ITile>;
+  // In order of play
+  players: Array<string>;
+  hotels: Array<IHotel>;
+  player: {
+    money: number;
+    shares: IPlayerShares;
+  };
+  startGameState: StartGameState;
+  endGameState: EndGameState;
+  gameState: GAME_STATE;
+  // player name who is up
+  turn: string;
+};
+export type ErrorState = { error: string };
+export type GameState = ValidGameState | ErrorState;
