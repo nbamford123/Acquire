@@ -1,11 +1,12 @@
 import { Hotel, type HOTEL_NAME, Hotels } from "@/models/Hotel.ts";
 import { Player } from "@/models/Player.ts";
 import { TileManager } from "@/models/TileManager.ts";
-import { sortTiles } from "@/utils/utils.ts";
+import { cmpTiles } from "@/utils/utils.ts";
 
 // Game phases
 export enum GameState {
   WAITING_FOR_PLAYERS = "WAITING_FOR_PLAYERS",
+  DDRAWING_INITIAL_TILE = "DRAWING_INITIAL_TILE",
   PLAY_TILE = "PLAY_TILE",
   FOUND_HOTEL = "FOUND_HOTEL",
   RESOLVE_MERGER = "RESOLVE_MERGER",
@@ -19,11 +20,7 @@ export interface GameStateSnapshot {
   currentState: GameState;
   currentTurn: string; // Player name
   lastUpdated: number; // Timestamp
-  players: Array<{
-    name: string;
-    money: number;
-    shares: Record<HOTEL_NAME, number>;
-  }>;
+  players: Player[]; // Sorted by player order
   hotels: Array<{
     name: HOTEL_NAME;
     size: number;
@@ -52,9 +49,8 @@ export class Game {
   private gameId: string;
   private currentState: GameState = GameState.WAITING_FOR_PLAYERS;
   private tileManager: TileManager;
-  private hotels: Hotel[];
-  private players: Map<string, Player> = new Map();
-  private playerOrder: string[] = [];
+  private hotels: Hotel[] = Hotels;
+  private players: Player[] = [];
   private currentPlayerIndex = 0;
   private lastUpdated: number = Date.now();
   private pendingMerger: {
@@ -65,7 +61,6 @@ export class Game {
   constructor(gameId: string) {
     this.gameId = gameId;
     this.tileManager = new TileManager();
-    this.hotels = Hotels;
   }
 
   /**
@@ -78,14 +73,13 @@ export class Game {
       return false;
     }
 
-    if (this.players.has(playerName)) {
+    if (this.players.find((player) => player.name === playerName)) {
       return false;
     }
 
     // Create a new player with starting money
     const player = new Player(playerName, 6000); // Starting money amount
-    this.players.set(playerName, player);
-    this.playerOrder.push(playerName);
+    this.players.push(player);
 
     return true;
   }
@@ -99,21 +93,23 @@ export class Game {
       return false;
     }
 
-    if (this.playerOrder.length < 2 || this.playerOrder.length > 6) {
+    if (this.players.length < 2 || this.players.length > 6) {
       return false; // Invalid player count
     }
 
-    // Deal initial tiles to each player
-    for (const playerName of this.playerOrder) {
-      this.tileManager.drawTiles(playerName, 6);
+    // Deal initial tile to each player to determine order and place on board
+    for (const player of this.players) {
+      const firstTile = this.tileManager.drawTiles(player.name, 1)[0];
+      player.firstTile = firstTile;
+      this.tileManager.playTile(firstTile.row, firstTile.col, player.name);
     }
-
-    // Randomize player order
-    // TODO: players draw initial tiles to determine order
-    // this.shufflePlayerOrder();
+    this.players.sort((player1, player2) =>
+      cmpTiles(player1.firstTile, player2.firstTile)
+    );
 
     // Set initial game state
     this.currentState = GameState.PLAY_TILE;
+    this.currentPlayerIndex = 0;
     this.lastUpdated = Date.now();
 
     return true;
@@ -499,7 +495,7 @@ export class Game {
     // 3. No more playable tiles
 
     const allSafeHotels = this.hotels.filter((h) => h.tiles.length > 0).every(
-      (h) => h.safe
+      (h) => h.safe,
     );
     const anyLargeHotel = this.hotels.some((h) => h.tiles.length >= 41);
     const tilesInBag =

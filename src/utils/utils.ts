@@ -1,6 +1,6 @@
 import type { Tile } from "@/models/Tile.ts";
 
-export const sortTiles = (tile1: Tile, tile2: Tile): number =>
+export const cmpTiles = (tile1: Tile, tile2: Tile): number =>
   tile1.col < tile2.col
     ? -1
     : tile1?.col > tile2?.col
