@@ -1,6 +1,3 @@
-* should return an error rather than false when calls fail, probably with human readable message (for clients)
-* starting money should be a const somewhere, not defined in game.ts
-* number of players allowed should be enforced in add player
 Shared Types:
 
 Consider creating a shared types package or ensuring types can be imported across boundaries
@@ -95,6 +92,7 @@ Introduce a View Model layer: This layer transforms the full game state into pla
 Add a concept of "visibility": Define which parts of the state are visible to which players.
 
 Let me show you how this could work:
+
 ```typescript
 // types.ts (extended)
 export interface GameState {
@@ -163,6 +161,4 @@ export function createPlayerView(state: GameState, playerId: string): PlayerView
     isMyTurn: state.players[state.currentPlayerIndex]?.id === playerId,
   };
 }
-
-
 ```
