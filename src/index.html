@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acquire Board Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hotel-worldwide { background-color: #FF6B6B; }
+        .hotel-sackson { background-color: #4ECDC4; }
+        .hotel-festival { background-color: #FFD166; }
+        .hotel-imperial { background-color: #6A0572; color: white; }
+        .hotel-american { background-color: #1A535C; color: white; }
+        .hotel-continental { background-color: #F9C80E; }
+        .hotel-tower { background-color: #2B2D42; color: white; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4">
+    <div class="container mx-auto">
+        <header class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-gray-800">Acquire</h1>
+            <p class="text-gray-600">A strategic board game of hotel acquisitions</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left sidebar - Hotels and Game Info -->
+            <div class="bg-white rounded-lg shadow-md p-4">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2">Hotels</h2>
+                
+                <div class="space-y-4">
+                    <!-- Hotel cards -->
+                    <div class="hotel-card p-3 rounded-md hotel-worldwide">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold">Worldwide</h3>
+                            <span class="text-sm bg-white bg-opacity-80 px-2 py-1 rounded">Economy</span>
+                        </div>
+                        <div class="mt-2 flex justify-between text-sm">
+                            <span>Size: 0</span>
+                            <span>Price: $200</span>
+                            <span>Shares: 25</span>
+                        </div>
+                    </div>
+                    
+                    <div class="hotel-card p-3 rounded-md hotel-sackson">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold">Sackson</h3>
+                            <span class="text-sm bg-white bg-opacity-80 px-2 py-1 rounded">Economy</span>
+                        </div>
+                        <div class="mt-2 flex justify-between text-sm">
+                            <span>Size: 0</span>
+                            <span>Price: $200</span>
+                            <span>Shares: 25</span>
+                        </div>
+                    </div>
+                    
+                    <div class="hotel-card p-3 rounded-md hotel-festival">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold">Festival</h3>
+                            <span class="text-sm bg-white bg-opacity-80 px-2 py-1 rounded">Standard</span>
+                        </div>
+                        <div class="mt-2 flex justify-between text-sm">
+                            <span>Size: 0</span>
+                            <span>Price: $300</span>
+                            <span>Shares: 25</span>
+                        </div>
+                    </div>
+                    
+                    <div class="hotel-card p-3 rounded-md hotel-imperial">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold">Imperial</h3>
+                            <span class="text-sm bg-white bg-opacity-80 px-2 py-1 rounded text-gray-800">Standard</span>
+                        </div>
+                        <div class="mt-2 flex justify-between text-sm">
+                            <span>Size: 0</span>
+                            <span>Price: $300</span>
+                            <span>Shares: 25</span>
+                        </div>
+                    </div>
+                    
+                    <div class="hotel-card p-3 rounded-md hotel-american">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold">American</h3>
+                            <span class="text-sm bg-white bg-opacity-80 px-2 py-1 rounded text-gray-800">Standard</span>
+                        </div>
+                        <div class="mt-2 flex justify-between text-sm">
+                            <span>Size: 0</span>
+                            <span>Price: $300</span>
+                            <span>Shares: 25</span>
+                        </div>
+                    </div>
+                    
+                    <div class="hotel-card p-3 rounded-md hotel-continental">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold">Continental</h3>
+                            <span class="text-sm bg-white bg-opacity-80 px-2 py-1 rounded text-gray-800">Luxury</span>
+                        </div>
+                        <div class="mt-2 flex justify-between text-sm">
+                            <span>Size: 0</span>
+                            <span>Price: $400</span>
+                            <span>Shares: 25</span>
+                        </div>
+                    </div>
+                    
+                    <div class="hotel-card p-3 rounded-md hotel-tower">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold">Tower</h3>
+                            <span class="text-sm bg-white bg-opacity-80 px-2 py-1 rounded text-gray-800">Luxury</span>
+                        </div>
+                        <div class="mt-2 flex justify-between text-sm">
+                            <span>Size: 0</span>
+                            <span>Price: $400</span>
+                            <span>Shares: 25</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-2">Game Status</h2>
+                    <div class="p-3 bg-gray-100 rounded-md">
+                        <p class="font-medium">Current Turn: <span class="text-blue-600">Player 1</span></p>
+                        <p class="mt-1">State: <span class="font-medium">PLAY_TILE</span></p>
+                        <p class="mt-1">Tiles in bag: <span class="font-medium">60</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Center - Game Board -->
+            <div class="bg-white rounded-lg shadow-md p-4 lg:col-span-2">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2">Game Board</h2>
+                
+                <div class="overflow-x-auto">
+                    <div class="board-container min-w-max">
+                        <!-- Column headers (A-I) -->
+                        <div class="flex">
+                            <div class="w-10 h-10 flex items-center justify-center font-bold"></div>
+                            <div class="w-10 h-10 flex items-center justify-center font-bold">A</div>
+                            <div class="w-10 h-10 flex items-center justify-center font-bold">B</div>
+                            <div class="w-10 h-10 flex items-center justify-center font-bold">C</div>
+                            <div class="w-10 h-10 flex items-center justify-center font-bold">D</div>
+                            <div class="w-10 h-10 flex items-center justify-center font-bold">E</div>
+                            <div class="w-10 h-10 flex items-center justify-center font-bold">F</div>
+                            <div class="w-10 h-10 flex items-center justify-center font-bold">G</div>
+                            <div class="w-10 h-10 flex items-center justify-center font-bold">H</div>
+                            <div class="w-10 h-10 flex items-center justify-center font-bold">I</div>
+                        </div>
+                        
+                        <!-- Board rows (1-12) - Using a template for brevity -->
+                        <!-- Rows 1-10 are already in the file, so I'm just adding rows 11-12 and completing row 11 -->
+                        
+                        <!-- Row 11 (completing) -->
+                        <div class="flex">
+                            <div class="w-10 h-10 flex items-center justify-center font-bold">11</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="11A">11A</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="11B">11B</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="11C">11C</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="11D">11D</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="11E">11E</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="11F">11F</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="11G">11G</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="11H">11H</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="11I">11I</div>
+                        </div>
+                        
+                        <!-- Row 12 -->
+                        <div class="flex">
+                            <div class="w-10 h-10 flex items-center justify-center font-bold">12</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="12A">12A</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="12B">12B</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="12C">12C</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="12D">12D</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="12E">12E</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="12F">12F</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="12G">12G</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="12H">12H</div>
+                            <div class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 cursor-pointer" data-tile="12I">12I</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Game controls -->
+                <div class="mt-6 border-t pt-4">
+                    <h3 class="font-semibold mb-2">Game Controls</h3>
+                    <div class="flex space-x-2">
+                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Play Tile</button>
+                        <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">Found Hotel</button>
+                        <button class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded">Buy Shares</button>
+                        <button class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">End Turn</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right sidebar - Player Information -->
+            <div class="bg-white rounded-lg shadow-md p-4 lg:col-span-3">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2">Players</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Player 1 -->
+                    <div class="p-3 bg-blue-50 rounded-md border border-blue-200">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-blue-600">Player 1</h3>
+                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Current Turn</span>
+                        </div>
+                        <p class="mt-2">Money: $6,000</p>
+                        <div class="mt-2">
+                            <p class="font-medium mb-1">Shares:</p>
+                            <div class="flex flex-wrap gap-1">
+                                <span class="px-2 py-1 bg-white rounded text-xs">Worldwide: 0</span>
+                                <span class="px-2 py-1 bg-white rounded text-xs">Sackson: 0</span>
+                                <span class="px-2 py-1 bg-white rounded text-xs">Festival: 0</span>
+                                <span class="px-2 py-1 bg-white rounded text-xs">Imperial: 0</span>
+                                <span class="px-2 py-1 bg-white rounded text-xs">American: 0</span>
+                                <span class="px-2 py-1 bg-white rounded text-xs">Continental: 0</span>
+                                <span class="px-2 py-1 bg-white rounded text-xs">Tower: 0</span>
+                            </div>
+                        </div>
+                        <p class="mt-2">Tiles: 6</p>
+                    </div>
+                    
+                    <!-- Player 2 -->
+                    <div class="p-3 bg-gray-50 rounded-md border border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold">Player 2</h3>
+                        </div>
+                        <p class="mt-2">Money: $6,000</p>
+                        <div class="mt-2">
+                            <p class="font-medium mb-1">Shares:</p>
+                            <div class="flex flex-wrap gap-1">
+                                <span class="px-2 py-1 bg-white rounded text-xs">Worldwide: 0</span>
+                                <span class="px-2 py-1 bg-white rounded text-xs">Sackson: 0</span>
+                                <span class="px-2 py-1 bg-white rounded text-xs">Festival: 0</span>
+                                <span class="px-2 py-1 bg-white rounded text-xs">Imperial: 0</span>
+                                <span class="px-2 py-1 bg-white rounded text-xs">American: 0</span>
+                                <span class="px-2 py-1 bg-white rounded text-xs">Continental: 0</span>
+                                <span class="px-2 py-1 bg-white rounded text-xs">Tower: 0</span>
+                            </div>
+                        </div>
+                        <p class="mt-2">Tiles: 6</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="mt-8 text-center text-gray-500 text-sm">
+        <p>Acquire Board Game - Sample Layout</p>
+    </footer>
+</body>
+</html>
