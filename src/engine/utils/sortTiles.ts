@@ -1,4 +1,4 @@
-import type { Tile } from "@/engine/types/tile.ts";
+import type { Tile } from '@/engine/types/tile.ts';
 
 /**
  * Sorts an array of tiles in ascending order.

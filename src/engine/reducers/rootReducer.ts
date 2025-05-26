@@ -1,18 +1,42 @@
-import type { GameState, GameAction, ActionResult } from '@/engine/types/index.ts';
+import {
+  type GameAction,
+  GameError,
+  GameErrorCodes,
+  type GameState,
+} from '@/engine/types/index.ts';
 import { actionHandlers } from './actionHandlers.ts';
 
-export const rootReducer = (state: GameState, action: GameAction): GameState => {
-  // Get the appropriate handler for this action type
-  const handler = actionHandlers[action.type];
-  
-  // If we have a handler, use it; otherwise return the state unchanged
-  if (!handler) {
-    console.warn(`No handler registered for action type: ${action.type}`);
-    return state;
+export const rootReducer = (
+  state: GameState,
+  action: GameAction,
+): GameState => {
+  try {
+    // Get the appropriate handler for this action type
+    const handler = actionHandlers[action.type];
+
+    // If we have a handler, use it; otherwise return the state unchanged
+    if (!handler) {
+      console.warn(`No handler registered for action type: ${action.type}`);
+      return state;
+    }
+
+    const newState = handler(state, action);
+    return {
+      ...newState,
+      error: null, // Auto-clear error on success
+    }; 
+  } catch (error) {
+    return {
+      ...state,
+      error: error instanceof GameError
+        ? {
+          code: error.code,
+          message: error.message,
+        }
+        : {
+          code: GameErrorCodes.UNKNOWN_ERROR,
+          message: error instanceof Error ? error.message : String(error),
+        },
+    };
   }
-  
-  const result: ActionResult = handler(state, action);
-  
-  // Return the new state if successful, otherwise return the original state
-  return result.success && result.newState ? result.newState : state;
-}
+};

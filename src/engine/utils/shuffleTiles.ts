@@ -1,4 +1,4 @@
-import type { Tile } from "@/engine/types/tile.ts";
+import type { Tile } from '@/engine/types/tile.ts';
 
 // Does an in place randomization of an array, then returns it
 export const shuffleTiles = (array: Tile[]): Tile[] => {

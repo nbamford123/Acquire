@@ -34,19 +34,19 @@ export type StartGameState = {
 // Part of the fun is counting up the shares and giving money at the end... can animate on client side
 export type EndGameState =
   | {
-      players: Record<
-        string,
-        {
-          hotels: {
-            hotel: string;
-            shares: number;
-            payout: number;
-          };
-          totalCash: number;
-        }
-      >;
-      winner: string;
-    }
+    players: Record<
+      string,
+      {
+        hotels: {
+          hotel: string;
+          shares: number;
+          payout: number;
+        };
+        totalCash: number;
+      }
+    >;
+    winner: string;
+  }
   | { error: string };
 
 export enum GAME_STATE {

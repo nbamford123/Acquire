@@ -1,15 +1,15 @@
-import type { HOTEL_NAME } from "@/engine/domain/Hotel.ts";
-import type { Player, Tile } from "@/engine/types/index.ts";
+import type { ErrorCodeValue, Hotel, Player, Tile } from './index.ts';
 
 // Game phases
 export enum GamePhase {
-  WAITING_FOR_PLAYERS = "WAITING_FOR_PLAYERS",
-  ACTIVE = "ACTIVE",
-  PLAY_TILE = "PLAY_TILE",
-  FOUND_HOTEL = "FOUND_HOTEL",
-  RESOLVE_MERGER = "RESOLVE_MERGER",
-  BUY_SHARES = "BUY_SHARES",
-  GAME_OVER = "GAME_OVER",
+  WAITING_FOR_PLAYERS = 'WAITING_FOR_PLAYERS',
+  PLAYER_TURN = 'PLAYER_TURN',
+  PLAY_TILE = 'PLAY_TILE',
+  FOUND_HOTEL = 'FOUND_HOTEL',
+  RESOLVE_MERGER = 'RESOLVE_MERGER',
+  BREAK_MERGER_TIE = 'BREAK_MERGER_TIE',
+  BUY_SHARES = 'BUY_SHARES',
+  GAME_OVER = 'GAME_OVER',
 }
 
 // Serializable game state
@@ -18,25 +18,29 @@ export interface GameState {
   owner: string;
   currentPhase: GamePhase;
   currentTurn: number;
-  currentPlayer: string; // Player name
+  currentPlayer: number; // Player id
   lastUpdated: number; // Timestamp
   players: Player[]; // Sorted by player order
-  hotels: Array<{
-    name: HOTEL_NAME;
-    size: number;
-    safe: boolean;
-    sharePrice: number;
-    remainingShares: number;
-  }>;
+  hotels: Hotel[];
   tiles: Tile[][];
-  pendingDecision?: {
-    type: "foundHotel" | "resolveMerger" | "acquirerBonus" | "targetBonus";
-    options: Array<string>; // Hotel names or other options
-    deadline?: number; // Optional timestamp for decision timeout
+  pendingPlayerId?: number; // Next player to act for multi-player phases
+  mergerTieContext?: {
+    // for break tie we need to give user the hotels
+    breakTie: [string, string];
+    // possibly need to accumulate multiple tie breakers
+    resolvedTies?: [string, string][];
   };
-  lastAction?: {
-    player: string;
-    action: string;
-    timestamp: number;
+  mergerContext?: {
+    survivingHotel: Hotel;
+    mergedHotels: Hotel[];
   };
+  foundHotelContext?: {
+    availableHotels: Hotel[];
+    tiles: Tile[];
+  };
+  lastActions: string[];
+  error: {
+    code: ErrorCodeValue;
+    message: string;
+  } | null;
 }

@@ -1,11 +1,33 @@
 {
-  "name": "acquire",
+  "name": "@slacktronix/acquire",
   "version": "1.0.0",
   "tasks": {
     "start": "deno run --allow-net src/main.ts",
-    "test": "deno test"
+    "test": "deno test",
+    "lint": "deno lint",
+    "fmt": "deno fmt",
+    "fmt:check": "deno fmt --check"
   },
   "imports": {
     "@/": "./src/"
+  },
+  "lint": {
+    "include": ["src/"],
+    "exclude": ["**/node_modules/", "**/*test*"],
+    "rules": {
+      "tags": ["recommended"],
+      "include": ["ban-untagged-todo"],
+      "exclude": ["no-unused-vars"]
+    }
+  },
+  "fmt": {
+    "include": ["src/"],
+    "exclude": ["**/node_modules/", "**/*test*"],
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "semiColons": true,
+    "singleQuote": true,
+    "proseWrap": "preserve",
+    "useTabs": false
   }
 }

@@ -1,7 +1,6 @@
-// engine/core/gameInitialization.ts
-import { GamePhase, type GameState } from "@/engine/types/index.ts";
-import { COLS, ROWS } from "@/engine/config/gameConfig.ts";
-import { initializePlayer, initializeTiles } from "@/engine/domain/index.ts";
+import { GamePhase, type GameState } from '@/engine/types/index.ts';
+import { COLS, ROWS } from '@/engine/config/gameConfig.ts';
+import { initializeHotels, initializePlayer, initializeTiles } from '@/engine/domain/index.ts';
 
 /**
  * Creates a new game with the specified parameters
@@ -20,5 +19,6 @@ export function initializeGame(
     players: [
       initializePlayer(ownerId),
     ],
+    hotels: initializeHotels(),
   };
 }

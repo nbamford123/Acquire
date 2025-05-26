@@ -1,14 +1,14 @@
 // gameEngine.ts - Pure game logic with no side effects
-import type { GameState, GameAction } from '@/engine/types/index.ts';
+import type { GameAction, GameState } from '@/engine/types/index.ts';
 import { rootReducer } from '@/engine/reducers/rootReducer.ts';
 
 export function processAction(state: GameState, action: GameAction): GameState {
   // Process the action through our reducer system
   const newState = rootReducer(state, action);
-  
+
   // Game rule enforcement, win condition checking, etc.
   const finalState = checkGameRules(newState, state);
-  
+
   return finalState;
 }
 

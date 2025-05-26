@@ -1,7 +1,8 @@
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals, assertThrows } from "jsr:@std/assert";
 import { expect } from "jsr:@std/expect";
-import { addPlayerReducer } from "./playerReducers.ts";
+import { addPlayerReducer, removePlayerReducer } from "./playerReducers.ts";
 import { GameErrorCodes, GamePhase } from "@/engine/types/index.ts";
+import { GameError } from "@/engine/types/errorCodes.ts";
 import {
   INITIAL_PLAYER_MONEY,
   MAX_PLAYERS,
@@ -14,6 +15,7 @@ Deno.test("addPlayerReducer tests", async (t) => {
       // Arrange
       const gameState = {
         gameId: "test-game",
+        owner: "",
         currentPhase: GamePhase.WAITING_FOR_PLAYERS,
         currentTurn: 0,
         currentPlayer: "",
@@ -21,25 +23,22 @@ Deno.test("addPlayerReducer tests", async (t) => {
         players: [],
         hotels: [],
         tiles: [],
+        error: null,
       };
       const playerName = "TestPlayer";
 
       // Act
-      const result = addPlayerReducer(gameState, {
+      const newState = addPlayerReducer(gameState, {
         type: "ADD_PLAYER",
         payload: { playerName },
       });
 
       // Assert
-      assertEquals(result.success, true);
-      expect(result.newState).toBeDefined();
-
-      if (result.newState) {
-        const newPlayers = result.newState.players;
-        assertEquals(newPlayers.length, 1);
-        assertEquals(newPlayers[0].name, playerName);
-        assertEquals(newPlayers[0].money, INITIAL_PLAYER_MONEY);
-      }
+      assertEquals(newState.players.length, 1);
+      assertEquals(newState.players[0].name, playerName);
+      assertEquals(newState.players[0].money, INITIAL_PLAYER_MONEY);
+      expect(newState.players[0].shares).toBeDefined();
+      assertEquals(Object.keys(newState.players[0].shares).length, 0);
     },
   );
 
@@ -49,29 +48,34 @@ Deno.test("addPlayerReducer tests", async (t) => {
       // Arrange
       const gameState = {
         gameId: "test-game",
+        owner: "ExistingPlayer",
         currentPhase: GamePhase.PLAY_TILE, // Not in WAITING_FOR_PLAYERS phase
         currentTurn: 1,
         currentPlayer: "ExistingPlayer",
         lastUpdated: Date.now(),
-        players: [{ name: "ExistingPlayer", money: INITIAL_PLAYER_MONEY }],
+        players: [{ 
+          name: "ExistingPlayer", 
+          money: INITIAL_PLAYER_MONEY,
+          shares: {}
+        }],
         hotels: [],
         tiles: [],
+        error: null,
       };
 
-      // Act
-      const result = addPlayerReducer(gameState, {
-        type: "ADD_PLAYER",
-        payload: { playerName: "bob" },
-      });
-
-      // Assert
-      assertEquals(result.success, false);
-      assertEquals(result.error?.code, GameErrorCodes.NOT_ADDING_PLAYERS);
-      assertEquals(
-        result.error?.message,
-        "Can't add players, game already in progress",
+      // Act & Assert
+      const error = assertThrows(
+        () => {
+          addPlayerReducer(gameState, {
+            type: "ADD_PLAYER",
+            payload: { playerName: "bob" },
+          });
+        },
+        GameError,
+        "Can't add player, game already in progress"
       );
-      expect(result.newState).toBeUndefined();
+      
+      assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
     },
   );
 
@@ -79,6 +83,7 @@ Deno.test("addPlayerReducer tests", async (t) => {
     // Arrange
     const gameState = {
       gameId: "test-game",
+      owner: "Player1",
       currentPhase: GamePhase.WAITING_FOR_PLAYERS,
       currentTurn: 0,
       currentPlayer: "",
@@ -86,31 +91,33 @@ Deno.test("addPlayerReducer tests", async (t) => {
       players: Array(MAX_PLAYERS).fill(0).map((_, i) => ({
         name: `Player${i + 1}`,
         money: INITIAL_PLAYER_MONEY,
+        shares: {}
       })),
       hotels: [],
       tiles: [],
+      error: null,
     };
 
-    // Act
-    const result = addPlayerReducer(gameState, {
-      type: "ADD_PLAYER",
-      payload: { playerName: "bob" },
-    });
-
-    // Assert
-    assertEquals(result.success, false);
-    assertEquals(result.error?.code, GameErrorCodes.PLAYERS_MAX);
-    assertEquals(
-      result.error?.message,
-      `Game already has maximum of ${MAX_PLAYERS} players`,
+    // Act & Assert
+    const error = assertThrows(
+      () => {
+        addPlayerReducer(gameState, {
+          type: "ADD_PLAYER",
+          payload: { playerName: "bob" },
+        });
+      },
+      GameError,
+      `Game already has maximum of ${MAX_PLAYERS} players`
     );
-    expect(result.newState).toBeUndefined();
+    
+    assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
   });
 
   await t.step("fails to add a player with an empty name", () => {
     // Arrange
     const gameState = {
       gameId: "test-game",
+      owner: "",
       currentPhase: GamePhase.WAITING_FOR_PLAYERS,
       currentTurn: 0,
       currentPlayer: "",
@@ -118,25 +125,29 @@ Deno.test("addPlayerReducer tests", async (t) => {
       players: [],
       hotels: [],
       tiles: [],
+      error: null,
     };
 
-    // Act
-    const result = addPlayerReducer(gameState, {
-      type: "ADD_PLAYER",
-      payload: { playerName: "" },
-    });
-
-    // Assert
-    assertEquals(result.success, false);
-    assertEquals(result.error?.code, GameErrorCodes.INVALID_PLAYER_NAME);
-    assertEquals(result.error?.message, "Player name cannot be empty");
-    expect(result.newState).toBeUndefined();
+    // Act & Assert
+    const error = assertThrows(
+      () => {
+        addPlayerReducer(gameState, {
+          type: "ADD_PLAYER",
+          payload: { playerName: "" },
+        });
+      },
+      GameError,
+      "Player name cannot be empty"
+    );
+    
+    assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
   });
 
   await t.step("fails to add a player with a name longer than 20 characters", () => {
     // Arrange
     const gameState = {
       gameId: "test-game",
+      owner: "",
       currentPhase: GamePhase.WAITING_FOR_PLAYERS,
       currentTurn: 0,
       currentPlayer: "",
@@ -144,19 +155,22 @@ Deno.test("addPlayerReducer tests", async (t) => {
       players: [],
       hotels: [],
       tiles: [],
+      error: null,
     };
 
-    // Act
-    const result = addPlayerReducer(gameState, {
-      type: "ADD_PLAYER",
-      payload: { playerName: "ThisNameIsWayTooLongForTheGame" },
-    });
-
-    // Assert
-    assertEquals(result.success, false);
-    assertEquals(result.error?.code, GameErrorCodes.INVALID_PLAYER_NAME);
-    assertEquals(result.error?.message, "Player name must be less than 20 characters");
-    expect(result.newState).toBeUndefined();
+    // Act & Assert
+    const error = assertThrows(
+      () => {
+        addPlayerReducer(gameState, {
+          type: "ADD_PLAYER",
+          payload: { playerName: "ThisNameIsWayTooLongForTheGame" },
+        });
+      },
+      GameError,
+      "Player name must be less than 20 characters"
+    );
+    
+    assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
   });
 
   await t.step("fails to add a player with a name that already exists", () => {
@@ -164,25 +178,64 @@ Deno.test("addPlayerReducer tests", async (t) => {
     const existingPlayerName = "ExistingPlayer";
     const gameState = {
       gameId: "test-game",
+      owner: existingPlayerName,
       currentPhase: GamePhase.WAITING_FOR_PLAYERS,
       currentTurn: 0,
       currentPlayer: "",
       lastUpdated: Date.now(),
-      players: [{ name: existingPlayerName, money: INITIAL_PLAYER_MONEY }],
+      players: [{ 
+        name: existingPlayerName, 
+        money: INITIAL_PLAYER_MONEY,
+        shares: {}
+      }],
       hotels: [],
       tiles: [],
+      error: null,
+    };
+
+    // Act & Assert
+    const error = assertThrows(
+      () => {
+        addPlayerReducer(gameState, {
+          type: "ADD_PLAYER",
+          payload: { playerName: existingPlayerName },
+        });
+      },
+      GameError,
+      "A player with this name already exists"
+    );
+    
+    assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
+  });
+});
+
+Deno.test("removePlayerReducer tests", async (t) => {
+  await t.step("returns the game state unchanged", () => {
+    // Arrange
+    const gameState = {
+      gameId: "test-game",
+      owner: "Player1",
+      currentPhase: GamePhase.WAITING_FOR_PLAYERS,
+      currentTurn: 0,
+      currentPlayer: "",
+      lastUpdated: Date.now(),
+      players: [{ 
+        name: "Player1", 
+        money: INITIAL_PLAYER_MONEY,
+        shares: {}
+      }],
+      hotels: [],
+      tiles: [],
+      error: null,
     };
 
     // Act
-    const result = addPlayerReducer(gameState, {
-      type: "ADD_PLAYER",
-      payload: { playerName: existingPlayerName },
+    const newState = removePlayerReducer(gameState, {
+      type: "REMOVE_PLAYER",
+      payload: { playerId: "Player1" },
     });
 
     // Assert
-    assertEquals(result.success, false);
-    assertEquals(result.error?.code, GameErrorCodes.PLAYER_EXISTS);
-    assertEquals(result.error?.message, "A player with this name already exists");
-    expect(result.newState).toBeUndefined();
+    assertEquals(newState, gameState);
   });
 });

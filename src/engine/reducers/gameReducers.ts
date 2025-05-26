@@ -1,71 +1,82 @@
-import { MINIMUM_PLAYERS } from "@/engine/config/gameConfig.ts";
+import { MINIMUM_PLAYERS } from '@/engine/config/gameConfig.ts';
+import { GameError, GameErrorCodes, GamePhase, type GameState } from '@/engine/types/index.ts';
+import type {
+  BuySharesAction,
+  PlayerTurnAction,
+  PlayTileAction,
+  StartGameAction,
+} from '@/engine/types/actionsTypes.ts';
 import {
-  type ActionResult,
-  GameErrorCodes,
-  GamePhase,
-  type GameState,
-} from "@/engine/types/index.ts";
-import type { StartGameAction } from "@/engine/types/actionsTypes.ts";
-import { drawTile } from "@/engine/domain/tileOperations.ts";
-import { cmpTiles } from "@/engine/utils/index.ts";
+  board,
+  deadTile,
+  drawTiles,
+  findHotel,
+  remainingShares,
+  sharePrice,
+} from '@/engine/domain/index.ts';
+import { cmpTiles, getAdjacentPositions } from '@/engine/utils/index.ts';
 
 export const startGameReducer = (
   gameState: GameState,
   action: StartGameAction,
-): ActionResult => {
-  // Check if game is in the correct phase for adding players
+): GameState => {
   if (gameState.currentPhase !== GamePhase.WAITING_FOR_PLAYERS) {
-    return {
-      success: false,
-      error: {
-        code: GameErrorCodes.NOT_ADDING_PLAYERS,
-        message: "Can't add players, game already in progress",
-      },
-    };
+    throw new GameError(
+      "Can't add players, game already in progress",
+      GameErrorCodes.GAME_INVALID_ACTION,
+    );
   }
-  // Need at least two players
   if (gameState.players.length < MINIMUM_PLAYERS) {
-    return {
-      success: false,
-      error: {
-        code: GameErrorCodes.NOT_ENOUGH_PLAYERS,
-        message:
-          `Can't start game without minimum of ${MINIMUM_PLAYERS} players`,
-      },
-    };
+    throw new GameError(
+      `Can't start game without minimum of ${MINIMUM_PLAYERS} players`,
+      GameErrorCodes.GAME_INVALID_ACTION,
+    );
   }
   if (action.payload.playerName !== gameState.owner) {
-    return {
-      success: false,
-      error: {
-        code: GameErrorCodes.INVALID_ACTION,
-        message: `Only player ${gameState.owner} can start the game`,
-      },
-    };
+    throw new GameError(
+      `Only player ${gameState.owner} can start the game`,
+      GameErrorCodes.GAME_INVALID_ACTION,
+    );
   }
+
   // Draw initial tiles
-  // biome-ignore lint/complexity/noForEach: <explanation>
   gameState.players.forEach((player) => {
-    const result = drawTile(gameState.tiles, player.name);
-    if (result) {
-      const [tile, tiles] = result;
-      player.firstTile = tile;
-      gameState.tiles = tiles;
-    }
+    // The player id (not yet set) doesn't matter here because we immediately place the tile on the board
+    const firstTile = drawTiles(gameState, -1, 1)[0];
+    player.firstTile = firstTile;
+    firstTile.location = 'board';
   });
 
-  const sortedPlayers = gameState.players.sort((p1, p2) =>
-    // biome-ignore lint/style/noNonNullAssertion: all firstTiles were just explicitly set
-    cmpTiles(p1.firstTile!, p2.firstTile!)
-  );
+  // Sort the players by first drawn tile and give them an id based on their position
+  const sortedPlayers = gameState.players.sort((p1, p2) => cmpTiles(p1.firstTile!, p2.firstTile!))
+    .map((p, idx) => ({ ...p, id: idx }));
+
+  // Now draw 6 tiles for each player so they're ready to play
+  // This could have been done in the above loop, but when we play in person we always do the individual
+  // tiles first. It's a tradition
+  sortedPlayers.forEach((player) => player.tiles = drawTiles(gameState, player.id, 6));
 
   gameState.players = sortedPlayers;
-  gameState.currentPhase = GamePhase.ACTIVE;
-  gameState.currentPlayer = sortedPlayers[0].name;
+  gameState.currentPhase = GamePhase.PLAYER_TURN;
+  gameState.currentPlayer = 0;
   gameState.currentTurn = 1;
 
-  return {
-    success: true,
-    newState: gameState,
-  };
+  return gameState;
 };
+
+export const playerTurnReducer = (
+  gameState: GameState,
+  action: PlayerTurnAction,
+): GameState => {
+  const { playerId } = action.payload;
+  const player = gameState.players[playerId];
+  // Check for dead tiles and replace
+  const playerTiles = player.tiles.map((tile) => {
+    if (deadTile(tile, gameState)) {
+      return drawTiles(gameState, playerId, 1);
+    }
+    return tile;
+  });
+  return { ...gameState, currentPhase: GamePhase.PLAY_TILE };
+};
+
