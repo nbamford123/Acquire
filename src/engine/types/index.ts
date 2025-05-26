@@ -8,7 +8,6 @@ export {
   type PlayTileAction,
   type RemovePlayerAction,
   type StartGameAction,
-  type BreakTieAction,
 } from './actionsTypes.ts';
 export { type ErrorCodeValue, GameError, GameErrorCodes } from './errorCodes.ts';
 export { GamePhase, type GameState } from './gameState.ts';

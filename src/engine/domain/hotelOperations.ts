@@ -70,10 +70,11 @@ const applyTieResolution = (
 
     if (hotel1.tiles.length === hotel2.tiles.length) {
       // Found a tie - is it resolved?
-      const isResolved = resolvedTies && resolvedTies.some(([first, second]) =>
-        (first === hotel1.name && second === hotel2.name) ||
-        (first === hotel2.name && second === hotel1.name)
-      );
+      const isResolved = resolvedTies &&
+        resolvedTies.some(([first, second]) =>
+          (first === hotel1.name && second === hotel2.name) ||
+          (first === hotel2.name && second === hotel1.name)
+        );
 
       if (!isResolved) {
         return { allResolved: false, hotel1, hotel2 };

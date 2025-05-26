@@ -6,7 +6,8 @@
     "test": "deno test",
     "lint": "deno lint",
     "fmt": "deno fmt",
-    "fmt:check": "deno fmt --check"
+    "fmt:check": "deno fmt --check",
+    "validate": "deno fmt && deno check **/*.ts && deno lint"
   },
   "imports": {
     "@/": "./src/"
@@ -29,5 +30,14 @@
     "singleQuote": true,
     "proseWrap": "preserve",
     "useTabs": false
+  },
+  "typeCheck": {
+    "include": ["src/"],
+    "exclude": ["**/node_modules/", "**/*test*"],
+    "compilerOptions": {
+      "strict": true,
+      "noImplicitReturns": true,
+      "noFallthroughCasesInSwitch": true
+    }
   }
 }

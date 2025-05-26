@@ -1,11 +1,6 @@
 import { GameError, GameErrorCodes, GamePhase, type GameState } from '@/engine/types/index.ts';
-import type {
-  BuySharesAction,
-} from '@/engine/types/actionsTypes.ts';
-import {
-  remainingShares,
-  sharePrice,
-} from '@/engine/domain/index.ts';
+import type { BuySharesAction } from '@/engine/types/actionsTypes.ts';
+import { remainingShares, sharePrice } from '@/engine/domain/index.ts';
 
 export const buySharesReducer = (
   gameState: GameState,
@@ -34,7 +29,7 @@ export const buySharesReducer = (
   let totalCost = 0;
   Object.entries(shares).forEach(([hotelName, numShares]) => {
     const hotel = gameState.hotels.find((h) => h.name === hotelName);
-    if (!hotel) { 
+    if (!hotel) {
       throw new GameError(`Hotel ${hotelName} doesn't exist`, GameErrorCodes.GAME_INVALID_ACTION);
     }
     if (remainingShares(hotel) < numShares) {
@@ -56,6 +51,7 @@ export const buySharesReducer = (
 
   const nextPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
 
+  // reset actions
   return {
     ...gameState,
     currentPhase: GamePhase.PLAYER_TURN,

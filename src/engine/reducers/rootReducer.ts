@@ -24,7 +24,7 @@ export const rootReducer = (
     return {
       ...newState,
       error: null, // Auto-clear error on success
-    }; 
+    };
   } catch (error) {
     return {
       ...state,

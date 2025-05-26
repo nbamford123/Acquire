@@ -1,4 +1,4 @@
- import type { HOTEL_NAME } from './hotel.ts';
+import type { HOTEL_NAME } from './hotel.ts';
 import type { Tile } from './tile.ts';
 
 export type Player = {

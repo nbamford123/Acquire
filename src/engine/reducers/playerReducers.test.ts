@@ -18,12 +18,13 @@ Deno.test("addPlayerReducer tests", async (t) => {
         owner: "",
         currentPhase: GamePhase.WAITING_FOR_PLAYERS,
         currentTurn: 0,
-        currentPlayer: "",
+        currentPlayer: 0,
         lastUpdated: Date.now(),
         players: [],
         hotels: [],
         tiles: [],
         error: null,
+        lastActions: []
       };
       const playerName = "TestPlayer";
 
@@ -51,16 +52,19 @@ Deno.test("addPlayerReducer tests", async (t) => {
         owner: "ExistingPlayer",
         currentPhase: GamePhase.PLAY_TILE, // Not in WAITING_FOR_PLAYERS phase
         currentTurn: 1,
-        currentPlayer: "ExistingPlayer",
+        currentPlayer: 0,
         lastUpdated: Date.now(),
         players: [{ 
+          id: 0,
           name: "ExistingPlayer", 
           money: INITIAL_PLAYER_MONEY,
-          shares: {}
+          shares: {},
+          tiles: []
         }],
         hotels: [],
         tiles: [],
         error: null,
+        lastActions: []
       };
 
       // Act & Assert
@@ -86,16 +90,19 @@ Deno.test("addPlayerReducer tests", async (t) => {
       owner: "Player1",
       currentPhase: GamePhase.WAITING_FOR_PLAYERS,
       currentTurn: 0,
-      currentPlayer: "",
+      currentPlayer: 0,
       lastUpdated: Date.now(),
       players: Array(MAX_PLAYERS).fill(0).map((_, i) => ({
         name: `Player${i + 1}`,
+        id: i,
         money: INITIAL_PLAYER_MONEY,
-        shares: {}
+        shares: {},
+        tiles: []
       })),
       hotels: [],
       tiles: [],
       error: null,
+      lastActions: []
     };
 
     // Act & Assert
@@ -120,12 +127,13 @@ Deno.test("addPlayerReducer tests", async (t) => {
       owner: "",
       currentPhase: GamePhase.WAITING_FOR_PLAYERS,
       currentTurn: 0,
-      currentPlayer: "",
+      currentPlayer: 0,
       lastUpdated: Date.now(),
       players: [],
       hotels: [],
       tiles: [],
       error: null,
+        lastActions: []
     };
 
     // Act & Assert
@@ -150,12 +158,13 @@ Deno.test("addPlayerReducer tests", async (t) => {
       owner: "",
       currentPhase: GamePhase.WAITING_FOR_PLAYERS,
       currentTurn: 0,
-      currentPlayer: "",
+      currentPlayer: 0,
       lastUpdated: Date.now(),
       players: [],
       hotels: [],
       tiles: [],
       error: null,
+        lastActions: []
     };
 
     // Act & Assert
@@ -181,16 +190,19 @@ Deno.test("addPlayerReducer tests", async (t) => {
       owner: existingPlayerName,
       currentPhase: GamePhase.WAITING_FOR_PLAYERS,
       currentTurn: 0,
-      currentPlayer: "",
+      currentPlayer: 0,
       lastUpdated: Date.now(),
       players: [{ 
+        id: 0,
         name: existingPlayerName, 
         money: INITIAL_PLAYER_MONEY,
-        shares: {}
+        shares: {},
+        tiles: []
       }],
       hotels: [],
       tiles: [],
       error: null,
+        lastActions: []
     };
 
     // Act & Assert
@@ -217,22 +229,25 @@ Deno.test("removePlayerReducer tests", async (t) => {
       owner: "Player1",
       currentPhase: GamePhase.WAITING_FOR_PLAYERS,
       currentTurn: 0,
-      currentPlayer: "",
+      currentPlayer: 0,
       lastUpdated: Date.now(),
       players: [{ 
+        id: 0,
         name: "Player1", 
         money: INITIAL_PLAYER_MONEY,
-        shares: {}
+        shares: {},
+        tiles: []
       }],
       hotels: [],
       tiles: [],
       error: null,
+        lastActions: []
     };
 
     // Act
     const newState = removePlayerReducer(gameState, {
       type: "REMOVE_PLAYER",
-      payload: { playerId: "Player1" },
+      payload: { playerName: "Player1" },
     });
 
     // Assert
