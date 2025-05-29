@@ -1,8 +1,8 @@
 // gameService.ts - Handles data access and persistence
-import { Action, GameState } from './types';
-import { processAction } from './gameEngine';
+import type { GameAction, GameState } from '@/engine/types/index.ts';
+import { processAction } from '@/engine/core/gameEngine.ts';
 
-export async function handleGameAction(gameId: string, action: Action) {
+export async function handleGameAction(gameId: string, action: GameAction) {
   // 1. Fetch current game state from database
   const currentState = await fetchGameState(gameId);
 
@@ -21,6 +21,7 @@ export async function handleGameAction(gameId: string, action: Action) {
 
 // Database helper functions
 async function fetchGameState(gameId: string): Promise<GameState> {
+  return await new Promise<GameState>(() => ({} as GameState));
   // Implementation depends on your database choice
 }
 
@@ -30,7 +31,7 @@ async function saveGameState(gameId: string, state: GameState): Promise<void> {
 
 async function handleSideEffects(
   gameId: string,
-  action: Action,
+  action: GameAction,
   newState: GameState,
   previousState: GameState,
 ): Promise<void> {

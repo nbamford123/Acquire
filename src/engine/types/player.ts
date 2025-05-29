@@ -6,6 +6,6 @@ export type Player = {
   name: string;
   firstTile?: Tile;
   money: number;
-  shares: Record<HOTEL_NAME, number> | Record<string, never>;
+  shares: Partial<Record<HOTEL_NAME, number>>;
   tiles: Tile[];
 };

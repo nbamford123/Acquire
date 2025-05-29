@@ -3,6 +3,7 @@ import type { Tile } from '@/engine/types/tile.ts';
 
 import { 
   cmpTiles, 
+  filterDefined,
   getAdjacentPositions, 
   shuffleTiles, 
   sortTiles 
@@ -75,6 +76,15 @@ Deno.test("cmpTiles - handles edge cases with different locations", () => {
     ),
     0,
   );
+});
+
+// fiterDefinedTests
+Deno.test("filterDefined - removes undefined and null values", () => {
+  assertEquals(filterDefined([1, null, 2, undefined, 3]), [1, 2, 3]);
+});
+
+Deno.test("filterDefined - returns empty array with array input", () => {
+  assertEquals(filterDefined([]), []);
 });
 
 // getAdjacentPositions tests

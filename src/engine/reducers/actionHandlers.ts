@@ -36,7 +36,6 @@ export const actionHandlers: Record<
   [ActionTypes.ADD_PLAYER]: createActionHandler<AddPlayerAction>(addPlayerReducer),
   [ActionTypes.REMOVE_PLAYER]: createActionHandler<RemovePlayerAction>(removePlayerReducer),
   [ActionTypes.START_GAME]: createActionHandler<StartGameAction>(startGameReducer),
-  [ActionTypes.PLAYER_TURN]: createActionHandler<PlayerTurnAction>(playerTurnReducer),
   [ActionTypes.PLAY_TILE]: createActionHandler<PlayTileAction>(playTileReducer),
   [ActionTypes.BUY_SHARES]: createActionHandler<BuySharesAction>(buySharesReducer),
   // Register other action handlers

@@ -14,13 +14,6 @@ export const startGame = (playerName: string): StartGameAction => {
   };
 };
 
-export const playerTurn = (playerId: number): PlayerTurnAction => {
-  return {
-    type: ActionTypes.PLAYER_TURN,
-    payload: { playerId },
-  };
-};
-
 export const playTile = (playerId: number, tile: Tile): PlayTileAction => {
   return {
     type: ActionTypes.PLAY_TILE,

@@ -21,8 +21,8 @@ export const initializeTiles = (rows: number, cols: number): Tile[][] =>
 export const tileLabel = (tile: Tile): string =>
   `${tile.row + 1}${String.fromCharCode(tile.col + CHARACTER_CODE_A)}`;
 
-export const board = (tiles: Tile[][]): Tile[][] =>
-  tiles.filter((row) => row.filter((tile) => tile.location === 'board'));
+export const board = (tiles: Tile[][]): Array<Array<Tile | undefined>> =>
+  tiles.map((row) => row.map((tile) => tile.location === 'board' ? tile : undefined));
 
 export const deadTile = (tile: Tile, gameState: GameState): boolean => {
   if (tile.location === 'board') {

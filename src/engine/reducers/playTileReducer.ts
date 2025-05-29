@@ -25,7 +25,7 @@ const validatePlayTileAction = (gameState: GameState, action: PlayTileAction) =>
 
 const determinePlayTileOutcome = (
   tile: Tile,
-  gameBoard: Tile[][],
+  gameBoard: Array<Array<Tile | undefined>>,
   hotels: Hotel[],
 ) => {
   const adjacentPositions = getAdjacentPositions(tile.row, tile.col);
@@ -46,7 +46,7 @@ const determinePlayTileOutcome = (
     const availableHotels = hotels.filter((hotel) =>
       hotel.shares.some((share) => share.location === 'bank')
     );
-    if (availableHotels) {
+    if (availableHotels.length) {
       return { type: 'FOUND_HOTEL' as const, adjacentTiles, availableHotels };
     }
   }
@@ -165,8 +165,6 @@ export const playTileReducer = (
   return {
     ...gameState,
     ...businessLogicChanges,
-    mergerContext: undefined,
-    mergerTieContext: undefined,
     tiles: replaceTile(gameState.tiles, tile),
   };
 };

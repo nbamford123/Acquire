@@ -3,7 +3,6 @@ import type { ErrorCodeValue, Hotel, Player, Tile } from './index.ts';
 // Game phases
 export enum GamePhase {
   WAITING_FOR_PLAYERS = 'WAITING_FOR_PLAYERS',
-  PLAYER_TURN = 'PLAYER_TURN',
   PLAY_TILE = 'PLAY_TILE',
   FOUND_HOTEL = 'FOUND_HOTEL',
   RESOLVE_MERGER = 'RESOLVE_MERGER',

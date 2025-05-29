@@ -47,8 +47,8 @@ export const sharePrice = (hotel: Hotel): number => {
   );
 };
 
-export const findHotel = (tile: Tile, hotels: Hotel[]) =>
-  hotels.find((hotel) => hotel.tiles.includes(tile));
+export const findHotel = (tile: Tile | undefined, hotels: Hotel[]) =>
+  tile ? hotels.find((hotel) => hotel.tiles.includes(tile)) : undefined;
 
 export const hotelSafe = (hotel?: Hotel): boolean =>
   !!hotel && hotel.tiles.length >= SAFE_HOTEL_SIZE;

@@ -1,6 +1,6 @@
 import { MINIMUM_PLAYERS } from '@/engine/config/gameConfig.ts';
 import { GameError, GameErrorCodes, GamePhase, type GameState } from '@/engine/types/index.ts';
-import type { PlayerTurnAction, StartGameAction } from '@/engine/types/actionsTypes.ts';
+import type { StartGameAction } from '@/engine/types/actionsTypes.ts';
 import { deadTile, drawTiles } from '@/engine/domain/index.ts';
 import { cmpTiles, filterDefined } from '@/engine/utils/index.ts';
 
@@ -45,31 +45,9 @@ export const startGameReducer = (
   sortedPlayers.forEach((player) => player.tiles = drawTiles(gameState, player.id, 6));
 
   gameState.players = sortedPlayers;
-  gameState.currentPhase = GamePhase.PLAYER_TURN;
+  gameState.currentPhase = GamePhase.PLAY_TILE;
   gameState.currentPlayer = 0;
   gameState.currentTurn = 1;
 
   return gameState;
-};
-
-export const playerTurnReducer = (
-  gameState: GameState,
-  action: PlayerTurnAction,
-): GameState => {
-  const { playerId } = action.payload;
-  const player = gameState.players[playerId];
-  // Check for dead tiles and replace
-  const playerTiles = filterDefined(player.tiles.map((tile) => {
-    if (deadTile(tile, gameState)) {
-      // This might fail because there are no more tiles to draw
-      const tiles = drawTiles(gameState, playerId, 1);
-      return tiles.length ? tiles[0] : undefined;
-    }
-    return tile;
-  }));
-  return {
-    ...gameState,
-    currentPhase: GamePhase.PLAY_TILE,
-    players: gameState.players.map((p) => p.id === playerId ? { ...p, tiles: playerTiles } : p),
-  };
 };

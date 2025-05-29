@@ -7,7 +7,7 @@
     "lint": "deno lint",
     "fmt": "deno fmt",
     "fmt:check": "deno fmt --check",
-    "validate": "deno fmt && deno check **/*.ts && deno lint"
+    "validate": "deno fmt && deno check **/*.ts && deno test && deno lint"
   },
   "imports": {
     "@/": "./src/"
