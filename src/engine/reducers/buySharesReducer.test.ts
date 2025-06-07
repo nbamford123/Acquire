@@ -1,41 +1,52 @@
-import { assertEquals, assertThrows } from "jsr:@std/assert";
-import { expect } from "jsr:@std/expect";
-import { buySharesReducer } from "./buySharesReducer.ts";
-import { GameError, GameErrorCodes, GamePhase, type GameState, type Hotel, type Player, type HOTEL_NAME, type HOTEL_TYPE } from "@/engine/types/index.ts";
-import { ActionTypes } from "@/engine/types/actionsTypes.ts";
-import { INITIAL_PLAYER_MONEY } from "@/engine/config/gameConfig.ts";
+import { assertEquals, assertThrows } from 'jsr:@std/assert';
+import { expect } from 'jsr:@std/expect';
+import { buySharesReducer } from './buySharesReducer.ts';
+import { initializeTiles } from '@/engine/domain/tileOperations.ts';
+import {
+  GameError,
+  GameErrorCodes,
+  GamePhase,
+  type GameState,
+  type Hotel,
+  type HOTEL_NAME,
+  type HOTEL_TYPE,
+  type Player,
+} from '@/engine/types/index.ts';
+import { ActionTypes } from '@/engine/types/actionsTypes.ts';
+import { INITIAL_PLAYER_MONEY, TILES_PER_HAND } from '@/engine/config/gameConfig.ts';
+import { GAME_STATE } from '@/types.ts';
 
 // Helper function to create a basic game state
 function createBasicGameState(overrides: Partial<GameState> = {}): GameState {
   const defaultPlayer: Player = {
     id: 0,
-    name: "TestPlayer",
+    name: 'TestPlayer',
     money: INITIAL_PLAYER_MONEY,
     shares: {},
-    tiles: []
+    tiles: [],
   };
 
   const secondPlayer: Player = {
     id: 1,
-    name: "Player2",
+    name: 'Player2',
     money: INITIAL_PLAYER_MONEY,
     shares: {},
-    tiles: []
+    tiles: [],
   };
 
   return {
-    gameId: "test-game",
-    owner: "TestPlayer",
+    gameId: 'test-game',
+    owner: 'TestPlayer',
     currentPhase: GamePhase.BUY_SHARES,
     currentTurn: 1,
     currentPlayer: 0,
     lastUpdated: Date.now(),
     players: [defaultPlayer, secondPlayer],
     hotels: [],
-    tiles: Array(12).fill(null).map(() => Array(9).fill(null)),
+    tiles: initializeTiles(12, 9),
     error: null,
     lastActions: [],
-    ...overrides
+    ...overrides,
   };
 }
 
@@ -47,102 +58,137 @@ function createHotel(name: HOTEL_NAME, tileCount = 5, shareCount = 25): Hotel {
     tiles: Array(tileCount).fill(null).map((_, i) => ({
       row: i,
       col: 0,
-      location: 'board' as const
+      location: 'board' as const,
     })),
     shares: Array(shareCount).fill(null).map((_, i) => ({
       id: i,
-      location: 'bank' as const
-    }))
+      location: 'bank' as const,
+    })),
   };
 }
 
-Deno.test("buySharesReducer validation tests", async (t) => {
+Deno.test('buySharesReducer validation tests', async (t) => {
   await t.step("throws error when not player's turn", () => {
     const gameState = createBasicGameState({
-      currentPlayer: 1 // Different from action player (0)
+      currentPlayer: 1, // Different from action player (0)
     });
 
     const action = {
       type: ActionTypes.BUY_SHARES,
       payload: {
         playerId: 0,
-        shares: { "Worldwide": 1, "Sackson": 0, "Festival": 0, "Imperial": 0, "American": 0, "Continental": 0, "Tower": 0 }
-      }
+        shares: {
+          'Worldwide': 1,
+          'Sackson': 0,
+          'Festival': 0,
+          'Imperial': 0,
+          'American': 0,
+          'Continental': 0,
+          'Tower': 0,
+        },
+      },
     };
 
     const error = assertThrows(
       () => buySharesReducer(gameState, action),
       GameError,
-      "Not your turn"
+      'Not your turn',
     );
     assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
   });
 
-  await t.step("throws error when not in BUY_SHARES phase", () => {
+  await t.step('throws error when not in BUY_SHARES phase', () => {
     const gameState = createBasicGameState({
-      currentPhase: GamePhase.PLAY_TILE
+      currentPhase: GamePhase.PLAY_TILE,
     });
 
     const action = {
       type: ActionTypes.BUY_SHARES,
       payload: {
         playerId: 0,
-        shares: { "Worldwide": 1, "Sackson": 0, "Festival": 0, "Imperial": 0, "American": 0, "Continental": 0, "Tower": 0 }
-      }
+        shares: {
+          'Worldwide': 1,
+          'Sackson': 0,
+          'Festival': 0,
+          'Imperial': 0,
+          'American': 0,
+          'Continental': 0,
+          'Tower': 0,
+        },
+      },
     };
 
     const error = assertThrows(
       () => buySharesReducer(gameState, action),
       GameError,
-      "Invalid action"
+      'Invalid action',
     );
     assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
   });
 
-  await t.step("throws error when trying to buy more than 3 shares", () => {
-    const hotel = createHotel("Worldwide");
+  await t.step('throws error when trying to buy more than 3 shares', () => {
+    const hotel = createHotel('Worldwide');
     const gameState = createBasicGameState({
-      hotels: [hotel]
+      hotels: [hotel],
     });
 
     const action = {
       type: ActionTypes.BUY_SHARES,
       payload: {
         playerId: 0,
-        shares: { "Worldwide": 4, "Sackson": 0, "Festival": 0, "Imperial": 0, "American": 0, "Continental": 0, "Tower": 0 } // More than 3 shares
-      }
+        shares: {
+          'Worldwide': 4,
+          'Sackson': 0,
+          'Festival': 0,
+          'Imperial': 0,
+          'American': 0,
+          'Continental': 0,
+          'Tower': 0,
+        }, // More than 3 shares
+      },
     };
 
     const error = assertThrows(
       () => buySharesReducer(gameState, action),
       GameError,
-      "Only 3 shares may be purchased per turn"
+      'Only 3 shares may be purchased per turn',
     );
     assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
   });
 
-  await t.step("throws error when trying to buy shares across multiple hotels totaling more than 3", () => {
-    const hotel1 = createHotel("Worldwide");
-    const hotel2 = createHotel("Sackson");
-    const gameState = createBasicGameState({
-      hotels: [hotel1, hotel2]
-    });
+  await t.step(
+    'throws error when trying to buy shares across multiple hotels totaling more than 3',
+    () => {
+      const hotel1 = createHotel('Worldwide');
+      const hotel2 = createHotel('Sackson');
+      const gameState = createBasicGameState({
+        hotels: [hotel1, hotel2],
+      });
 
-    const action = {
-      type: ActionTypes.BUY_SHARES,
-      payload: {
-        playerId: 0,
-        shares: { "Worldwide": 2, "Sackson": 2, "Festival": 0, "Imperial": 0, "American": 0, "Continental": 0, "Tower": 0 } // Total 4 shares
-      }
-    };
+      const action = {
+        type: ActionTypes.BUY_SHARES,
+        payload: {
+          playerId: 0,
+          shares: {
+            'Worldwide': 2,
+            'Sackson': 2,
+            'Festival': 0,
+            'Imperial': 0,
+            'American': 0,
+            'Continental': 0,
+            'Tower': 0,
+          }, // Total 4 shares
+        },
+      };
 
-    const error = assertThrows(
-      () => buySharesReducer(gameState, action),
-      GameError,
-      "Only 3 shares may be purchased per turn"
-    );
-    assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
-  });
+      const error = assertThrows(
+        () => buySharesReducer(gameState, action),
+        GameError,
+        'Only 3 shares may be purchased per turn',
+      );
+      assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
+    },
+  );
 
   await t.step("throws error when hotel doesn't exist", () => {
     const gameState = createBasicGameState();
@@ -151,89 +197,107 @@ Deno.test("buySharesReducer validation tests", async (t) => {
       type: ActionTypes.BUY_SHARES,
       payload: {
         playerId: 0,
-        shares: { "Worldwide": 1, "Sackson": 0, "Festival": 0, "Imperial": 0, "American": 0, "Continental": 0, "Tower": 0 } // Hotel doesn't exist
-      }
+        shares: {
+          'Worldwide': 1,
+          'Sackson': 0,
+          'Festival': 0,
+          'Imperial': 0,
+          'American': 0,
+          'Continental': 0,
+          'Tower': 0,
+        }, // Hotel doesn't exist
+      },
     };
 
     const error = assertThrows(
       () => buySharesReducer(gameState, action),
       GameError,
-      "Hotel Worldwide doesn't exist"
+      "Hotel Worldwide doesn't exist",
     );
     assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
   });
 
   await t.step("throws error when hotel doesn't have enough shares", () => {
-    const hotel = createHotel("Worldwide", 5, 2); // Only 2 shares available
+    const hotel = createHotel('Worldwide', 5, 2); // Only 2 shares available
     const gameState = createBasicGameState({
-      hotels: [hotel]
+      hotels: [hotel],
     });
 
     const action = {
       type: ActionTypes.BUY_SHARES,
       payload: {
         playerId: 0,
-        shares: { "Worldwide": 3, "Sackson": 0, "Festival": 0, "Imperial": 0, "American": 0, "Continental": 0, "Tower": 0 } // Trying to buy 3 when only 2 available
-      }
+        shares: {
+          'Worldwide': 3,
+          'Sackson': 0,
+          'Festival': 0,
+          'Imperial': 0,
+          'American': 0,
+          'Continental': 0,
+          'Tower': 0,
+        }, // Trying to buy 3 when only 2 available
+      },
     };
 
     const error = assertThrows(
       () => buySharesReducer(gameState, action),
       GameError,
-      "Hotel Worldwide doesn't have enough shares"
+      "Hotel Worldwide doesn't have enough shares",
     );
     assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
   });
 
   await t.step("throws error when player doesn't have enough money", () => {
-    const hotel = createHotel("Worldwide", 5); // 5 tiles = $500 per share for economy hotel
+    const hotel = createHotel('Worldwide', 5); // 5 tiles = $500 per share for economy hotel
     const gameState = createBasicGameState({
       hotels: [hotel],
       players: [{
         id: 0,
-        name: "TestPlayer",
+        name: 'TestPlayer',
         money: 100, // Not enough for even 1 share at $500
         shares: {},
-        tiles: []
+        tiles: [],
       }, {
         id: 1,
-        name: "Player2",
+        name: 'Player2',
         money: INITIAL_PLAYER_MONEY,
         shares: {},
-        tiles: []
-      }]
+        tiles: [],
+      }],
     });
 
     const action = {
       type: ActionTypes.BUY_SHARES,
       payload: {
         playerId: 0,
-        shares: { "Worldwide": 1 }
-      }
+        shares: { 'Worldwide': 1 },
+      },
     };
 
     const error = assertThrows(
       () => buySharesReducer(gameState, action),
-      GameError
+      GameError,
     );
     assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
-    expect(error.message).toContain("You need $500 to purchase these shares and you only have $100");
+    expect(error.message).toContain(
+      'You need $500 to purchase these shares and you only have $100',
+    );
   });
 });
 
-Deno.test("buySharesReducer successful purchase tests", async (t) => {
-  await t.step("successfully buys single share", () => {
-    const hotel = createHotel("Worldwide", 5); // 5 tiles = $500 per share
+Deno.test('buySharesReducer successful purchase tests', async (t) => {
+  await t.step('successfully buys single share', () => {
+    const hotel = createHotel('Worldwide', 5); // 5 tiles = $500 per share
     const gameState = createBasicGameState({
-      hotels: [hotel]
+      hotels: [hotel],
     });
 
     const action = {
       type: ActionTypes.BUY_SHARES,
       payload: {
         playerId: 0,
-        shares: { "Worldwide": 1 }
-      }
+        shares: { 'Worldwide': 1 },
+      },
     };
 
     const result = buySharesReducer(gameState, action);
@@ -251,18 +315,18 @@ Deno.test("buySharesReducer successful purchase tests", async (t) => {
     assertEquals(result.hotels[0].shares[1].location, 'bank'); // Second share still in bank
   });
 
-  await t.step("successfully buys multiple shares from same hotel", () => {
-    const hotel = createHotel("Worldwide", 5); // 5 tiles = $500 per share
+  await t.step('successfully buys multiple shares from same hotel', () => {
+    const hotel = createHotel('Worldwide', 5); // 5 tiles = $500 per share
     const gameState = createBasicGameState({
-      hotels: [hotel]
+      hotels: [hotel],
     });
 
     const action = {
       type: ActionTypes.BUY_SHARES,
       payload: {
         playerId: 0,
-        shares: { "Worldwide": 3 }
-      }
+        shares: { 'Worldwide': 3 },
+      },
     };
 
     const result = buySharesReducer(gameState, action);
@@ -277,19 +341,19 @@ Deno.test("buySharesReducer successful purchase tests", async (t) => {
     assertEquals(result.hotels[0].shares[3].location, 'bank');
   });
 
-  await t.step("successfully buys shares from multiple hotels", () => {
-    const hotel1 = createHotel("Worldwide", 5); // $500 per share
-    const hotel2 = createHotel("Sackson", 3); // $300 per share
+  await t.step('successfully buys shares from multiple hotels', () => {
+    const hotel1 = createHotel('Worldwide', 5); // $500 per share
+    const hotel2 = createHotel('Sackson', 3); // $300 per share
     const gameState = createBasicGameState({
-      hotels: [hotel1, hotel2]
+      hotels: [hotel1, hotel2],
     });
 
     const action = {
       type: ActionTypes.BUY_SHARES,
       payload: {
         playerId: 0,
-        shares: { "Worldwide": 2, "Sackson": 1 } // 2*$500 + 1*$300 = $1300
-      }
+        shares: { 'Worldwide': 2, 'Sackson': 1 }, // 2*$500 + 1*$300 = $1300
+      },
     };
 
     const result = buySharesReducer(gameState, action);
@@ -307,43 +371,43 @@ Deno.test("buySharesReducer successful purchase tests", async (t) => {
     assertEquals(result.hotels[1].shares[1].location, 'bank');
   });
 
-  await t.step("successfully buys no shares (empty purchase)", () => {
-    const hotel = createHotel("Worldwide", 5);
+  await t.step('successfully buys no shares (empty purchase)', () => {
+    const hotel = createHotel('Worldwide', 5);
     const gameState = createBasicGameState({
-      hotels: [hotel]
+      hotels: [hotel],
     });
 
     const action = {
       type: ActionTypes.BUY_SHARES,
       payload: {
         playerId: 0,
-        shares: { "Worldwide": 0 } // No shares purchased
-      }
+        shares: { 'Worldwide': 0 }, // No shares purchased
+      },
     };
 
     const error = assertThrows(
       () => buySharesReducer(gameState, action),
-      GameError
+      GameError,
     );
     assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
     expect(error.message).toContain("Can't buy zero shares in hotel Worldwide");
   });
 });
 
-Deno.test("buySharesReducer turn management tests", async (t) => {
-  await t.step("advances to next player correctly", () => {
-    const hotel = createHotel("Worldwide", 5);
+Deno.test('buySharesReducer turn management tests', async (t) => {
+  await t.step('advances to next player correctly', () => {
+    const hotel = createHotel('Worldwide', 5);
     const gameState = createBasicGameState({
       hotels: [hotel],
-      currentPlayer: 0
+      currentPlayer: 0,
     });
 
     const action = {
       type: ActionTypes.BUY_SHARES,
       payload: {
         playerId: 0,
-        shares: { "Worldwide": 1 }
-      }
+        shares: { 'Worldwide': 1 },
+      },
     };
 
     const result = buySharesReducer(gameState, action);
@@ -352,23 +416,23 @@ Deno.test("buySharesReducer turn management tests", async (t) => {
     assertEquals(result.currentTurn, 1); // Same turn
   });
 
-  await t.step("wraps around to first player and increments turn", () => {
-    const hotel = createHotel("Worldwide", 5);
+  await t.step('wraps around to first player and increments turn', () => {
+    const hotel = createHotel('Worldwide', 5);
     const gameState = createBasicGameState({
       hotels: [hotel],
       currentPlayer: 1, // Last player
       players: [
-        { id: 0, name: "Player1", money: INITIAL_PLAYER_MONEY, shares: {}, tiles: [] },
-        { id: 1, name: "Player2", money: INITIAL_PLAYER_MONEY, shares: {}, tiles: [] }
-      ]
+        { id: 0, name: 'Player1', money: INITIAL_PLAYER_MONEY, shares: {}, tiles: [] },
+        { id: 1, name: 'Player2', money: INITIAL_PLAYER_MONEY, shares: {}, tiles: [] },
+      ],
     });
 
     const action = {
       type: ActionTypes.BUY_SHARES,
       payload: {
         playerId: 1,
-        shares: { "Worldwide": 1 }
-      }
+        shares: { 'Worldwide': 1 },
+      },
     };
 
     const result = buySharesReducer(gameState, action);
@@ -376,25 +440,86 @@ Deno.test("buySharesReducer turn management tests", async (t) => {
     assertEquals(result.currentPlayer, 0); // Back to first player
     assertEquals(result.currentTurn, 2); // Turn incremented
   });
-});
 
-Deno.test("buySharesReducer edge cases", async (t) => {
-  await t.step("handles hotel with some shares already owned", () => {
-    const hotel = createHotel("Worldwide", 5);
-    // Mark first 2 shares as already owned by player 1
-    hotel.shares[0].location = 1;
-    hotel.shares[1].location = 1;
-
+  await t.step('draws tile for player after buying shares', () => {
+    const hotel = createHotel('Worldwide', 5);
     const gameState = createBasicGameState({
-      hotels: [hotel]
+      hotels: [hotel],
+      currentPlayer: 0,
     });
 
     const action = {
       type: ActionTypes.BUY_SHARES,
       payload: {
         playerId: 0,
-        shares: { "Worldwide": 2 }
-      }
+        shares: { 'Worldwide': 1 },
+      },
+    };
+
+    const result = buySharesReducer(gameState, action);
+
+    assertEquals(result.players[0].tiles.length, 1);
+  });
+
+  await t.step('replaces dead tiles for next player after buying shares', () => {
+    // Put all of col 0 and 2 on the board to create hotels
+    const tiles = initializeTiles(12, 9).map((row) =>
+      row.map((tile) =>
+        tile.col === 0 || tile.col === 2 ? { ...tile, location: 'board' as const } : tile
+      )
+    );
+    const hotel1 = {
+      name: 'Worldwide' as HOTEL_NAME,
+      type: 'economy' as HOTEL_TYPE,
+      tiles: tiles.flat().filter((tile) => tile.col === 0),
+      shares: [{ location: 'bank' as const }],
+    };
+    const hotel2 = {
+      name: 'Saxon' as HOTEL_NAME,
+      type: 'economy' as HOTEL_TYPE,
+      tiles: tiles.flat().filter((tile) => tile.col === 2),
+      shares: [],
+    };
+
+    const gameState = createBasicGameState({
+      hotels: [hotel1, hotel2],
+      currentPlayer: 0,
+      tiles: tiles,
+    });
+    gameState.players[1].tiles = [
+      { row: 0, col: 1, location: 1 },
+      { row: 1, col: 1, location: 1 },
+      { row: 4, col: 8, location: 1 },
+    ];
+    const action = {
+      type: ActionTypes.BUY_SHARES,
+      payload: {
+        playerId: 0,
+        shares: { 'Worldwide': 1 },
+      },
+    };
+    const result = buySharesReducer(gameState, action);
+    assertEquals(result.players[1].tiles.every((tile) => tile.col !== 1), true);
+  });
+});
+
+Deno.test('buySharesReducer edge cases', async (t) => {
+  await t.step('handles hotel with some shares already owned', () => {
+    const hotel = createHotel('Worldwide', 5);
+    // Mark first 2 shares as already owned by player 1
+    hotel.shares[0].location = 1;
+    hotel.shares[1].location = 1;
+
+    const gameState = createBasicGameState({
+      hotels: [hotel],
+    });
+
+    const action = {
+      type: ActionTypes.BUY_SHARES,
+      payload: {
+        playerId: 0,
+        shares: { 'Worldwide': 2 },
+      },
     };
 
     const result = buySharesReducer(gameState, action);

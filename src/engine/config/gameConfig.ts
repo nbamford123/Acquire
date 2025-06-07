@@ -7,3 +7,4 @@ export const MINIMUM_PLAYERS = 2;
 export const TILES_PER_HAND = 6;
 export const RESERVED_NAMES = ['bank', 'bag', 'board', 'dead'];
 export const SAFE_HOTEL_SIZE = 11;
+export const END_GAME_HOTEL_SIZE = 41;

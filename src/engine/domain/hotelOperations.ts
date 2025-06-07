@@ -4,11 +4,13 @@ import {
   type Hotel,
   type HOTEL_NAME,
   type HOTEL_TYPE,
+  type MergeResult,
   type Share,
   SharePrices,
   type Tile,
 } from '@/engine/types/index.ts';
 import { SAFE_HOTEL_SIZE } from '@/engine/config/gameConfig.ts';
+import { roundUpToNearestHundred } from '@/engine/utils/index.ts';
 
 const initializeShares = (): Share[] => Array.from({ length: 25 }, () => ({ location: 'bank' }));
 
@@ -32,10 +34,12 @@ export const initializeHotels = (): Hotel[] => [
 export const remainingShares = (hotel: Hotel) =>
   hotel.shares.filter((s) => s.location === 'bank').length;
 
-export const sharePrice = (hotel: Hotel): number => {
+export const getAvailableShares = (hotel: Hotel) =>
+  hotel.shares.filter((s) => s.location === 'bank');
+
+const findCurrentHotelPrice = (hotel: Hotel) => {
   const size = hotel.tiles.length;
   const prices = SharePrices[hotel.type];
-
   for (const [bracket, price] of Object.entries(prices)) {
     if (size <= Number(bracket)) {
       return price;
@@ -46,6 +50,12 @@ export const sharePrice = (hotel: Hotel): number => {
     GameErrorCodes.GAME_PROCESSING_ERROR,
   );
 };
+export const sharePrice = (hotel: Hotel): number => findCurrentHotelPrice(hotel).price;
+
+export const majorityMinorityValue = (hotel: Hotel) => {
+  const price = findCurrentHotelPrice(hotel);
+  return [price.majority, price.minority];
+};
 
 export const findHotel = (tile: Tile | undefined, hotels: Hotel[]) =>
   tile ? hotels.find((hotel) => hotel.tiles.includes(tile)) : undefined;
@@ -53,100 +63,160 @@ export const findHotel = (tile: Tile | undefined, hotels: Hotel[]) =>
 export const hotelSafe = (hotel?: Hotel): boolean =>
   !!hotel && hotel.tiles.length >= SAFE_HOTEL_SIZE;
 
-type TieResolutionResult =
-  | { allResolved: true; orderedHotels: Hotel[] }
-  | { allResolved: false; hotel1: Hotel; hotel2: Hotel };
+const getTiedHotels = (hotel: Hotel, hotels: Hotel[]): HOTEL_NAME[] =>
+  hotels.filter((h) => h.tiles.length === hotel.tiles.length).map((h) => h.name);
 
-const applyTieResolution = (
+export const mergeHotels = (
   hotels: Hotel[],
-  resolvedTies?: [string, string][],
-): TieResolutionResult => {
-  const sorted = [...hotels].sort((a, b) => b.tiles.length - a.tiles.length);
+  additionalTiles: Tile[],
+  survivingHotel?: Hotel,
+  resolvedTie?: [HOTEL_NAME, HOTEL_NAME],
+): MergeResult => {
+  if (hotels.length < 2) {
+    throw new GameError('Need at least 2 hotels to merge', GameErrorCodes.GAME_PROCESSING_ERROR);
+  }
 
-  // Check each adjacent pair for ties
-  for (let i = 0; i < sorted.length - 1; i++) {
-    const hotel1 = sorted[i];
-    const hotel2 = sorted[i + 1];
+  const sortedHotels = [...hotels].sort((a, b) => b.tiles.length - a.tiles.length);
 
-    if (hotel1.tiles.length === hotel2.tiles.length) {
-      // Found a tie - is it resolved?
-      const isResolved = resolvedTies &&
-        resolvedTies.some(([first, second]) =>
-          (first === hotel1.name && second === hotel2.name) ||
-          (first === hotel2.name && second === hotel1.name)
+  let survivor: Hotel;
+  let merged: Hotel;
+
+  if (survivingHotel) {
+    // Subsequent merge: survivingHotel is already determined
+    survivor = survivingHotel;
+
+    if (resolvedTie) {
+      // Use resolved tie to determine which hotel to merge next
+      // In this case, resolvedTie[0] should be the hotel to merge (since survivor is already determined)
+      const mergedHotel = hotels.find((h) => h.name === resolvedTie[0] && h.name !== survivor.name);
+      if (!mergedHotel) {
+        throw new GameError(
+          "Couldn't find hotel from resolved tie",
+          GameErrorCodes.GAME_PROCESSING_ERROR,
         );
+      }
+      merged = mergedHotel;
+    } else {
+      // No tie resolution needed, pick the largest remaining hotel
+      merged = sortedHotels[0];
+    }
+  } else {
+    // Initial merge: determine survivor and merged from scratch
+    if (resolvedTie) {
+      // Use resolved tie: [survivor, merged]
+      const survivorHotel = hotels.find((h) => h.name === resolvedTie[0]);
+      const mergedHotel = hotels.find((h) => h.name === resolvedTie[1]);
 
-      if (!isResolved) {
-        return { allResolved: false, hotel1, hotel2 };
+      if (!survivorHotel || !mergedHotel) {
+        throw new GameError(
+          "Couldn't find hotels from resolved tie",
+          GameErrorCodes.GAME_PROCESSING_ERROR,
+        );
       }
 
-      // Apply the resolution by potentially swapping
-      const resolution = resolvedTies.find(([first, second]) =>
-        (first === hotel1.name && second === hotel2.name) ||
-        (first === hotel2.name && second === hotel1.name)
-      )!;
-
-      if (resolution[0] === hotel2.name) {
-        // Swap them
-        [sorted[i], sorted[i + 1]] = [sorted[i + 1], sorted[i]];
-      }
+      survivor = survivorHotel;
+      merged = mergedHotel;
+    } else {
+      // Default case: largest survives, second largest gets merged
+      survivor = sortedHotels[0];
+      merged = sortedHotels[1];
     }
   }
 
-  return { allResolved: true, orderedHotels: sorted };
-};
+  const remainingHotels = sortedHotels.filter((h) =>
+    h.name !== survivor.name && h.name !== merged.name
+  );
 
-type MergeResult =
-  | { needsMergeOrder: true; hotel1: Hotel; hotel2: Hotel }
-  | {
-    needsMergeOrder: false;
-    survivingHotel: Hotel;
-    mergedHotels: Hotel[];
-    mergeActions: string[];
-  };
-
-// multiple mergers: the smaller hotels are dealt with one at a time from largest to smallest
-// the mergemaker breaks any ties
-export const mergeHotels = (
-  hotels: Hotel[],
-  tile: Tile,
-  resolvedTies?: [string, string][],
-): MergeResult => {
-  if (hotels.length < 2) {
-    // reducer shouldn't ever do this
-    throw new GameError(
-      'Merge  called without at least two hotels',
-      GameErrorCodes.GAME_PROCESSING_ERROR,
-    );
+  // Check for ties that need resolving (only if no tie was already resolved)
+  if (!resolvedTie) {
+    if (survivor.tiles.length === merged.tiles.length) {
+      // Tie between survivor and merged
+      const tiedHotels = getTiedHotels(merged, sortedHotels);
+      return { needsMergeOrder: true, tiedHotels: tiedHotels };
+    }
   }
 
-  // Sort from largest to smallest
-  const resolutionResult = applyTieResolution(hotels, resolvedTies);
-  if (!resolutionResult.allResolved) {
+  // Check for additional ties among remaining hotels with the merged hotel
+  const tiedWithMerged = remainingHotels.filter((h) => h.tiles.length === merged.tiles.length);
+  if (tiedWithMerged.length > 0) {
     return {
       needsMergeOrder: true,
-      hotel1: resolutionResult.hotel1,
-      hotel2: resolutionResult.hotel2,
+      tiedHotels: [merged.name, ...tiedWithMerged.map((h) => h.name)],
     };
   }
 
-  const mergedHotels: Hotel[] = [];
-  const mergeActions: string[] = [];
-  const [largest, ...toMerge] = resolutionResult.orderedHotels;
-  // Add the merger tile to surviving hotel
-  const survivingHotel = { ...largest, tiles: [tile, ...largest.tiles] };
-  for (const curHotel of toMerge) {
-    if (hotelSafe(curHotel)) {
-      throw new GameError(
-        `Cannot merge safe hotel ${curHotel.name}`,
-        GameErrorCodes.GAME_PROCESSING_ERROR,
-      );
-    }
-    survivingHotel.tiles = [...survivingHotel.tiles, ...curHotel.tiles];
-    mergedHotels.push({ ...curHotel, tiles: [] });
-    mergeActions.push(`${curHotel.name} merges into ${survivingHotel.name}`);
-    // should we do this one step at a time and get player results, or do it all at once? That means the player will have to  make all the decisions about stocks in one go
-    // Try it this way for now, we can always break it up later if need be.
+  if (hotelSafe(merged)) {
+    throw new GameError(
+      `Cannot merge safe hotel ${merged.name}`,
+      GameErrorCodes.GAME_INVALID_ACTION,
+    );
   }
-  return { needsMergeOrder: false, survivingHotel, mergedHotels, mergeActions };
+
+  return {
+    needsMergeOrder: false,
+    survivingHotel: survivor.name,
+    mergedHotel: merged.name,
+    // additional tiles because we're not actually going to merge until end of resolve merger phase
+    remainingHotels: remainingHotels.map((h) => h.name),
+  };
+};
+
+// playerStockCounts is assumed to be sorted in descending order
+// returns an array of payouts indexed by player id
+export const calculateShareholderPayouts = (
+  majorityBonus: number,
+  minorityBonus: number,
+  playerStockCounts: { stockCount: number; playerId: number }[],
+) => {
+  const payouts: Record<number, number> = {};
+
+  // Group players by stock count to handle ties
+  const stockGroups = [];
+  let currentGroup = [playerStockCounts[0]];
+
+  for (let i = 1; i < playerStockCounts.length; i++) {
+    if (playerStockCounts[i].stockCount === currentGroup[0].stockCount) {
+      currentGroup.push(playerStockCounts[i]);
+    } else {
+      stockGroups.push(currentGroup);
+      currentGroup = [playerStockCounts[i]];
+    }
+  }
+  stockGroups.push(currentGroup);
+
+  if (stockGroups.length === 1) {
+    // Everyone tied - split both bonuses among all players
+    const totalBonus = majorityBonus + minorityBonus;
+    const perPlayer = roundUpToNearestHundred(totalBonus / stockGroups[0].length);
+    stockGroups[0].forEach(({ playerId }) => {
+      payouts[playerId] = perPlayer;
+    });
+  } else if (stockGroups[0].length > 1) {
+    // Tie for majority - combine and split majority + minority among tied players
+    const totalBonus = majorityBonus + minorityBonus;
+    const perPlayer = roundUpToNearestHundred(totalBonus / stockGroups[0].length);
+    stockGroups[0].forEach(({ playerId }) => {
+      payouts[playerId] = perPlayer;
+    });
+    // No minority bonus paid to anyone else
+  } else {
+    // No tie for majority - single majority winner
+    payouts[stockGroups[0][0].playerId] = majorityBonus;
+
+    if (stockGroups.length > 1) {
+      // Handle minority shareholders
+      if (stockGroups[1].length > 1) {
+        // Tie for minority - split minority bonus
+        const perPlayer = roundUpToNearestHundred(minorityBonus / stockGroups[1].length);
+        stockGroups[1].forEach(({ playerId }) => {
+          payouts[playerId] = perPlayer;
+        });
+      } else {
+        // Single minority winner
+        payouts[stockGroups[1][0].playerId] = minorityBonus;
+      }
+    }
+  }
+
+  return payouts;
 };

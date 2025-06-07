@@ -1,6 +1,7 @@
 import { GameError, GameErrorCodes, GamePhase, type GameState } from '@/engine/types/index.ts';
 import type { BuySharesAction } from '@/engine/types/actionsTypes.ts';
-import { remainingShares, sharePrice } from '@/engine/domain/index.ts';
+import { deadTile, drawTiles, remainingShares, sharePrice } from '@/engine/domain/index.ts';
+import { filterDefined } from '@/engine/utils/filterDefined.ts';
 
 export const buySharesReducer = (
   gameState: GameState,
@@ -55,27 +56,24 @@ export const buySharesReducer = (
     );
   }
 
-  const nextPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
+  const nextPlayerId = (gameState.currentPlayer + 1) % gameState.players.length;
   // Draw a tile for this player
+  const playerTiles = [...player.tiles, ...drawTiles(gameState, playerId, 1)];
   // Check for next player dead tiles and draw replacements
-  // const playerTiles = filterDefined(player.tiles.map((tile) => {
-  //   if (deadTile(tile, gameState)) {
-  //     // This might fail because there are no more tiles to draw
-  //     const tiles = drawTiles(gameState, playerId, 1);
-  //     return tiles.length ? tiles[0] : undefined;
-  //   }
-  //   return tile;
-  // }));
-  // return {
-  //   ...gameState,
-  //   currentPhase: GamePhase.PLAY_TILE,
-  //   players: gameState.players.map((p) => p.id === playerId ? { ...p, tiles: playerTiles } : p),
-  // };
+  const nextPlayerTiles = filterDefined(gameState.players[nextPlayerId].tiles.map((tile) => {
+    if (deadTile(tile, gameState)) {
+      // This might fail because there are no more tiles to draw
+      const tiles = drawTiles(gameState, playerId, 1);
+      return tiles.length ? tiles[0] : undefined;
+    }
+    return tile;
+  }));
+
   return {
     ...gameState,
     currentPhase: GamePhase.PLAY_TILE,
-    currentPlayer: nextPlayer,
-    currentTurn: nextPlayer === 0 ? gameState.currentTurn + 1 : gameState.currentTurn,
+    currentPlayer: nextPlayerId,
+    currentTurn: nextPlayerId === 0 ? gameState.currentTurn + 1 : gameState.currentTurn,
     hotels: gameState.hotels.map((hotel) => {
       const numShares = shares[hotel.name];
       if (!numShares) return hotel;
@@ -93,7 +91,11 @@ export const buySharesReducer = (
       };
     }),
     players: gameState.players.map((player) =>
-      player.id === playerId ? { ...player, money: player.money - totalCost } : player
+      player.id === playerId
+        ? { ...player, money: player.money - totalCost, tiles: playerTiles }
+        : player.id === nextPlayerId
+        ? { ...player, tiles: nextPlayerTiles }
+        : player
     ),
     mergerContext: undefined,
     mergerTieContext: undefined,

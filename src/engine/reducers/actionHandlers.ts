@@ -2,24 +2,27 @@ import {
   type ActionType,
   ActionTypes,
   type AddPlayerAction,
+  type BreakMergerTieAction,
   type BuySharesAction,
+  type FoundHotelAction,
   type GameAction,
   type GameState,
-  type PlayerTurnAction,
   type PlayTileAction,
   type RemovePlayerAction,
+  type ResolveMergerAction,
   type StartGameAction,
 } from '@/engine/types/index.ts';
-import { addPlayerReducer, removePlayerReducer } from './playerReducers.ts';
 import {
+  addPlayerReducer,
+  breakMergerTieReducer,
   buySharesReducer,
-  playerTurnReducer,
+  foundHotelReducer,
   playTileReducer,
+  removePlayerReducer,
+  resolveMergerReducer,
   startGameReducer,
 } from '@/engine/reducers/index.ts';
-// Import other reducers
 
-// Type-safe action handler wrapper
 function createActionHandler<T extends GameAction>(
   handler: (state: GameState, action: T) => GameState,
 ): (state: GameState, action: GameAction) => GameState {
@@ -38,5 +41,7 @@ export const actionHandlers: Record<
   [ActionTypes.START_GAME]: createActionHandler<StartGameAction>(startGameReducer),
   [ActionTypes.PLAY_TILE]: createActionHandler<PlayTileAction>(playTileReducer),
   [ActionTypes.BUY_SHARES]: createActionHandler<BuySharesAction>(buySharesReducer),
-  // Register other action handlers
+  [ActionTypes.FOUND_HOTEL]: createActionHandler<FoundHotelAction>(foundHotelReducer),
+  [ActionTypes.RESOLVE_MERGER]: createActionHandler<ResolveMergerAction>(resolveMergerReducer),
+  [ActionTypes.BREAK_MERGER_TIE]: createActionHandler<BreakMergerTieAction>(breakMergerTieReducer),
 };

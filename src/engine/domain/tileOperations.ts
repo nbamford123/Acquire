@@ -36,7 +36,6 @@ export const deadTile = (tile: Tile, gameState: GameState): boolean => {
   const safeHotels = getAdjacentPositions(tile.row, tile.col)
     .map(([r, c]) => findHotel(gameBoard[r][c], hotels))
     .filter((hotel) => hotelSafe(hotel)).length;
-
   return safeHotels >= 2;
 };
 

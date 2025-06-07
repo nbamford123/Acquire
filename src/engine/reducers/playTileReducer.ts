@@ -6,7 +6,8 @@ import {
   type Hotel,
 } from '@/engine/types/index.ts';
 import type { PlayTileAction, Tile } from '@/engine/types/index.ts';
-import { board, findHotel, mergeHotels, replaceTile } from '@/engine/domain/index.ts';
+import { board, findHotel, replaceTile } from '@/engine/domain/index.ts';
+import { handleMerger } from '@/engine/state/gameStateUpdater.ts';
 import { filterDefined, getAdjacentPositions } from '@/engine/utils/index.ts';
 
 const validatePlayTileAction = (gameState: GameState, action: PlayTileAction) => {
@@ -30,84 +31,55 @@ const determinePlayTileOutcome = (
 ) => {
   const adjacentPositions = getAdjacentPositions(tile.row, tile.col);
 
-  const adjacentHotels = filterDefined(adjacentPositions
-    .map(([r, c]) => findHotel(gameBoard[r][c], hotels)));
-
-  if (adjacentHotels.length >= 2) {
-    return { type: 'MERGER' as const, adjacentHotels };
-  }
-  if (adjacentHotels.length === 1) {
-    return { type: 'EXTEND_HOTEL' as const, hotel: adjacentHotels[0] };
-  }
-
   const adjacentTiles = filterDefined(adjacentPositions
     .map(([r, c]) => gameBoard[r][c]));
+
+  const adjacentHotels = filterDefined(
+    adjacentTiles
+      .map(({ row, col }) => findHotel(gameBoard[row][col], hotels)),
+  );
+
+  if (adjacentHotels.length) {
+    const additionalTiles = adjacentTiles.filter((tile) => !findHotel(tile, hotels));
+    if (adjacentHotels.length >= 2) {
+      return { type: 'MERGE_HOTELS' as const, adjacentHotels, additionalTiles };
+    }
+    if (adjacentHotels.length === 1) {
+      return { type: 'EXTEND_HOTEL' as const, hotel: adjacentHotels[0], additionalTiles };
+    }
+  }
+
   if (adjacentTiles.length > 0) {
     const availableHotels = hotels.filter((hotel) =>
       hotel.shares.some((share) => share.location === 'bank')
     );
     if (availableHotels.length) {
-      return { type: 'FOUND_HOTEL' as const, adjacentTiles, availableHotels };
+      return { type: 'FOUND_HOTEL' as const, availableHotels, adjacentTiles };
     }
   }
 
   return { type: 'SIMPLE_PLACEMENT' as const };
 };
 
-const handleMerger = (
-  gameState: GameState,
-  adjacentHotels: Hotel[],
-  tile: Tile,
-  resolvedTies: [string, string][],
-): Partial<GameState> => {
-  const result = mergeHotels(adjacentHotels, tile, resolvedTies);
-
-  if (result.needsMergeOrder) {
-    return {
-      currentPhase: GamePhase.BREAK_MERGER_TIE,
-      mergerTieContext: {
-        breakTie: [result.hotel1.name, result.hotel2.name],
-        resolvedTies,
-      },
-    };
-  }
-  const { survivingHotel, mergedHotels } = result;
-  return {
-    ...gameState,
-    currentPhase: GamePhase.RESOLVE_MERGER,
-    pendingPlayerId: gameState.currentPlayer,
-    hotels: gameState.hotels.map((hotel) =>
-      hotel.name === survivingHotel.name
-        ? survivingHotel
-        : mergedHotels.find((h) => h.name === hotel.name) || hotel
-    ),
-    mergerTieContext: undefined,
-    mergerContext: {
-      survivingHotel: survivingHotel,
-      mergedHotels: mergedHotels,
-    },
-  };
-};
-
 const handleHotelExtension = (
   gameState: GameState,
+  tiles: Tile[],
   hotel: Hotel,
-  tile: Tile,
 ): Partial<GameState> => ({
   currentPhase: GamePhase.BUY_SHARES,
   hotels: gameState.hotels.map((h) =>
-    h.name === hotel.name ? { ...h, tiles: [...h.tiles, tile] } : h
+    h.name === hotel.name ? { ...h, tiles: [...h.tiles, ...tiles] } : h
   ),
 });
 
 const handleHotelFounding = (
-  adjacentTiles: Tile[],
+  playedTile: Tile,
   availableHotels: Hotel[],
-  tile: Tile,
+  contextTiles: Tile[],
 ): Partial<GameState> => {
   return {
     currentPhase: GamePhase.FOUND_HOTEL,
-    foundHotelContext: { availableHotels, tiles: [...adjacentTiles, tile] },
+    foundHotelContext: { availableHotels, playedTile, tiles: contextTiles },
   };
 };
 
@@ -126,7 +98,7 @@ export const playTileReducer = (
   validatePlayTileAction(gameState, action);
 
   const tile = { ...action.payload.tile, location: 'board' as const };
-  // I don't think we need the new tile added to the board at this point
+  // I don't think we need the new tile added to the board array at this point
   const gameBoard = board(gameState.tiles);
 
   const outcome = determinePlayTileOutcome(
@@ -138,22 +110,24 @@ export const playTileReducer = (
   let businessLogicChanges: Partial<GameState>;
 
   switch (outcome.type) {
-    case 'MERGER':
-      businessLogicChanges = handleMerger(
-        gameState,
-        outcome.adjacentHotels,
+    case 'MERGE_HOTELS':
+      businessLogicChanges = handleMerger(gameState, outcome.adjacentHotels, [
         tile,
-        action.payload.resolvedTies || [],
-      );
+        ...outcome.additionalTiles,
+      ]);
       break;
     case 'EXTEND_HOTEL':
-      businessLogicChanges = handleHotelExtension(gameState, outcome.hotel, tile);
+      businessLogicChanges = handleHotelExtension(
+        gameState,
+        [tile, ...outcome.additionalTiles],
+        outcome.hotel,
+      );
       break;
     case 'FOUND_HOTEL':
       businessLogicChanges = handleHotelFounding(
-        outcome.adjacentTiles,
-        outcome.availableHotels,
         tile,
+        outcome.availableHotels,
+        [tile, ...outcome.adjacentTiles], // Include played tile and adjacent tiles
       );
       break;
     case 'SIMPLE_PLACEMENT':

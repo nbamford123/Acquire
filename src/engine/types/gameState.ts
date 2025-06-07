@@ -1,4 +1,4 @@
-import type { ErrorCodeValue, Hotel, Player, Tile } from './index.ts';
+import type { ErrorCodeValue, Hotel, HOTEL_NAME, Player, Tile } from './index.ts';
 
 // Game phases
 export enum GamePhase {
@@ -22,19 +22,21 @@ export interface GameState {
   players: Player[]; // Sorted by player order
   hotels: Hotel[];
   tiles: Tile[][];
-  pendingPlayerId?: number; // Next player to act for multi-player phases
   mergerTieContext?: {
     // for break tie we need to give user the hotels
-    breakTie: [string, string];
-    // possibly need to accumulate multiple tie breakers
-    resolvedTies?: [string, string][];
+    tiedHotels: HOTEL_NAME[];
   };
   mergerContext?: {
-    survivingHotel: Hotel;
-    mergedHotels: Hotel[];
+    stockholders: number[];
+    survivingHotel?: HOTEL_NAME;
+    mergedHotel?: HOTEL_NAME;
+    remainingHotels: HOTEL_NAME[];
+    additionalTiles?: Tile[];
   };
+  // change this to hotel name, too
   foundHotelContext?: {
     availableHotels: Hotel[];
+    playedTile: Tile;
     tiles: Tile[];
   };
   lastActions: string[];

@@ -4,6 +4,7 @@ export {
   findHotel,
   hotelSafe,
   initializeHotels,
+  majorityMinorityValue,
   mergeHotels,
   remainingShares,
   sharePrice,

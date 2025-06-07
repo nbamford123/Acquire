@@ -6,6 +6,9 @@ export const ActionTypes = {
   REMOVE_PLAYER: 'REMOVE_PLAYER',
   PLAY_TILE: 'PLAY_TILE',
   BUY_SHARES: 'BUY_SHARES',
+  BREAK_MERGER_TIE: 'BREAK_MERGER_TIE',
+  RESOLVE_MERGER: 'RESOLVE_MERGER',
+  FOUND_HOTEL: 'FOUND_HOTEL',
   // TODO(me): need an action for dumping all your tiles and redrawing. Do you get to buy shares?
 } as const;
 
@@ -39,6 +42,30 @@ export interface BuySharesAction extends Action {
     shares: Partial<Record<HOTEL_NAME, number>>;
   };
 }
+export interface BreakMergerTieAction extends Action {
+  type: typeof ActionTypes.BREAK_MERGER_TIE;
+  payload: {
+    playerId: number;
+    resolvedTie: [HOTEL_NAME, HOTEL_NAME];
+  };
+}
+export interface ResolveMergerAction extends Action {
+  type: typeof ActionTypes.RESOLVE_MERGER;
+  payload: {
+    playerId: number;
+    shares?: {
+      sell: number;
+      trade: number;
+    };
+  };
+}
+export interface FoundHotelAction extends Action {
+  type: typeof ActionTypes.FOUND_HOTEL;
+  payload: {
+    playerId: number;
+    hotelName: HOTEL_NAME;
+  };
+}
 // Player actions
 export interface AddPlayerAction extends Action {
   type: typeof ActionTypes.ADD_PLAYER;
@@ -58,4 +85,7 @@ export type GameAction =
   | AddPlayerAction
   | RemovePlayerAction
   | PlayTileAction
-  | BuySharesAction;
+  | BuySharesAction
+  | BreakMergerTieAction
+  | FoundHotelAction
+  | ResolveMergerAction;
