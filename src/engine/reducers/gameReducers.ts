@@ -1,8 +1,14 @@
-import { MINIMUM_PLAYERS } from '@/engine/config/gameConfig.ts';
-import { GameError, GameErrorCodes, GamePhase, type GameState } from '@/engine/types/index.ts';
+import { MINIMUM_PLAYERS, TILES_PER_HAND } from '@/engine/config/gameConfig.ts';
+import {
+  GameError,
+  GameErrorCodes,
+  GamePhase,
+  type GameState,
+  type Tile,
+} from '@/engine/types/index.ts';
 import type { StartGameAction } from '@/engine/types/actionsTypes.ts';
-import { deadTile, drawTiles } from '@/engine/domain/index.ts';
-import { cmpTiles, filterDefined } from '@/engine/utils/index.ts';
+import { drawTiles, updateTiles } from '@/engine/domain/index.ts';
+import { cmpTiles } from '@/engine/utils/index.ts';
 
 export const startGameReducer = (
   gameState: GameState,
@@ -28,11 +34,18 @@ export const startGameReducer = (
   }
 
   // Draw initial tiles
+  let availableTiles: Tile[] = gameState.tiles.filter((tile) => tile.location === 'bag');
+  const usedTiles: Tile[] = [];
+  const allDrawnTiles: Tile[] = [];
+
   gameState.players.forEach((player) => {
     // The player id (not yet set) doesn't matter here because we immediately place the tile on the board
-    const firstTile = drawTiles(gameState, -1, 1)[0];
-    player.firstTile = firstTile;
-    firstTile.location = 'board';
+    const draw = drawTiles(availableTiles, -1, [], 1);
+    const { drawnTiles, remainingTiles } = draw;
+    player.firstTile = { row: drawnTiles[0].row, col: drawnTiles[0].col };
+    drawnTiles[0].location = 'board';
+    usedTiles.push(drawnTiles[0]);
+    availableTiles = remainingTiles;
   });
 
   // Sort the players by first drawn tile and give them an id based on their position
@@ -40,14 +53,21 @@ export const startGameReducer = (
     .map((p, idx) => ({ ...p, id: idx }));
 
   // Now draw 6 tiles for each player so they're ready to play
-  // This could have been done in the above loop, but when we play in person we always do the individual
-  // tiles first. It's a tradition
-  sortedPlayers.forEach((player) => player.tiles = drawTiles(gameState, player.id, 6));
+  sortedPlayers.forEach((player) => {
+    const draw = drawTiles(availableTiles, player.id, [], TILES_PER_HAND);
+    availableTiles = draw.remainingTiles;
+    allDrawnTiles.push(...draw.drawnTiles);
+  });
 
-  gameState.players = sortedPlayers;
-  gameState.currentPhase = GamePhase.PLAY_TILE;
-  gameState.currentPlayer = 0;
-  gameState.currentTurn = 1;
+  // Create new game state with updated tiles
+  const newGameState = {
+    ...gameState,
+    players: sortedPlayers,
+    currentPhase: GamePhase.PLAY_TILE,
+    currentPlayer: 0,
+    currentTurn: 1,
+    tiles: updateTiles(gameState.tiles, [...usedTiles, ...allDrawnTiles]),
+  };
 
-  return gameState;
+  return newGameState;
 };

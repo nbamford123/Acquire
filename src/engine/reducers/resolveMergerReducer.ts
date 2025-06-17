@@ -1,8 +1,13 @@
 import { GameError, GameErrorCodes, GamePhase, type GameState } from '@/engine/types/index.ts';
 import type { ResolveMergerAction } from '@/engine/types/actionsTypes.ts';
-import { remainingShares, sharePrice } from '@/engine/domain/index.ts';
-import { filterDefined } from '@/engine/utils/filterDefined.ts';
-import { sharePrice } from '@/engine/domain/hotelOperations.ts';
+import {
+  assignSharesToPlayer,
+  boardTiles,
+  remainingShares,
+  returnSharesToBank,
+  sharePrice,
+} from '@/engine/domain/index.ts';
+import { handleMerger } from '@/engine/state/gameStateUpdater.ts';
 
 // What happens when a surviving hotel was picked, but there's another tie to be resolved?
 export const resolveMergerReducer = (
@@ -17,11 +22,12 @@ export const resolveMergerReducer = (
   }
 
   const { playerId, shares } = action.payload;
-  const { survivingHotel, mergedHotel, stockholders } = gameState.mergerContext ?? {};
-  if (!stockholders || !survivingHotel || !mergedHotel || !shares) {
+  const mergeContext = gameState.mergeContext!;
+  const { survivingHotel, mergedHotel, stockholderIds } = mergeContext ?? {};
+  if (!stockholderIds || !survivingHotel || !mergedHotel || !shares) {
     throw new GameError('Invalid hotel merger context', GameErrorCodes.GAME_PROCESSING_ERROR);
   }
-  if (!stockholders.length || stockholders[0] === playerId) {
+  if (!stockholderIds.length || stockholderIds[0] !== playerId) {
     throw new GameError('Invalid player id for merger', GameErrorCodes.GAME_PROCESSING_ERROR);
   }
   const survivor = gameState.hotels.find((h) => h.name === survivingHotel);
@@ -32,8 +38,16 @@ export const resolveMergerReducer = (
       GameErrorCodes.GAME_PROCESSING_ERROR,
     );
   }
-  let tradedShares = 0; // this is how many they get
-  // We should probably check the player has the shares to do these actions, too
+  const playerMergedShares = merged.shares.filter((share) => share.location === playerId);
+  if (playerMergedShares.length < shares.trade + shares.sell) {
+    throw new GameError(
+      `You don't have ${shares.trade + shares.sell} shares in ${mergedHotel} to trade/sell`,
+      GameErrorCodes.GAME_INVALID_ACTION,
+    );
+  }
+
+  let survivorShares = survivor.shares;
+  let mergedShares = merged.shares;
   if (shares.trade) {
     if (shares.trade % 2 !== 0) {
       throw new GameError(
@@ -41,25 +55,70 @@ export const resolveMergerReducer = (
         GameErrorCodes.GAME_INVALID_ACTION,
       );
     }
-    tradedShares = shares.trade / 2;
+
+    const tradedShares = shares.trade / 2;
     if (remainingShares(survivor) < tradedShares) {
       throw new GameError(
         `${survivingHotel} doesn't have ${tradedShares} shares left to trade`,
         GameErrorCodes.GAME_INVALID_ACTION,
       );
-      // Can add the survivor shares to player now (and away from bank), but we still have to process sell
     }
-    if (shares.sell) {
-      const shareValue = sharePrice(merged) * shares.sell;
-      // add to player money and return this many shares to the bank
-    }
+    survivorShares = assignSharesToPlayer(survivorShares, playerId, tradedShares);
+    mergedShares = returnSharesToBank(mergedShares, playerId, shares.trade);
+    // remove merged shares we just traded
   }
-  // bump the player id if there are more, otherwise phase becomes buy shares and all this context gets cleared, also wipe out the merged hotel
-  return {
-    ...gameState,
-    mergerContext: {
-      ...gameState.mergerContext,
-      stockholders: stockholders.slice(0,1),
-    }
+
+  const gameBoard = boardTiles(gameState.tiles);
+
+  let playerMoney = gameState.players[playerId].money;
+  if (shares.sell) {
+    const shareValue = sharePrice(merged, gameBoard) * shares.sell;
+    playerMoney = playerMoney + shareValue;
+    mergedShares = returnSharesToBank(mergedShares, playerId, shares.sell);
+  }
+
+  const updatedGameState = {
+    players: gameState.players.map((player) =>
+      player.id === playerId ? { ...player, money: playerMoney } : player
+    ),
+    hotels: gameState.hotels.map((hotel) =>
+      hotel.name === survivingHotel
+        ? { ...hotel, shares: survivorShares }
+        : hotel.name === mergedHotel
+        ? { ...hotel, shares: mergedShares }
+        : hotel
+    ),
+  };
+  const remainingStockholderIds = stockholderIds.slice(1);
+  // Move on to the next stockholer in this merger
+  if (remainingStockholderIds.length) {
+    return {
+      ...gameState,
+      ...updatedGameState,
+      mergeContext: {
+        ...mergeContext,
+        stockholderIds: remainingStockholderIds,
+      },
+    };
+  } else if (gameState.mergeContext?.originalHotels.length) {
+    // there are more mergers to perform
+    const businessLogicChanges = handleMerger(
+      updatedGameState.players,
+      gameBoard,
+      updatedGameState.hotels,
+      gameState.mergeContext,
+    );
+    return {
+      ...gameState,
+      ...businessLogicChanges,
+    };
+  } else {
+    // Merger(s) complete, move on to buying shares
+    return {
+      ...gameState,
+      ...updatedGameState,
+      currentPhase: GamePhase.BUY_SHARES,
+      mergeContext: undefined,
+    };
   }
 };

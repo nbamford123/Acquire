@@ -1,21 +1,24 @@
 import { assertEquals, assertThrows } from 'jsr:@std/assert';
-import { expect } from 'jsr:@std/expect';
 import {
-  findHotel,
+  assignSharesToPlayer,
+  getHotelsByNames,
+  getTiedHotels,
   hotelSafe,
+  hotelTiles,
   initializeHotels,
-  mergeHotels,
+  majorityMinorityValue,
   remainingShares,
+  returnSharesToBank,
   sharePrice,
 } from './hotelOperations.ts';
 import {
+  type BoardTile,
   GameError,
   GameErrorCodes,
   type Hotel,
   type HOTEL_NAME,
   type HOTEL_TYPE,
-  SharePrices,
-  type Tile,
+  type Share,
 } from '@/engine/types/index.ts';
 import { SAFE_HOTEL_SIZE } from '@/engine/config/gameConfig.ts';
 
@@ -23,30 +26,29 @@ import { SAFE_HOTEL_SIZE } from '@/engine/config/gameConfig.ts';
 function createHotel(
   name: HOTEL_NAME,
   type: HOTEL_TYPE,
-  tileCount: number = 0,
-  sharesInBank: number = 25,
+  shareLocations: Array<'bank' | number> = Array(25).fill('bank'),
 ): Hotel {
-  const shares = Array.from({ length: 25 }, (_, i) => ({
-    location: i < sharesInBank ? 'bank' as const : 1,
-  }));
+  const shares: Share[] = shareLocations.map((location) => ({ location }));
+  return { name, type, shares };
+}
 
-  const tiles: Tile[] = Array.from({ length: tileCount }, (_, i) => ({
+// Helper function to create board tiles
+function createBoardTile(row: number, col: number, hotel?: HOTEL_NAME): BoardTile {
+  const tile: BoardTile = { row, col, location: 'board' };
+  if (hotel) {
+    tile.hotel = hotel;
+  }
+  return tile;
+}
+
+// Helper function to create hotel tiles for testing
+function createHotelTiles(hotelName: HOTEL_NAME, count: number): BoardTile[] {
+  return Array.from({ length: count }, (_, i) => ({
     row: Math.floor(i / 9),
     col: i % 9,
     location: 'board' as const,
+    hotel: hotelName,
   }));
-
-  return {
-    name,
-    type,
-    shares,
-    tiles,
-  };
-}
-
-// Helper function to create a tile
-function createTile(row: number, col: number, location: 'board' | 'bag' | number = 'board'): Tile {
-  return { row, col, location };
 }
 
 Deno.test('initializeHotels', async (t) => {
@@ -55,7 +57,7 @@ Deno.test('initializeHotels', async (t) => {
 
     assertEquals(hotels.length, 7);
 
-    // Check each hotel has correct name, type, and initial state
+    // Check each hotel has correct name, type, and 25 shares
     const expectedHotels = [
       { name: 'Worldwide', type: 'economy' },
       { name: 'Sackson', type: 'economy' },
@@ -70,9 +72,8 @@ Deno.test('initializeHotels', async (t) => {
       assertEquals(hotels[index].name, expected.name);
       assertEquals(hotels[index].type, expected.type);
       assertEquals(hotels[index].shares.length, 25);
-      assertEquals(hotels[index].tiles.length, 0);
 
-      // All shares should be in bank initially
+      // All shares should start in bank
       hotels[index].shares.forEach((share) => {
         assertEquals(share.location, 'bank');
       });
@@ -81,315 +82,418 @@ Deno.test('initializeHotels', async (t) => {
 });
 
 Deno.test('remainingShares', async (t) => {
-  await t.step('returns 25 for new hotel', () => {
+  await t.step('counts shares in bank correctly', () => {
     const hotel = createHotel('Worldwide', 'economy');
     assertEquals(remainingShares(hotel), 25);
   });
 
-  await t.step('returns correct count when some shares are owned', () => {
-    const hotel = createHotel('Worldwide', 'economy', 0, 20);
-    assertEquals(remainingShares(hotel), 20);
+  await t.step('counts remaining shares when some are owned by players', () => {
+    const shareLocations = [
+      ...Array(10).fill('bank'),
+      ...Array(5).fill(1), // player 1 owns 5
+      ...Array(3).fill(2), // player 2 owns 3
+      ...Array(7).fill('bank'),
+    ];
+    const hotel = createHotel('Worldwide', 'economy', shareLocations);
+
+    assertEquals(remainingShares(hotel), 17); // 10 + 7 = 17 in bank
   });
 
   await t.step('returns 0 when all shares are owned', () => {
-    const hotel = createHotel('Worldwide', 'economy', 0, 0);
+    const shareLocations = Array(25).fill(1); // all owned by player 1
+    const hotel = createHotel('Worldwide', 'economy', shareLocations);
+
     assertEquals(remainingShares(hotel), 0);
   });
 });
 
-Deno.test('sharePrice', async (t) => {
-  await t.step('calculates correct price for economy hotel at different sizes', () => {
-    // Test various sizes for economy hotel
-    const testCases = [
-      { size: 2, expectedPrice: 200 },
-      { size: 3, expectedPrice: 300 },
-      { size: 4, expectedPrice: 400 },
-      { size: 5, expectedPrice: 500 },
-      { size: 10, expectedPrice: 600 },
-      { size: 20, expectedPrice: 700 },
-      { size: 30, expectedPrice: 800 },
-      { size: 40, expectedPrice: 900 },
-      { size: 50, expectedPrice: 1000 },
+Deno.test('assignSharesToPlayer', async (t) => {
+  await t.step('assigns single share to player', () => {
+    const shares: Share[] = [
+      { location: 'bank' },
+      { location: 'bank' },
+      { location: 'bank' },
     ];
 
-    testCases.forEach(({ size, expectedPrice }) => {
-      const hotel = createHotel('Worldwide', 'economy', size);
-      assertEquals(sharePrice(hotel), expectedPrice);
-    });
+    const result = assignSharesToPlayer(shares, 1, 1);
+
+    assertEquals(result[0].location, 1);
+    assertEquals(result[1].location, 'bank');
+    assertEquals(result[2].location, 'bank');
   });
 
-  await t.step('calculates correct price for standard hotel', () => {
-    const hotel = createHotel('Festival', 'standard', 5);
-    assertEquals(sharePrice(hotel), 600);
+  await t.step('assigns multiple shares to player', () => {
+    const shares: Share[] = Array(5).fill(null).map(() => ({ location: 'bank' }));
+
+    const result = assignSharesToPlayer(shares, 2, 3);
+
+    assertEquals(result[0].location, 2);
+    assertEquals(result[1].location, 2);
+    assertEquals(result[2].location, 2);
+    assertEquals(result[3].location, 'bank');
+    assertEquals(result[4].location, 'bank');
   });
 
-  await t.step('calculates correct price for luxury hotel', () => {
-    const hotel = createHotel('Continental', 'luxury', 5);
-    assertEquals(sharePrice(hotel), 700);
+  await t.step('defaults to assigning 1 share when count not specified', () => {
+    const shares: Share[] = [
+      { location: 'bank' },
+      { location: 'bank' },
+    ];
+
+    const result = assignSharesToPlayer(shares, 3);
+
+    assertEquals(result[0].location, 3);
+    assertEquals(result[1].location, 'bank');
   });
 
-  await t.step('handles edge case of 1 tile (should use 2-tile bracket)', () => {
-    const hotel = createHotel('Worldwide', 'economy', 1);
-    assertEquals(sharePrice(hotel), 200);
+  await t.step('does not assign more shares than available in bank', () => {
+    const shares: Share[] = [
+      { location: 'bank' },
+      { location: 1 }, // already owned
+      { location: 'bank' },
+    ];
+
+    const result = assignSharesToPlayer(shares, 2, 5); // try to assign 5, only 2 available
+
+    assertEquals(result[0].location, 2);
+    assertEquals(result[1].location, 1); // unchanged
+    assertEquals(result[2].location, 2);
   });
 
-  await t.step('handles very large hotels', () => {
-    const hotel = createHotel('Tower', 'luxury', 100);
-    assertEquals(sharePrice(hotel), 1200);
+  await t.step('does not mutate original shares array', () => {
+    const shares: Share[] = [
+      { location: 'bank' },
+      { location: 'bank' },
+    ];
+    const originalShares = shares.map((s) => ({ ...s }));
+
+    const result = assignSharesToPlayer(shares, 1, 1);
+
+    assertEquals(shares, originalShares); // original unchanged
+    assertEquals(result !== shares, true); // new array returned
   });
 });
 
-Deno.test('findHotel', async (t) => {
-  await t.step('finds hotel containing the tile', () => {
-    const tile = createTile(0, 0);
-    const hotel1 = createHotel('Worldwide', 'economy');
-    const hotel2 = createHotel('Sackson', 'economy');
-    hotel2.tiles.push(tile);
+Deno.test('returnSharesToBank', async (t) => {
+  await t.step('returns single share to bank', () => {
+    const shares: Share[] = [
+      { location: 1 },
+      { location: 1 },
+      { location: 2 },
+    ];
 
-    const hotels = [hotel1, hotel2];
-    const found = findHotel(tile, hotels);
+    const result = returnSharesToBank(shares, 1, 1);
 
-    assertEquals(found, hotel2);
+    assertEquals(result[0].location, 'bank');
+    assertEquals(result[1].location, 1);
+    assertEquals(result[2].location, 2);
   });
 
-  await t.step('returns undefined when tile not found in any hotel', () => {
-    const tile = createTile(0, 0);
-    const hotel1 = createHotel('Worldwide', 'economy');
-    const hotel2 = createHotel('Sackson', 'economy');
+  await t.step('returns multiple shares to bank', () => {
+    const shares: Share[] = [
+      { location: 1 },
+      { location: 1 },
+      { location: 1 },
+      { location: 2 },
+    ];
 
-    const hotels = [hotel1, hotel2];
-    const found = findHotel(tile, []);
+    const result = returnSharesToBank(shares, 1, 2);
 
-    assertEquals(found, undefined);
+    assertEquals(result[0].location, 'bank');
+    assertEquals(result[1].location, 'bank');
+    assertEquals(result[2].location, 1);
+    assertEquals(result[3].location, 2);
   });
 
-  await t.step('returns undefined for empty hotels array', () => {
-    const tile = createTile(0, 0);
-    const found = findHotel(tile, []);
+  await t.step('defaults to returning 1 share when count not specified', () => {
+    const shares: Share[] = [
+      { location: 1 },
+      { location: 1 },
+    ];
 
-    assertEquals(found, undefined);
+    const result = returnSharesToBank(shares, 1);
+
+    assertEquals(result[0].location, 'bank');
+    assertEquals(result[1].location, 1);
+  });
+
+  await t.step('does not return more shares than player owns', () => {
+    const shares: Share[] = [
+      { location: 1 },
+      { location: 2 },
+      { location: 1 },
+    ];
+
+    const result = returnSharesToBank(shares, 1, 5); // try to return 5, player only has 2
+
+    assertEquals(result[0].location, 'bank');
+    assertEquals(result[1].location, 2);
+    assertEquals(result[2].location, 'bank');
+  });
+
+  await t.step('does not mutate original shares array', () => {
+    const shares: Share[] = [
+      { location: 1 },
+      { location: 1 },
+    ];
+    const originalShares = shares.map((s) => ({ ...s }));
+
+    const result = returnSharesToBank(shares, 1, 1);
+
+    assertEquals(shares, originalShares); // original unchanged
+    assertEquals(result !== shares, true); // new array returned
+  });
+});
+
+Deno.test('hotelTiles', async (t) => {
+  await t.step('returns tiles belonging to specified hotel', () => {
+    const tiles: BoardTile[] = [
+      createBoardTile(0, 0, 'Worldwide'),
+      createBoardTile(0, 1, 'Sackson'),
+      createBoardTile(0, 2, 'Worldwide'),
+      createBoardTile(0, 3), // no hotel
+    ];
+
+    const result = hotelTiles('Worldwide', tiles);
+
+    assertEquals(result.length, 2);
+    assertEquals(result[0], tiles[0]);
+    assertEquals(result[1], tiles[2]);
+  });
+
+  await t.step('returns empty array when hotel has no tiles', () => {
+    const tiles: BoardTile[] = [
+      createBoardTile(0, 0, 'Sackson'),
+      createBoardTile(0, 1), // no hotel
+    ];
+
+    const result = hotelTiles('Worldwide', tiles);
+
+    assertEquals(result.length, 0);
+  });
+
+  await t.step('handles empty tiles array', () => {
+    const result = hotelTiles('Worldwide', []);
+    assertEquals(result.length, 0);
+  });
+});
+
+Deno.test('sharePrice', async (t) => {
+  await t.step('calculates price for economy hotel with 2 tiles', () => {
+    const hotel = createHotel('Worldwide', 'economy');
+    const tiles = createHotelTiles('Worldwide', 2);
+
+    const price = sharePrice(hotel, tiles);
+    assertEquals(price, 200); // economy hotel, 2 tiles
+  });
+
+  await t.step('calculates price for standard hotel with 5 tiles', () => {
+    const hotel = createHotel('Festival', 'standard');
+    const tiles = createHotelTiles('Festival', 5);
+
+    const price = sharePrice(hotel, tiles);
+    assertEquals(price, 600); // standard hotel, 5 tiles
+  });
+
+  await t.step('calculates price for luxury hotel with 10 tiles', () => {
+    const hotel = createHotel('Continental', 'luxury');
+    const tiles = createHotelTiles('Continental', 10);
+
+    const price = sharePrice(hotel, tiles);
+    assertEquals(price, 800); // luxury hotel, 10 tiles
+  });
+
+  await t.step('calculates price for very large hotel', () => {
+    const hotel = createHotel('Tower', 'luxury');
+    const tiles = createHotelTiles('Tower', 50); // larger than any bracket
+
+    const price = sharePrice(hotel, tiles);
+    assertEquals(price, 1200); // luxury hotel, max price
+  });
+
+  await t.step('handles hotel with no tiles by using size 0', () => {
+    const hotel = createHotel('Worldwide', 'economy');
+    const tiles: BoardTile[] = []; // no tiles for this hotel
+
+    // When hotel has 0 tiles, it should use the first price bracket (size 2)
+    const price = sharePrice(hotel, tiles);
+    assertEquals(price, 200); // economy hotel, 0 tiles falls into first bracket (2)
+  });
+});
+
+Deno.test('majorityMinorityValue', async (t) => {
+  await t.step('returns correct majority and minority bonuses for economy hotel', () => {
+    const hotel = createHotel('Worldwide', 'economy');
+    const tiles = createHotelTiles('Worldwide', 3);
+
+    const [majority, minority] = majorityMinorityValue(hotel, tiles);
+    assertEquals(majority, 3000);
+    assertEquals(minority, 1500);
+  });
+
+  await t.step('returns correct majority and minority bonuses for standard hotel', () => {
+    const hotel = createHotel('Festival', 'standard');
+    const tiles = createHotelTiles('Festival', 20);
+
+    const [majority, minority] = majorityMinorityValue(hotel, tiles);
+    assertEquals(majority, 8000);
+    assertEquals(minority, 4000);
+  });
+
+  await t.step('returns correct majority and minority bonuses for luxury hotel', () => {
+    const hotel = createHotel('Continental', 'luxury');
+    const tiles = createHotelTiles('Continental', 50);
+
+    const [majority, minority] = majorityMinorityValue(hotel, tiles);
+    assertEquals(majority, 12000);
+    assertEquals(minority, 6000);
   });
 });
 
 Deno.test('hotelSafe', async (t) => {
-  await t.step('returns false for undefined hotel', () => {
-    assertEquals(hotelSafe(undefined), false);
+  await t.step('returns false for hotel smaller than safe size', () => {
+    const tiles = createHotelTiles('Worldwide', SAFE_HOTEL_SIZE - 1);
+
+    const result = hotelSafe('Worldwide', tiles);
+    assertEquals(result, false);
   });
 
-  await t.step('returns false for hotel with less than safe size', () => {
-    const hotel = createHotel('Worldwide', 'economy', SAFE_HOTEL_SIZE - 1);
-    assertEquals(hotelSafe(hotel), false);
-  });
+  await t.step('returns true for hotel equal to safe size', () => {
+    const tiles = createHotelTiles('Worldwide', SAFE_HOTEL_SIZE);
 
-  await t.step('returns true for hotel with exactly safe size', () => {
-    const hotel = createHotel('Worldwide', 'economy', SAFE_HOTEL_SIZE);
-    assertEquals(hotelSafe(hotel), true);
+    const result = hotelSafe('Worldwide', tiles);
+    assertEquals(result, true);
   });
 
   await t.step('returns true for hotel larger than safe size', () => {
-    const hotel = createHotel('Worldwide', 'economy', SAFE_HOTEL_SIZE + 5);
-    assertEquals(hotelSafe(hotel), true);
+    const tiles = createHotelTiles('Worldwide', SAFE_HOTEL_SIZE + 5);
+
+    const result = hotelSafe('Worldwide', tiles);
+    assertEquals(result, true);
+  });
+
+  await t.step('returns false for hotel with no tiles', () => {
+    const tiles: BoardTile[] = [];
+
+    const result = hotelSafe('Worldwide', tiles);
+    assertEquals(result, false);
   });
 });
 
-Deno.test('mergeHotels', async (t) => {
-  await t.step('throws error when called with less than 2 hotels', () => {
-    const hotel = createHotel('Worldwide', 'economy', 5);
-    const tiles = [createTile(0, 0)];
+Deno.test('getTiedHotels', async (t) => {
+  await t.step('returns hotels with same size as target hotel', () => {
+    const tiles: BoardTile[] = [
+      ...createHotelTiles('Worldwide', 5),
+      ...createHotelTiles('Sackson', 5),
+      ...createHotelTiles('Festival', 3),
+      ...createHotelTiles('Imperial', 7),
+    ];
+
+    const hotels: HOTEL_NAME[] = ['Worldwide', 'Sackson', 'Festival', 'Imperial'];
+    const result = getTiedHotels('Worldwide', hotels, tiles);
+
+    assertEquals(result.length, 2);
+    assertEquals(result.includes('Worldwide'), true);
+    assertEquals(result.includes('Sackson'), true);
+  });
+
+  await t.step('returns only target hotel when no ties', () => {
+    const tiles: BoardTile[] = [
+      ...createHotelTiles('Worldwide', 5),
+      ...createHotelTiles('Sackson', 3),
+      ...createHotelTiles('Festival', 7),
+    ];
+
+    const hotels: HOTEL_NAME[] = ['Worldwide', 'Sackson', 'Festival'];
+    const result = getTiedHotels('Worldwide', hotels, tiles);
+
+    assertEquals(result.length, 1);
+    assertEquals(result[0], 'Worldwide');
+  });
+
+  await t.step('handles hotels with zero tiles', () => {
+    const tiles: BoardTile[] = [
+      ...createHotelTiles('Festival', 3),
+    ];
+
+    const hotels: HOTEL_NAME[] = ['Worldwide', 'Sackson', 'Festival'];
+    const result = getTiedHotels('Worldwide', hotels, tiles); // Worldwide has 0 tiles
+
+    assertEquals(result.length, 2); // Worldwide and Sackson both have 0 tiles
+    assertEquals(result.includes('Worldwide'), true);
+    assertEquals(result.includes('Sackson'), true);
+  });
+
+  await t.step('handles all hotels tied', () => {
+    const tiles: BoardTile[] = [
+      ...createHotelTiles('Worldwide', 4),
+      ...createHotelTiles('Sackson', 4),
+      ...createHotelTiles('Festival', 4),
+    ];
+
+    const hotels: HOTEL_NAME[] = ['Worldwide', 'Sackson', 'Festival'];
+    const result = getTiedHotels('Worldwide', hotels, tiles);
+
+    assertEquals(result.length, 3);
+    assertEquals(result.includes('Worldwide'), true);
+    assertEquals(result.includes('Sackson'), true);
+    assertEquals(result.includes('Festival'), true);
+  });
+});
+
+Deno.test('getHotelsByNames', async (t) => {
+  await t.step('returns hotels matching the provided names', () => {
+    const hotels = initializeHotels();
+    const names: HOTEL_NAME[] = ['Worldwide', 'Festival', 'Tower'];
+
+    const result = getHotelsByNames(hotels, names);
+
+    assertEquals(result.length, 3);
+    assertEquals(result[0].name, 'Worldwide');
+    assertEquals(result[1].name, 'Festival');
+    assertEquals(result[2].name, 'Tower');
+  });
+
+  await t.step('returns hotels in the order of provided names', () => {
+    const hotels = initializeHotels();
+    const names: HOTEL_NAME[] = ['Tower', 'Worldwide', 'Sackson'];
+
+    const result = getHotelsByNames(hotels, names);
+
+    assertEquals(result.length, 3);
+    assertEquals(result[0].name, 'Tower');
+    assertEquals(result[1].name, 'Worldwide');
+    assertEquals(result[2].name, 'Sackson');
+  });
+
+  await t.step('throws error when hotel name not found', () => {
+    const hotels = initializeHotels();
+    const names: HOTEL_NAME[] = ['Worldwide', 'NonExistent' as HOTEL_NAME];
 
     const error = assertThrows(
-      () => mergeHotels([hotel], tiles),
+      () => getHotelsByNames(hotels, names),
       GameError,
-      'Need at least 2 hotels to merge',
+      'Hotel not found: NonExistent',
     );
     assertEquals(error.code, GameErrorCodes.GAME_PROCESSING_ERROR);
   });
 
-  await t.step('throws error when trying to merge safe hotel', () => {
-    const hotel1 = createHotel('Worldwide', 'economy', 15); // Large hotel
-    const hotel2 = createHotel('Sackson', 'economy', SAFE_HOTEL_SIZE); // Safe hotel
-    const tiles = [createTile(0, 0)];
+  await t.step('handles empty names array', () => {
+    const hotels = initializeHotels();
+    const names: HOTEL_NAME[] = [];
 
-    const error = assertThrows(
-      () => mergeHotels([hotel1, hotel2], tiles),
-      GameError,
-      'Cannot merge safe hotel Sackson',
-    );
-    assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
+    const result = getHotelsByNames(hotels, names);
+    assertEquals(result.length, 0);
   });
 
-  await t.step('successfully merges hotels with clear size difference', () => {
-    const largeHotel = createHotel('Worldwide', 'economy', 8);
-    const smallHotel = createHotel('Sackson', 'economy', 3);
-    const additionalTiles = [createTile(5, 5)];
+  await t.step('handles single hotel name', () => {
+    const hotels = initializeHotels();
+    const names: HOTEL_NAME[] = ['Continental'];
 
-    const result = mergeHotels([largeHotel, smallHotel], additionalTiles);
+    const result = getHotelsByNames(hotels, names);
 
-    assertEquals(result.needsMergeOrder, false);
-    if (!result.needsMergeOrder) {
-      assertEquals(result.survivingHotel.name, 'Worldwide');
-      assertEquals(result.survivingHotel.tiles.length, 12); // 8 + 3 + 1 (additional tile)
-      assertEquals(result.mergedHotel.name, 'Sackson');
-      assertEquals(result.mergedHotel.tiles.length, 0);
-      assertEquals(result.remainingHotels.length, 0);
-
-      // Check that additional tile is included
-      expect(result.survivingHotel.tiles).toContain(additionalTiles[0]);
-    }
-  });
-
-  await t.step('successfully merges multiple hotels with remaining hotels', () => {
-    const largestHotel = createHotel('Worldwide', 'economy', 10);
-    const mediumHotel = createHotel('Sackson', 'economy', 5);
-    const smallHotel = createHotel('Festival', 'standard', 2);
-    const additionalTiles = [createTile(5, 5)];
-
-    const result = mergeHotels([largestHotel, mediumHotel, smallHotel], additionalTiles);
-
-    assertEquals(result.needsMergeOrder, false);
-    if (!result.needsMergeOrder) {
-      assertEquals(result.survivingHotel.name, 'Worldwide');
-      assertEquals(result.survivingHotel.tiles.length, 16); // 10 + 5 + 1 (additional tile)
-      assertEquals(result.mergedHotel.name, 'Sackson'); // Second largest becomes merged hotel
-      assertEquals(result.mergedHotel.tiles.length, 0);
-      assertEquals(result.remainingHotels.length, 1);
-      assertEquals(result.remainingHotels[0].name, 'Festival');
-    }
-  });
-
-  await t.step('requires merge order resolution when hotels have same size', () => {
-    const hotel1 = createHotel('Worldwide', 'economy', 5);
-    const hotel2 = createHotel('Sackson', 'economy', 5);
-    const additionalTiles = [createTile(5, 5)];
-
-    const result = mergeHotels([hotel1, hotel2], additionalTiles);
-
-    assertEquals(result.needsMergeOrder, true);
-    if (result.needsMergeOrder) {
-      assertEquals(result.tiedHotels.length, 2);
-      expect(result.tiedHotels).toContain('Worldwide');
-      expect(result.tiedHotels).toContain('Sackson');
-    }
-  });
-
-  await t.step('applies tie resolution when provided', () => {
-    const hotel1 = createHotel('Worldwide', 'economy', 5);
-    const hotel2 = createHotel('Sackson', 'economy', 5);
-    const additionalTiles = [createTile(5, 5)];
-
-    // Resolve tie in favor of Sackson (survivor, merged)
-    const resolvedTie: [HOTEL_NAME, HOTEL_NAME] = ['Sackson', 'Worldwide'];
-    const result = mergeHotels([hotel1, hotel2], additionalTiles, undefined, resolvedTie);
-
-    assertEquals(result.needsMergeOrder, false);
-    if (!result.needsMergeOrder) {
-      assertEquals(result.survivingHotel.name, 'Sackson');
-      assertEquals(result.mergedHotel.name, 'Worldwide');
-      assertEquals(result.survivingHotel.tiles.length, 11); // 5 + 5 + 1 additional tile
-      assertEquals(result.mergedHotel.tiles.length, 0);
-    }
-  });
-
-  await t.step('handles three-way tie requiring resolution', () => {
-    const hotel1 = createHotel('Worldwide', 'economy', 5);
-    const hotel2 = createHotel('Sackson', 'economy', 5);
-    const hotel3 = createHotel('Festival', 'standard', 5);
-    const additionalTiles = [createTile(5, 5)];
-
-    const hotels = [hotel1, hotel2, hotel3];
-    const result = mergeHotels(hotels, additionalTiles);
-
-    assertEquals(result.needsMergeOrder, true);
-    if (result.needsMergeOrder) {
-      assertEquals(result.tiedHotels.length, 3);
-      expect(result.tiedHotels).toContain('Worldwide');
-      expect(result.tiedHotels).toContain('Sackson');
-      expect(result.tiedHotels).toContain('Festival');
-    }
-  });
-
-  await t.step('handles complex scenario with surviving hotel specified', () => {
-    const hotel1 = createHotel('Worldwide', 'economy', 8);
-    const hotel2 = createHotel('Sackson', 'economy', 6);
-    const hotel3 = createHotel('Festival', 'standard', 4);
-    const additionalTiles = [createTile(5, 5), createTile(6, 6)];
-
-    // Specify Sackson as the surviving hotel (even though Worldwide is larger)
-    const result = mergeHotels([hotel1, hotel2, hotel3], additionalTiles, hotel2);
-
-    assertEquals(result.needsMergeOrder, false);
-    if (!result.needsMergeOrder) {
-      assertEquals(result.survivingHotel.name, 'Sackson');
-      assertEquals(result.mergedHotel.name, 'Worldwide'); // Largest becomes merged
-      assertEquals(result.survivingHotel.tiles.length, 16); // 6 + 8 + 2 additional tiles
-      assertEquals(result.mergedHotel.tiles.length, 0);
-      assertEquals(result.remainingHotels.length, 1);
-      assertEquals(result.remainingHotels[0].name, 'Festival');
-    }
-  });
-
-  await t.step('handles partial tie resolution with remaining ties', () => {
-    const hotel1 = createHotel('Worldwide', 'economy', 5);
-    const hotel2 = createHotel('Sackson', 'economy', 5);
-    const hotel3 = createHotel('Festival', 'standard', 5);
-    const hotel4 = createHotel('Imperial', 'standard', 3);
-    const additionalTiles = [createTile(5, 5)];
-
-    // Resolve one tie but leave others
-    const resolvedTie: [HOTEL_NAME, HOTEL_NAME] = ['Worldwide', 'Sackson'];
-    const result = mergeHotels([hotel1, hotel2, hotel3, hotel4], additionalTiles, undefined, resolvedTie);
-
-    assertEquals(result.needsMergeOrder, true);
-    if (result.needsMergeOrder) {
-      // Should still need to resolve tie between Sackson and Festival
-      assertEquals(result.tiedHotels.length, 2);
-      expect(result.tiedHotels).toContain('Sackson');
-      expect(result.tiedHotels).toContain('Festival');
-    }
-  });
-
-  await t.step('prevents merging when safe hotel would be absorbed', () => {
-    const largeHotel = createHotel('Worldwide', 'economy', 15);
-    const safeHotel = createHotel('Sackson', 'economy', SAFE_HOTEL_SIZE);
-    const additionalTiles = [createTile(5, 5)];
-
-    const error = assertThrows(
-      () => mergeHotels([largeHotel, safeHotel], additionalTiles),
-      GameError,
-      'Cannot merge safe hotel Sackson',
-    );
-    assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
-  });
-
-  await t.step('allows safe hotel to survive and absorb smaller hotels', () => {
-    const safeHotel = createHotel('Worldwide', 'economy', SAFE_HOTEL_SIZE);
-    const smallHotel = createHotel('Sackson', 'economy', 3);
-    const additionalTiles = [createTile(5, 5)];
-
-    const result = mergeHotels([safeHotel, smallHotel], additionalTiles);
-
-    assertEquals(result.needsMergeOrder, false);
-    if (!result.needsMergeOrder) {
-      assertEquals(result.survivingHotel.name, 'Worldwide');
-      assertEquals(result.survivingHotel.tiles.length, SAFE_HOTEL_SIZE + 3 + 1); // safe + small + additional
-      assertEquals(result.mergedHotel.name, 'Sackson');
-      assertEquals(result.mergedHotel.tiles.length, 0);
-    }
-  });
-
-  await t.step('handles edge case with empty additional tiles', () => {
-    const largeHotel = createHotel('Worldwide', 'economy', 8);
-    const smallHotel = createHotel('Sackson', 'economy', 3);
-    const additionalTiles: Tile[] = [];
-
-    const result = mergeHotels([largeHotel, smallHotel], additionalTiles);
-
-    assertEquals(result.needsMergeOrder, false);
-    if (!result.needsMergeOrder) {
-      assertEquals(result.survivingHotel.name, 'Worldwide');
-      assertEquals(result.survivingHotel.tiles.length, 11); // 8 + 3 + 0 additional
-      assertEquals(result.mergedHotel.name, 'Sackson');
-      assertEquals(result.mergedHotel.tiles.length, 0);
-    }
+    assertEquals(result.length, 1);
+    assertEquals(result[0].name, 'Continental');
+    assertEquals(result[0].type, 'luxury');
   });
 });

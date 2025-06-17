@@ -1,6 +1,7 @@
 import { assertEquals, assertThrows } from 'jsr:@std/assert';
-import { expect } from 'jsr:@std/expect';
 import { startGameReducer } from './gameReducers.ts';
+import { initializeTiles } from '@/engine/domain/tileOperations.ts';
+import { initializeHotels } from '@/engine/domain/hotelOperations.ts';
 import {
   GameError,
   GameErrorCodes,
@@ -9,35 +10,40 @@ import {
   type Player,
 } from '@/engine/types/index.ts';
 import { ActionTypes } from '@/engine/types/actionsTypes.ts';
-import { COLS, INITIAL_PLAYER_MONEY, MINIMUM_PLAYERS, ROWS } from '@/engine/config/gameConfig.ts';
-import { initializeTiles } from '@/engine/domain/tileOperations.ts';
+import {
+  INITIAL_PLAYER_MONEY,
+  MINIMUM_PLAYERS,
+  TILES_PER_HAND,
+} from '@/engine/config/gameConfig.ts';
 
 // Helper function to create a basic game state
 function createBasicGameState(overrides: Partial<GameState> = {}): GameState {
+  const defaultPlayers: Player[] = [
+    {
+      id: 0,
+      name: 'Player1',
+      money: INITIAL_PLAYER_MONEY,
+    },
+    {
+      id: 1,
+      name: 'Player2',
+      money: INITIAL_PLAYER_MONEY,
+    },
+  ];
+
   return {
     gameId: 'test-game',
-    owner: 'TestOwner',
+    owner: 'Player1',
     currentPhase: GamePhase.WAITING_FOR_PLAYERS,
-    currentTurn: 0,
+    currentTurn: 1,
     currentPlayer: 0,
     lastUpdated: Date.now(),
-    players: [],
-    hotels: [],
-    tiles: initializeTiles(ROWS, COLS), // Use proper tile initialization
+    players: defaultPlayers,
+    hotels: initializeHotels(),
+    tiles: initializeTiles(12, 9),
     error: null,
     lastActions: [],
     ...overrides,
-  };
-}
-
-// Helper function to create a player
-function createPlayer(id: number, name: string): Player {
-  return {
-    id,
-    name,
-    money: INITIAL_PLAYER_MONEY,
-    shares: {},
-    tiles: [],
   };
 }
 
@@ -45,13 +51,12 @@ Deno.test('startGameReducer validation tests', async (t) => {
   await t.step('throws error when not in WAITING_FOR_PLAYERS phase', () => {
     const gameState = createBasicGameState({
       currentPhase: GamePhase.PLAY_TILE,
-      players: [createPlayer(0, 'Player1'), createPlayer(1, 'Player2')],
     });
 
     const action = {
       type: ActionTypes.START_GAME,
       payload: {
-        playerName: 'TestOwner',
+        playerName: 'Player1',
       },
     };
 
@@ -65,13 +70,17 @@ Deno.test('startGameReducer validation tests', async (t) => {
 
   await t.step('throws error when not enough players', () => {
     const gameState = createBasicGameState({
-      players: [createPlayer(0, 'Player1')], // Only 1 player, need minimum 2
+      players: [{
+        id: 0,
+        name: 'OnlyPlayer',
+        money: INITIAL_PLAYER_MONEY,
+      }],
     });
 
     const action = {
       type: ActionTypes.START_GAME,
       payload: {
-        playerName: 'TestOwner',
+        playerName: 'OnlyPlayer',
       },
     };
 
@@ -85,143 +94,359 @@ Deno.test('startGameReducer validation tests', async (t) => {
 
   await t.step('throws error when non-owner tries to start game', () => {
     const gameState = createBasicGameState({
-      owner: 'TestOwner',
-      players: [createPlayer(0, 'Player1'), createPlayer(1, 'Player2')],
+      owner: 'Player1',
     });
 
     const action = {
       type: ActionTypes.START_GAME,
       payload: {
-        playerName: 'NotTheOwner',
+        playerName: 'Player2', // Not the owner
       },
     };
 
     const error = assertThrows(
       () => startGameReducer(gameState, action),
       GameError,
-      'Only player TestOwner can start the game',
+      'Only player Player1 can start the game',
+    );
+    assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
+  });
+
+  await t.step('throws error when player name does not match owner', () => {
+    const gameState = createBasicGameState({
+      owner: 'GameOwner',
+      players: [
+        { id: 0, name: 'Player1', money: INITIAL_PLAYER_MONEY },
+        { id: 1, name: 'Player2', money: INITIAL_PLAYER_MONEY },
+      ],
+    });
+
+    const action = {
+      type: ActionTypes.START_GAME,
+      payload: {
+        playerName: 'Player1', // Not the owner
+      },
+    };
+
+    const error = assertThrows(
+      () => startGameReducer(gameState, action),
+      GameError,
+      'Only player GameOwner can start the game',
     );
     assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
   });
 });
 
-Deno.test('startGameReducer successful start tests', async (t) => {
+Deno.test('startGameReducer successful game start tests', async (t) => {
   await t.step('successfully starts game with minimum players', () => {
-    const player1 = createPlayer(0, 'Player1');
-    const player2 = createPlayer(1, 'Player2');
-
-    const gameState = createBasicGameState({
-      owner: 'TestOwner',
-      players: [player1, player2],
-    });
+    const gameState = createBasicGameState();
 
     const action = {
       type: ActionTypes.START_GAME,
       payload: {
-        playerName: 'TestOwner',
+        playerName: 'Player1',
       },
     };
 
     const result = startGameReducer(gameState, action);
 
-    // Check phase transition
+    // Should transition to PLAY_TILE phase
     assertEquals(result.currentPhase, GamePhase.PLAY_TILE);
+
+    // Should set current player to 0 (first player)
     assertEquals(result.currentPlayer, 0);
+
+    // Should set current turn to 1
     assertEquals(result.currentTurn, 1);
 
-    // Check players have been sorted and assigned IDs
+    // Players should be sorted by their first tile
     assertEquals(result.players.length, 2);
     assertEquals(result.players[0].id, 0);
     assertEquals(result.players[1].id, 1);
 
-    // Check each player has a first tile
-    expect(result.players[0].firstTile).toBeDefined();
-    expect(result.players[1].firstTile).toBeDefined();
-    assertEquals(result.players[0].firstTile!.location, 'board');
-    assertEquals(result.players[1].firstTile!.location, 'board');
-
-    // Check each player has 6 tiles in hand
-    assertEquals(result.players[0].tiles.length, 6);
-    assertEquals(result.players[1].tiles.length, 6);
-
-    // Check tiles belong to the correct players
-    result.players[0].tiles.forEach((tile) => assertEquals(tile.location, 0));
-    result.players[1].tiles.forEach((tile) => assertEquals(tile.location, 1));
+    // Each player should have a first tile assigned
+    assertEquals(typeof result.players[0].firstTile?.row, 'number');
+    assertEquals(typeof result.players[0].firstTile?.col, 'number');
+    assertEquals(typeof result.players[1].firstTile?.row, 'number');
+    assertEquals(typeof result.players[1].firstTile?.col, 'number');
   });
 
-  await t.step('successfully starts game with multiple players and sorts them', () => {
-    // Create players in a specific order
-    const player1 = createPlayer(0, 'Player1');
-    const player2 = createPlayer(1, 'Player2');
-    const player3 = createPlayer(2, 'Player3');
-
-    const gameState = createBasicGameState({
-      owner: 'TestOwner',
-      players: [player1, player2, player3],
-    });
+  await t.step('assigns first tiles to board and draws hand tiles', () => {
+    const gameState = createBasicGameState();
 
     const action = {
       type: ActionTypes.START_GAME,
       payload: {
-        playerName: 'TestOwner',
+        playerName: 'Player1',
       },
     };
 
     const result = startGameReducer(gameState, action);
 
-    // Check all players are present and have correct IDs
-    assertEquals(result.players.length, 3);
+    // Count tiles on board (should be 2 - one for each player's first tile)
+    const boardTiles = result.tiles.filter((t) => t.location === 'board');
+    assertEquals(boardTiles.length, 2);
+
+    // Count tiles in each player's hand (should be TILES_PER_HAND each)
+    const player0Tiles = result.tiles.filter((t) => t.location === 0);
+    const player1Tiles = result.tiles.filter((t) => t.location === 1);
+    assertEquals(player0Tiles.length, TILES_PER_HAND);
+    assertEquals(player1Tiles.length, TILES_PER_HAND);
+
+    // Count remaining tiles in bag
+    const bagTiles = result.tiles.filter((t) => t.location === 'bag');
+    const expectedBagTiles = 12 * 9 - 2 - (2 * TILES_PER_HAND); // Total - first tiles - hand tiles
+    assertEquals(bagTiles.length, expectedBagTiles);
+  });
+
+  await t.step('sorts players by first tile position', () => {
+    const gameState = createBasicGameState({
+      players: [
+        { id: 0, name: 'Player1', money: INITIAL_PLAYER_MONEY },
+        { id: 1, name: 'Player2', money: INITIAL_PLAYER_MONEY },
+        { id: 2, name: 'Player3', money: INITIAL_PLAYER_MONEY },
+      ],
+    });
+
+    const action = {
+      type: ActionTypes.START_GAME,
+      payload: {
+        playerName: 'Player1',
+      },
+    };
+
+    const result = startGameReducer(gameState, action);
+
+    // Players should be sorted by their first tile (lexicographically)
+    // The first tile should be the "smallest" tile position
+    const firstTiles = result.players.map((p) => p.firstTile!);
+
+    // Verify tiles are sorted (each subsequent tile should be >= previous)
+    for (let i = 1; i < firstTiles.length; i++) {
+      const prev = firstTiles[i - 1];
+      const curr = firstTiles[i];
+
+      // Compare column first, then row
+      const prevValue = prev.col * 100 + prev.row;
+      const currValue = curr.col * 100 + curr.row;
+
+      assertEquals(
+        prevValue <= currValue,
+        true,
+        `Tiles not sorted: ${prev.row},${prev.col} should be <= ${curr.row},${curr.col}`,
+      );
+    }
+  });
+
+  await t.step('preserves other game state properties', () => {
+    const gameState = createBasicGameState({
+      gameId: 'test-start-game-123',
+      lastUpdated: 1234567890,
+      lastActions: ['add players'],
+    });
+
+    const action = {
+      type: ActionTypes.START_GAME,
+      payload: {
+        playerName: 'Player1',
+      },
+    };
+
+    const result = startGameReducer(gameState, action);
+
+    // Check that other properties are preserved
+    assertEquals(result.gameId, 'test-start-game-123');
+    assertEquals(result.owner, 'Player1');
+    assertEquals(result.lastUpdated, 1234567890);
+    assertEquals(result.lastActions, ['add players']);
+    assertEquals(result.error, null);
+  });
+
+  await t.step('handles maximum number of players', () => {
+    const players: Player[] = [];
+    for (let i = 0; i < 6; i++) { // Maximum players
+      players.push({
+        id: i,
+        name: `Player${i}`,
+        money: INITIAL_PLAYER_MONEY,
+      });
+    }
+
+    const gameState = createBasicGameState({
+      owner: 'Player0',
+      players,
+    });
+
+    const action = {
+      type: ActionTypes.START_GAME,
+      payload: {
+        playerName: 'Player0',
+      },
+    };
+
+    const result = startGameReducer(gameState, action);
+
+    // Should successfully start with 6 players
+    assertEquals(result.currentPhase, GamePhase.PLAY_TILE);
+    assertEquals(result.players.length, 6);
+
+    // Each player should have first tile and hand tiles
+    for (let i = 0; i < 6; i++) {
+      assertEquals(typeof result.players[i].firstTile?.row, 'number');
+      assertEquals(typeof result.players[i].firstTile?.col, 'number');
+
+      const playerTiles = result.tiles.filter((t) => t.location === i);
+      assertEquals(playerTiles.length, TILES_PER_HAND);
+    }
+
+    // Should have 6 tiles on board (one per player)
+    const boardTiles = result.tiles.filter((t) => t.location === 'board');
+    assertEquals(boardTiles.length, 6);
+  });
+
+  await t.step('assigns unique first tiles to each player', () => {
+    const gameState = createBasicGameState({
+      players: [
+        { id: 0, name: 'Player1', money: INITIAL_PLAYER_MONEY },
+        { id: 1, name: 'Player2', money: INITIAL_PLAYER_MONEY },
+        { id: 2, name: 'Player3', money: INITIAL_PLAYER_MONEY },
+      ],
+    });
+
+    const action = {
+      type: ActionTypes.START_GAME,
+      payload: {
+        playerName: 'Player1',
+      },
+    };
+
+    const result = startGameReducer(gameState, action);
+
+    // Collect all first tiles
+    const firstTiles = result.players.map((p) => p.firstTile!);
+
+    // Verify all first tiles are unique
+    const uniqueTiles = new Set(firstTiles.map((t) => `${t.row},${t.col}`));
+    assertEquals(uniqueTiles.size, firstTiles.length, 'First tiles should be unique');
+
+    // Verify first tiles are on the board
+    for (const firstTile of firstTiles) {
+      const boardTile = result.tiles.find((t) =>
+        t.location === 'board' &&
+        t.row === firstTile.row &&
+        t.col === firstTile.col
+      );
+      assertEquals(
+        boardTile !== undefined,
+        true,
+        `First tile ${firstTile.row},${firstTile.col} should be on board`,
+      );
+    }
+  });
+
+  await t.step('updates player IDs based on sorted order', () => {
+    const gameState = createBasicGameState({
+      owner: 'PlayerA',
+      players: [
+        { id: 0, name: 'PlayerA', money: INITIAL_PLAYER_MONEY },
+        { id: 1, name: 'PlayerB', money: INITIAL_PLAYER_MONEY },
+        { id: 2, name: 'PlayerC', money: INITIAL_PLAYER_MONEY },
+      ],
+    });
+
+    const action = {
+      type: ActionTypes.START_GAME,
+      payload: {
+        playerName: 'PlayerA',
+      },
+    };
+
+    const result = startGameReducer(gameState, action);
+
+    // Players should have IDs 0, 1, 2 based on their sorted order
     assertEquals(result.players[0].id, 0);
     assertEquals(result.players[1].id, 1);
     assertEquals(result.players[2].id, 2);
 
-    // Check players are sorted by their first tile (this is deterministic based on tile comparison)
-    const firstTiles = result.players.map((p) => p.firstTile!);
-    for (let i = 0; i < firstTiles.length - 1; i++) {
-      // First tile should be "less than or equal to" the next one based on tile comparison
-      const tile1 = firstTiles[i];
-      const tile2 = firstTiles[i + 1];
-      const isOrdered = tile1.col < tile2.col ||
-        (tile1.col === tile2.col && tile1.row <= tile2.row);
-      expect(isOrdered).toBe(true);
-    }
-
-    // Check all players have 6 tiles
-    result.players.forEach((player) => {
-      assertEquals(player.tiles.length, 6);
-      player.tiles.forEach((tile) => assertEquals(tile.location, player.id));
-    });
+    // Names should be preserved
+    assertEquals(result.players.map((p) => p.name).includes('PlayerA'), true);
+    assertEquals(result.players.map((p) => p.name).includes('PlayerB'), true);
+    assertEquals(result.players.map((p) => p.name).includes('PlayerC'), true);
   });
 });
 
-Deno.test('gameReducers integration tests', async (t) => {
-  await t.step('complete game start flow', () => {
-    // Start with a game waiting for players
-    let gameState = createBasicGameState({
-      owner: 'Owner',
+Deno.test('startGameReducer edge cases', async (t) => {
+  await t.step('handles exactly minimum number of players', () => {
+    const gameState = createBasicGameState({
       players: [
-        createPlayer(0, 'Player1'),
-        createPlayer(1, 'Player2'),
+        { id: 0, name: 'Player1', money: INITIAL_PLAYER_MONEY },
+        { id: 1, name: 'Player2', money: INITIAL_PLAYER_MONEY },
       ],
     });
 
-    // Start the game
-    const startAction = {
+    const action = {
       type: ActionTypes.START_GAME,
       payload: {
-        playerName: 'Owner',
+        playerName: 'Player1',
       },
     };
 
-    gameState = startGameReducer(gameState, startAction);
+    const result = startGameReducer(gameState, action);
 
-    // Verify game started correctly
-    assertEquals(gameState.currentPhase, GamePhase.PLAY_TILE);
-    assertEquals(gameState.currentPlayer, 0);
-    assertEquals(gameState.currentTurn, 1);
+    assertEquals(result.currentPhase, GamePhase.PLAY_TILE);
+    assertEquals(result.players.length, MINIMUM_PLAYERS);
+  });
 
-    // Verify turn started correctly
-    assertEquals(gameState.currentPhase, GamePhase.PLAY_TILE);
-    expect(gameState.players[0].tiles.length).toBeGreaterThan(0);
+  await t.step('preserves player money and names', () => {
+    const gameState = createBasicGameState({
+      owner: 'RichPlayer',
+      players: [
+        { id: 0, name: 'RichPlayer', money: 5000 },
+        { id: 1, name: 'PoorPlayer', money: 1000 },
+      ],
+    });
+
+    const action = {
+      type: ActionTypes.START_GAME,
+      payload: {
+        playerName: 'RichPlayer',
+      },
+    };
+
+    const result = startGameReducer(gameState, action);
+
+    // Money should be preserved
+    const richPlayer = result.players.find((p) => p.name === 'RichPlayer');
+    const poorPlayer = result.players.find((p) => p.name === 'PoorPlayer');
+
+    assertEquals(richPlayer?.money, 5000);
+    assertEquals(poorPlayer?.money, 1000);
+  });
+
+  await t.step('handles case where owner is not first player after sorting', () => {
+    // This test ensures the game can start even if the owner ends up not being player 0 after sorting
+    const gameState = createBasicGameState({
+      owner: 'OwnerPlayer',
+      players: [
+        { id: 0, name: 'FirstPlayer', money: INITIAL_PLAYER_MONEY },
+        { id: 1, name: 'OwnerPlayer', money: INITIAL_PLAYER_MONEY },
+      ],
+    });
+
+    const action = {
+      type: ActionTypes.START_GAME,
+      payload: {
+        playerName: 'OwnerPlayer',
+      },
+    };
+
+    const result = startGameReducer(gameState, action);
+
+    // Should successfully start regardless of owner's final position
+    assertEquals(result.currentPhase, GamePhase.PLAY_TILE);
+    assertEquals(result.currentPlayer, 0); // Always starts with player 0
+
+    // Owner should still be preserved
+    assertEquals(result.owner, 'OwnerPlayer');
   });
 });

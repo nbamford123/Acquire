@@ -14,7 +14,6 @@ export type Hotel = {
   name: HOTEL_NAME;
   type: HOTEL_TYPE;
   shares: Share[];
-  tiles: Tile[];
 };
 
 export const SharePrices: Record<

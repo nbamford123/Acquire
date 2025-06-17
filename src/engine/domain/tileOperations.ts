@@ -1,75 +1,92 @@
 import { getAdjacentPositions, shuffleTiles } from '@/engine/utils/index.ts';
-import { GameError, GameState, type Tile } from '@/engine/types/index.ts';
-import { findHotel, hotelSafe } from './index.ts';
-import { CHARACTER_CODE_A, COLS, ROWS } from '@/engine/config/gameConfig.ts';
-import { GameErrorCodes } from '@/engine/types/errorCodes.ts';
+import {
+  type BoardTile,
+  GameError,
+  GameErrorCodes,
+  type Hotel,
+  type Tile,
+} from '@/engine/types/index.ts';
+import { hotelSafe } from './index.ts';
+import { CHARACTER_CODE_A } from '@/engine/config/gameConfig.ts';
+import {} from '@/engine/types/errorCodes.ts';
 
-export const initializeTiles = (rows: number, cols: number): Tile[][] =>
+export const initializeTiles = (rows: number, cols: number): Tile[] =>
   Array.from(
-    { length: rows },
-    (_, row) =>
-      Array.from(
-        { length: cols },
-        (_, col) => ({
-          row: row,
-          col: col,
-          location: 'bag',
-        }),
-      ),
+    { length: rows * cols },
+    (_, index) => ({
+      row: Math.floor(index / cols),
+      col: index % cols,
+      location: 'bag' as const,
+    }),
   );
 
 export const tileLabel = (tile: Tile): string =>
   `${tile.row + 1}${String.fromCharCode(tile.col + CHARACTER_CODE_A)}`;
 
-export const board = (tiles: Tile[][]): Array<Array<Tile | undefined>> =>
-  tiles.map((row) => row.map((tile) => tile.location === 'board' ? tile : undefined));
+// Return only the tiles on board
+export const boardTiles = (tiles: Tile[]): BoardTile[] =>
+  tiles.filter(
+    (tile) => tile.location === 'board',
+  );
 
-export const deadTile = (tile: Tile, gameState: GameState): boolean => {
+export const deadTile = (tile: Tile, boardTiles: BoardTile[]): boolean => {
   if (tile.location === 'board') {
     throw new GameError(
       `invalid check for dead tile ${tileLabel(tile)}`,
       GameErrorCodes.GAME_PROCESSING_ERROR,
     );
   }
-  const gameBoard = board(gameState.tiles);
-  const hotels = gameState.hotels;
   const safeHotels = getAdjacentPositions(tile.row, tile.col)
-    .map(([r, c]) => findHotel(gameBoard[r][c], hotels))
-    .filter((hotel) => hotelSafe(hotel)).length;
-  return safeHotels >= 2;
+    .map(([r, c]) => getBoardTile(boardTiles, r, c))
+    .filter((tile) => tile && tile.hotel && hotelSafe(tile.hotel, boardTiles));
+  return safeHotels.length >= 2;
 };
+
+export const updateTiles = (currentTiles: Tile[], tilesToUpdate: Tile[]): Tile[] => {
+  const newTiles = [...currentTiles];
+
+  tilesToUpdate.forEach((updatedTile) => {
+    const index = newTiles.findIndex((tile) =>
+      tile.row === updatedTile.row && tile.col === updatedTile.col
+    );
+    if (index !== -1) {
+      newTiles[index] = updatedTile;
+    }
+  });
+
+  return newTiles;
+};
+
+export const getBoardTile = (tiles: BoardTile[], row: number, col: number) =>
+  tiles.find((tile) => tile.row === row && tile.col === col);
+
+export const getTile = (tiles: Tile[], row: number, col: number) =>
+  tiles.find((tile) => tile.row === row && tile.col === col);
+
+export const getPlayerTiles = (playerId: number, tiles: Tile[]) =>
+  tiles.filter((tile) => tile.location === playerId);
 
 // Will only return the number of tiles left in the bag at most
 export const drawTiles = (
-  gameState: GameState,
+  availableTiles: Tile[],
   playerId: number,
+  boardTiles: BoardTile[],
   count: number,
-): Tile[] => {
-  const drawTilesInternal = (
-    tiles: Tile[],
-    playerId: number,
-    count: number,
-  ): Tile[] => {
-    if (count <= 0) return [];
+): { drawnTiles: Tile[]; deadTiles: Tile[]; remainingTiles: Tile[] } => {
+  const shuffled = shuffleTiles([...availableTiles]);
+  const drawn: Tile[] = [];
+  const dead: Tile[] = [];
+  const remaining = [...shuffled];
 
-    const tile = tiles.shift();
-    if (!tile) return [];
-    if (deadTile(tile, gameState)) {
-      tile.location = 'dead';
-      return drawTilesInternal(tiles, playerId, count);
+  while (drawn.length < count && remaining.length > 0) {
+    const tile = remaining.shift()!;
+
+    if (deadTile(tile, boardTiles)) {
+      dead.push({ ...tile, location: 'dead' });
+    } else {
+      drawn.push({ ...tile, location: playerId });
     }
-    tile.location = playerId;
-    return [tile, ...drawTilesInternal(tiles, playerId, count - 1)];
-  };
-  const returnTiles = [...gameState.tiles];
-  const availableTiles = returnTiles.flat().filter((tile) => tile.location === 'bag');
-  const randomizedTiles = shuffleTiles(availableTiles);
-  return drawTilesInternal(randomizedTiles, playerId, count);
-};
+  }
 
-export const replaceTile = (tiles: Tile[][], tile: Tile): Tile[][] =>
-  tiles.map((row, rowIndex) =>
-    rowIndex === tile.row
-      ? row.map((existingTile, colIndex) => colIndex === tile.col ? tile : existingTile)
-      : row
-  );
+  return { drawnTiles: drawn, deadTiles: dead, remainingTiles: remaining };
+};

@@ -1,6 +1,15 @@
-import { GameError, GameErrorCodes, GamePhase, type GameState } from '@/engine/types/index.ts';
-import type { BreakMergerTieAction } from '@/engine/types/actionsTypes.ts';
+import {
+  type BoardTile,
+  type BreakMergerTieAction,
+  GameError,
+  GameErrorCodes,
+  GamePhase,
+  type GameState,
+  type HOTEL_NAME,
+} from '@/engine/types/index.ts';
+import { getHotelsByNames } from '@/engine/domain/index.ts';
 import { handleMerger } from '@/engine/state/gameStateUpdater.ts';
+import { boardTiles, getBoardTile } from '@/engine/domain/tileOperations.ts';
 
 export const breakMergerTieReducer = (
   gameState: GameState,
@@ -19,18 +28,42 @@ export const breakMergerTieReducer = (
       GameErrorCodes.GAME_INVALID_ACTION,
     );
   }
-  if (resolvedTie.length !== 2) {
+  if (!resolvedTie.survivor || !resolvedTie.merged) {
     throw new GameError(
       'Missing hotel names for merger tie break',
       GameErrorCodes.GAME_INVALID_ACTION,
     );
   }
-  const { survivingHotel, remainingHotels, additionalTiles } = gameState.mergerContext || {};
-  if (!remainingHotels) {
-    throw new GameError('Invalid merger context', GameErrorCodes.GAME_PROCESSING_ERROR);
+  if (!gameState.mergeContext) {
+    throw new GameError(
+      'Missing merge context for merger tie break',
+      GameErrorCodes.GAME_INVALID_ACTION,
+    );
   }
+
+  const gameBoard = boardTiles(gameState.tiles);
+  const { survivingHotel, originalHotels, additionalTiles } = gameState.mergeContext || {};
+  const survivor = gameState.hotels.find((hotel) => hotel.name === survivingHotel);
+  const otherHotels = getHotelsByNames(gameState.hotels, originalHotels || []);
+  const otherTiles = (additionalTiles || []).map((
+    tile,
+  ) => getBoardTile(gameBoard, tile.row, tile.col)!);
+
+  if (!survivor || !otherHotels.length || otherTiles.some((tile) => tile === undefined)) {
+    throw new GameError(
+      `Invalid merger context, couldn't find hotels`,
+      GameErrorCodes.GAME_PROCESSING_ERROR,
+    );
+  }
+
   return {
     ...gameState,
-    ...handleMerger(remainingHotels, additionalTiles || [], survivingHotel, resolvedTie),
+    ...handleMerger(
+      gameState.players,
+      gameBoard,
+      gameState.hotels,
+      gameState.mergeContext,
+      resolvedTie,
+    ),
   };
 };

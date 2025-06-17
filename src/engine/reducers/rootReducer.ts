@@ -14,10 +14,13 @@ export const rootReducer = (
     // Get the appropriate handler for this action type
     const handler = actionHandlers[action.type];
 
-    // If we have a handler, use it; otherwise return the state unchanged
+    // If we have a handler, use it; otherwise return the state unchanged but clear error
     if (!handler) {
       console.warn(`No handler registered for action type: ${action.type}`);
-      return state;
+      return {
+        ...state,
+        error: null, // Clear error even for unknown actions
+      };
     }
 
     const newState = handler(state, action);

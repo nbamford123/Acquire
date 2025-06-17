@@ -1,6 +1,14 @@
 import { GameError, GameErrorCodes, GamePhase, type GameState } from '@/engine/types/index.ts';
 import type { BuySharesAction } from '@/engine/types/actionsTypes.ts';
-import { deadTile, drawTiles, remainingShares, sharePrice } from '@/engine/domain/index.ts';
+import {
+  boardTiles,
+  deadTile,
+  drawTiles,
+  getPlayerTiles,
+  remainingShares,
+  sharePrice,
+  updateTiles,
+} from '@/engine/domain/index.ts';
 import { filterDefined } from '@/engine/utils/filterDefined.ts';
 
 export const buySharesReducer = (
@@ -27,6 +35,7 @@ export const buySharesReducer = (
     );
   }
 
+  const gameBoard = boardTiles(gameState.tiles);
   let totalCost = 0;
   Object.entries(shares).forEach(([hotelName, numShares]) => {
     if (numShares === 0) {
@@ -45,7 +54,7 @@ export const buySharesReducer = (
         GameErrorCodes.GAME_INVALID_ACTION,
       );
     }
-    totalCost += sharePrice(hotel) * numShares;
+    totalCost += sharePrice(hotel, gameBoard) * numShares;
   });
 
   const player = gameState.players[playerId];
@@ -56,18 +65,32 @@ export const buySharesReducer = (
     );
   }
 
-  const nextPlayerId = (gameState.currentPlayer + 1) % gameState.players.length;
   // Draw a tile for this player
-  const playerTiles = [...player.tiles, ...drawTiles(gameState, playerId, 1)];
-  // Check for next player dead tiles and draw replacements
-  const nextPlayerTiles = filterDefined(gameState.players[nextPlayerId].tiles.map((tile) => {
-    if (deadTile(tile, gameState)) {
-      // This might fail because there are no more tiles to draw
-      const tiles = drawTiles(gameState, playerId, 1);
-      return tiles.length ? tiles[0] : undefined;
-    }
-    return tile;
-  }));
+  const availableTiles = gameState.tiles.filter((tile) => tile.location === 'bag');
+  // Should we somehow determine they have 5? Or maybe less, if the bag is empty, but then draw is going to return 0 anyway
+  if (getPlayerTiles(playerId, gameState.tiles).length >= 6) {
+    throw new GameError(
+      `Player ${playerId} has invalid number of tiles`,
+      GameErrorCodes.GAME_PROCESSING_ERROR,
+    );
+  }
+  const playerTiles = drawTiles(availableTiles, playerId, gameBoard, 1);
+  // Check for next player dead tiles and draw replacements-- it's possible not enough
+  // will be left to replace all dead tiles, so filter undefined out
+  let { remainingTiles, deadTiles } = playerTiles;
+  const nextPlayerId = (gameState.currentPlayer + 1) % gameState.players.length;
+  const nextPlayerTiles = filterDefined(
+    getPlayerTiles(nextPlayerId, gameState.tiles).map((tile) => {
+      if (deadTile(tile, gameBoard)) {
+        // This might fail because there are no more tiles to draw
+        const tiles = drawTiles(remainingTiles, nextPlayerId, gameBoard, 1);
+        remainingTiles = tiles.remainingTiles;
+        deadTiles.concat(tiles.deadTiles);
+        return tiles.drawnTiles.length ? tiles.drawnTiles[0] : undefined;
+      }
+      return tile;
+    }),
+  );
 
   return {
     ...gameState,
@@ -91,13 +114,15 @@ export const buySharesReducer = (
       };
     }),
     players: gameState.players.map((player) =>
-      player.id === playerId
-        ? { ...player, money: player.money - totalCost, tiles: playerTiles }
-        : player.id === nextPlayerId
-        ? { ...player, tiles: nextPlayerTiles }
-        : player
+      player.id === playerId ? { ...player, money: player.money - totalCost } : player
     ),
-    mergerContext: undefined,
+    // Of course nextplayer tiles may be unaltered, but no harm in just updating them anyway
+    tiles: updateTiles(gameState.tiles, [
+      ...playerTiles.drawnTiles,
+      ...deadTiles,
+      ...nextPlayerTiles,
+    ]),
+    mergeContext: undefined,
     mergerTieContext: undefined,
   };
 };

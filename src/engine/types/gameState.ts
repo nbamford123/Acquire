@@ -1,4 +1,4 @@
-import type { ErrorCodeValue, Hotel, HOTEL_NAME, Player, Tile } from './index.ts';
+import type { ErrorCodeValue, Hotel, HOTEL_NAME, MergeContext, Player, Tile } from './index.ts';
 
 // Game phases
 export enum GamePhase {
@@ -18,26 +18,20 @@ export interface GameState {
   currentPhase: GamePhase;
   currentTurn: number;
   currentPlayer: number; // Player id
+  pendingMergePlayer?: number; // next player to act in merger
   lastUpdated: number; // Timestamp
   players: Player[]; // Sorted by player order
   hotels: Hotel[];
-  tiles: Tile[][];
+  tiles: Tile[];
   mergerTieContext?: {
     // for break tie we need to give user the hotels
     tiedHotels: HOTEL_NAME[];
   };
-  mergerContext?: {
-    stockholders: number[];
-    survivingHotel?: HOTEL_NAME;
-    mergedHotel?: HOTEL_NAME;
-    remainingHotels: HOTEL_NAME[];
-    additionalTiles?: Tile[];
-  };
+  mergeContext?: MergeContext;
   // change this to hotel name, too
   foundHotelContext?: {
-    availableHotels: Hotel[];
-    playedTile: Tile;
-    tiles: Tile[];
+    availableHotels: HOTEL_NAME[];
+    tiles: { row: number; col: number }[];
   };
   lastActions: string[];
   error: {

@@ -1,9 +1,4 @@
-* create break tie action-- will still call play tile reducer
-* create resolve merge action/reducer
-* go over tests, better/more complete
-* what happens when a merge tile is played and there's a floating tile that doesn't belong to a hotel but will be snapped up? I say it's just added to the survivor at the end.
 * actions! Need a new action state apart from the game state, it can be like 
-* make sure to clear pendingPlayerId regularly-- definitely after any action it might have been used
 ```typescript
 interface gameAction {
   turn: number;
@@ -14,6 +9,8 @@ interface gameAction {
 ```
 then the server can send game actions along with the state update, it will be everything that's happened since your last turn, which mean we will have 
 to filter and cull the actions
+* make sure to clear pendingPlayerId regularly-- definitely after any action it might have been used
+* tests that run through multiple state changes?
 
 // Game state approach: We mutate objects during turn processing for simplicity,
 // but maintain clean state boundaries when persisting between turns.

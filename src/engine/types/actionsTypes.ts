@@ -1,4 +1,4 @@
-import { HOTEL_NAME, Tile } from '@/engine/types/index.ts';
+import { HOTEL_NAME } from '@/engine/types/index.ts';
 
 export const ActionTypes = {
   START_GAME: 'START_GAME',
@@ -31,7 +31,7 @@ export interface PlayTileAction extends Action {
   type: typeof ActionTypes.PLAY_TILE;
   payload: {
     playerId: number;
-    tile: Tile;
+    tile: { row: number; col: number };
     resolvedTies?: [string, string][];
   };
 }
@@ -46,7 +46,7 @@ export interface BreakMergerTieAction extends Action {
   type: typeof ActionTypes.BREAK_MERGER_TIE;
   payload: {
     playerId: number;
-    resolvedTie: [HOTEL_NAME, HOTEL_NAME];
+    resolvedTie: { survivor: HOTEL_NAME; merged: HOTEL_NAME };
   };
 }
 export interface ResolveMergerAction extends Action {

@@ -1,11 +1,6 @@
-import {
-  GameError,
-  GameErrorCodes,
-  GamePhase,
-  type GameState,
-  type Tile,
-} from '@/engine/types/index.ts';
+import { GameError, GameErrorCodes, GamePhase, type GameState } from '@/engine/types/index.ts';
 import type { FoundHotelAction } from '@/engine/types/actionsTypes.ts';
+import { boardTiles, getBoardTile, hotelTiles, updateTiles } from '@/engine/domain/index.ts';
 
 export const foundHotelReducer = (
   gameState: GameState,
@@ -31,7 +26,8 @@ export const foundHotelReducer = (
       GameErrorCodes.GAME_PROCESSING_ERROR,
     );
   }
-  if (newHotel.tiles.length !== 0) {
+  const gameBoard = boardTiles(gameState.tiles);
+  if (hotelTiles(hotelName, gameBoard).length !== 0) {
     throw new GameError(
       `Hotel ${hotelName} already exists`,
       GameErrorCodes.GAME_INVALID_ACTION,
@@ -50,12 +46,18 @@ export const foundHotelReducer = (
       GameErrorCodes.GAME_PROCESSING_ERROR,
     );
   }
-  if (gameState.foundHotelContext.tiles.some((tile: Tile) => tile.location !== 'board')) {
+  const tiles = gameState.foundHotelContext.tiles.map((tile) =>
+    getBoardTile(gameBoard, tile.row, tile.col)
+  );
+  if (tiles.some((tile) => tile === undefined || tile.location !== 'board')) {
     throw new GameError(
-      `Can't found hotel ${hotelName}, all tile not on board`,
+      'Invalid tiles in found hotel context',
       GameErrorCodes.GAME_PROCESSING_ERROR,
     );
   }
+  const newHotelTiles = tiles
+    .flatMap((tile) => tile ? [{ ...tile, hotel: newHotel.name }] : []);
+
   // should we ensure the tiles are all contiguous, don't belong to another hotel, etc.?
   const awardedShare = newHotel.shares.findIndex((share) => share.location === 'bank');
   return {
@@ -66,7 +68,6 @@ export const foundHotelReducer = (
         hotel.name === hotelName
           ? {
             ...hotel,
-            tiles: [...gameState.foundHotelContext!.tiles],
             shares: hotel.shares.map((share, idx) =>
               idx === awardedShare ? { ...share, location: playerId } : share
             ),
@@ -74,6 +75,10 @@ export const foundHotelReducer = (
           : hotel
       ),
     ],
+    tiles: updateTiles(
+      gameState.tiles,
+      newHotelTiles,
+    ),
     foundHotelContext: undefined,
   };
 };

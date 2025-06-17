@@ -1,11 +1,25 @@
-export { board, deadTile, drawTiles, initializeTiles, replaceTile } from './tileOperations.ts';
+export {
+  boardTiles,
+  deadTile,
+  drawTiles,
+  getBoardTile,
+  getPlayerTiles,
+  getTile,
+  initializeTiles,
+  updateTiles,
+} from './tileOperations.ts';
 export { initializePlayer } from './playerOperations.ts';
 export {
-  findHotel,
+  assignSharesToPlayer,
+  getHotelsByNames,
+  getTiedHotels,
   hotelSafe,
+  hotelTiles,
   initializeHotels,
   majorityMinorityValue,
-  mergeHotels,
   remainingShares,
+  returnSharesToBank,
   sharePrice,
 } from './hotelOperations.ts';
+export { mergeHotels } from './mergeHotelsOperation.ts';
+export { calculateShareholderPayouts } from './calculateShareholderPayoutsOperation.ts';

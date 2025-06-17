@@ -2,8 +2,8 @@ export {
   type ActionType,
   ActionTypes,
   type AddPlayerAction,
-  type BuySharesAction,
   type BreakMergerTieAction,
+  type BuySharesAction,
   type FoundHotelAction,
   type GameAction,
   type PlayTileAction,
@@ -14,7 +14,7 @@ export {
 export { type ErrorCodeValue, GameError, GameErrorCodes } from './errorCodes.ts';
 export { GamePhase, type GameState } from './gameState.ts';
 export { type Hotel, type HOTEL_NAME, type HOTEL_TYPE, SharePrices } from './hotel.ts';
-export type { MergeResult } from './mergerTypes.ts';
+export type { MergeContext, MergeResult, ResolvedTie } from './mergerTypes.ts';
 export type { Player } from './player.ts';
 export type { Share } from './share.ts';
-export type { Tile } from './tile.ts';
+export type { BoardTile, Tile } from './tile.ts';

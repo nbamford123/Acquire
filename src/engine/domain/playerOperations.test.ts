@@ -1,102 +1,105 @@
 import { assertEquals } from 'jsr:@std/assert';
 import { initializePlayer } from './playerOperations.ts';
 import { INITIAL_PLAYER_MONEY } from '@/engine/config/gameConfig.ts';
+import type { Player } from '@/engine/types/index.ts';
 
 Deno.test('initializePlayer', async (t) => {
-  await t.step('creates player with correct default properties', () => {
-    const player = initializePlayer('TestPlayer');
+  await t.step('creates player with correct default values', () => {
+    const playerName = 'Alice';
+    const result = initializePlayer(playerName);
 
-    assertEquals(player.id, -1);
-    assertEquals(player.name, 'TestPlayer');
-    assertEquals(player.money, INITIAL_PLAYER_MONEY);
-    assertEquals(player.shares, {});
-    assertEquals(player.tiles, []);
-    assertEquals(player.firstTile, undefined);
+    const expected: Player = {
+      id: -1,
+      name: 'Alice',
+      money: INITIAL_PLAYER_MONEY,
+    };
+
+    assertEquals(result, expected);
   });
 
-  await t.step('handles empty player name', () => {
-    const player = initializePlayer('');
+  await t.step('creates player with correct name', () => {
+    const playerName = 'Bob';
+    const result = initializePlayer(playerName);
 
-    assertEquals(player.name, '');
-    assertEquals(player.money, INITIAL_PLAYER_MONEY);
-    assertEquals(player.shares, {});
-    assertEquals(player.tiles, []);
+    assertEquals(result.name, 'Bob');
+    assertEquals(result.id, -1);
+    assertEquals(result.money, INITIAL_PLAYER_MONEY);
   });
 
-  await t.step('handles player name with special characters', () => {
-    const specialName = 'Player@123!';
-    const player = initializePlayer(specialName);
+  await t.step('creates player with initial money from config', () => {
+    const playerName = 'Charlie';
+    const result = initializePlayer(playerName);
 
-    assertEquals(player.name, specialName);
-    assertEquals(player.money, INITIAL_PLAYER_MONEY);
+    assertEquals(result.money, 3000); // INITIAL_PLAYER_MONEY value
+    assertEquals(result.money, INITIAL_PLAYER_MONEY);
   });
 
-  await t.step('handles very long player name', () => {
-    const longName = 'A'.repeat(100);
-    const player = initializePlayer(longName);
+  await t.step('handles empty string name', () => {
+    const playerName = '';
+    const result = initializePlayer(playerName);
 
-    assertEquals(player.name, longName);
-    assertEquals(player.money, INITIAL_PLAYER_MONEY);
+    assertEquals(result.name, '');
+    assertEquals(result.id, -1);
+    assertEquals(result.money, INITIAL_PLAYER_MONEY);
   });
 
-  await t.step('creates independent player objects', () => {
-    const player1 = initializePlayer('Player1');
-    const player2 = initializePlayer('Player2');
+  await t.step('handles special characters in name', () => {
+    const playerName = 'Player@123!';
+    const result = initializePlayer(playerName);
 
-    // Verify they are different objects
-    assertEquals(player1 === player2, false);
-    assertEquals(player1.name, 'Player1');
-    assertEquals(player2.name, 'Player2');
-
-    // Verify shares objects are independent
-    assertEquals(player1.shares === player2.shares, false);
-
-    // Verify tiles arrays are independent
-    assertEquals(player1.tiles === player2.tiles, false);
+    assertEquals(result.name, 'Player@123!');
+    assertEquals(result.id, -1);
+    assertEquals(result.money, INITIAL_PLAYER_MONEY);
   });
 
-  await t.step('initializes with correct money amount from config', () => {
-    const player = initializePlayer('TestPlayer');
+  await t.step('handles long name', () => {
+    const playerName = 'VeryLongPlayerNameThatExceedsNormalLength';
+    const result = initializePlayer(playerName);
 
-    // Verify it uses the constant from config
-    assertEquals(player.money, 3000); // INITIAL_PLAYER_MONEY value
-    assertEquals(player.money, INITIAL_PLAYER_MONEY);
+    assertEquals(result.name, 'VeryLongPlayerNameThatExceedsNormalLength');
+    assertEquals(result.id, -1);
+    assertEquals(result.money, INITIAL_PLAYER_MONEY);
   });
 
-  await t.step('initializes shares as empty object', () => {
-    const player = initializePlayer('TestPlayer');
+  await t.step('creates new object each time (no mutation)', () => {
+    const playerName1 = 'Player1';
+    const playerName2 = 'Player2';
 
-    assertEquals(Object.keys(player.shares).length, 0);
-    assertEquals(typeof player.shares, 'object');
-    assertEquals(player.shares.constructor, Object);
+    const player1 = initializePlayer(playerName1);
+    const player2 = initializePlayer(playerName2);
+
+    // Players should be different objects
+    assertEquals(player1 !== player2, true);
+
+    // But have the same structure except for name
+    assertEquals(player1.id, player2.id);
+    assertEquals(player1.money, player2.money);
+    assertEquals(player1.name !== player2.name, true);
   });
 
-  await t.step('initializes tiles as empty array', () => {
-    const player = initializePlayer('TestPlayer');
+  await t.step('does not include firstTile property initially', () => {
+    const playerName = 'TestPlayer';
+    const result = initializePlayer(playerName);
 
-    assertEquals(player.tiles.length, 0);
-    assertEquals(Array.isArray(player.tiles), true);
+    // firstTile should be undefined (not included in the object)
+    assertEquals(result.firstTile, undefined);
+    assertEquals('firstTile' in result, false);
   });
 
-  await t.step('sets id to -1 by default', () => {
-    const player = initializePlayer('TestPlayer');
+  await t.step('creates player with correct type structure', () => {
+    const playerName = 'TypeTest';
+    const result = initializePlayer(playerName);
 
-    assertEquals(player.id, -1);
-    assertEquals(typeof player.id, 'number');
-  });
+    // Verify all required properties exist
+    assertEquals(typeof result.id, 'number');
+    assertEquals(typeof result.name, 'string');
+    assertEquals(typeof result.money, 'number');
 
-  await t.step('handles unicode characters in name', () => {
-    const unicodeName = '玩家🎮';
-    const player = initializePlayer(unicodeName);
-
-    assertEquals(player.name, unicodeName);
-    assertEquals(player.money, INITIAL_PLAYER_MONEY);
-  });
-
-  await t.step('preserves exact name string', () => {
-    const nameWithSpaces = '  Player Name  ';
-    const player = initializePlayer(nameWithSpaces);
-
-    assertEquals(player.name, nameWithSpaces); // Should preserve spaces
+    // Verify the object has exactly the expected properties
+    const keys = Object.keys(result);
+    assertEquals(keys.length, 3);
+    assertEquals(keys.includes('id'), true);
+    assertEquals(keys.includes('name'), true);
+    assertEquals(keys.includes('money'), true);
   });
 });

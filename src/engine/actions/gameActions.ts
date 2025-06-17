@@ -7,7 +7,7 @@ import {
   type ResolveMergerAction,
   type StartGameAction,
 } from '@/engine/types/actionsTypes.ts';
-import type { HOTEL_NAME, Tile } from '@/engine/types/index.ts';
+import type { HOTEL_NAME } from '@/engine/types/index.ts';
 
 export const startGame = (playerName: string): StartGameAction => {
   return {
@@ -16,7 +16,7 @@ export const startGame = (playerName: string): StartGameAction => {
   };
 };
 
-export const playTile = (playerId: number, tile: Tile): PlayTileAction => {
+export const playTile = (playerId: number, tile: { row: number; col: number }): PlayTileAction => {
   return {
     type: ActionTypes.PLAY_TILE,
     payload: { playerId, tile },
@@ -45,17 +45,16 @@ export const foundHotel = (
 
 export const breakMergerTie = (
   playerId: number,
-  tieBreaker: [HOTEL_NAME, HOTEL_NAME],
+  resolvedTie: { survivor: HOTEL_NAME; merged: HOTEL_NAME },
 ): BreakMergerTieAction => {
   return {
     type: ActionTypes.BREAK_MERGER_TIE,
-    payload: { playerId, hotels: tieBreaker },
+    payload: { playerId, resolvedTie },
   };
 };
 
 export const resolveMerger = (
   playerId: number,
-  tieBreaker?: [hotel1: HOTEL_NAME, hotel2: HOTEL_NAME],
   shares?: { sell: number; trade: number },
 ): ResolveMergerAction => {
   return {
