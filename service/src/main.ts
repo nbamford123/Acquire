@@ -1,6 +1,8 @@
-// main.ts - Your Deno Deploy entry point
-import { getCookies, setCookie } from 'https://deno.land/std@0.208.0/http/cookie.ts';
-import { GameState } from '@/types/index.ts';
+import { Application } from "https://deno.land/x/oak/mod.ts";
+
+import { initializeGame } from '../../engine/core/gameInitialization.ts';
+import { processAction } from '../../engine/core/gameEngine.ts';
+import type { GameAction, GameState } from '@/types/index.ts';
 
 // Simple in-memory store for demo - you'll want to use KV or external DB
 const gameStates = new Map<string, GameState>();
@@ -37,10 +39,10 @@ async function handleRequest(req: Request): Promise<Response> {
     //   return await getGame(gameId, req);
     // }
 
-    // if (path.startsWith("/api/games/") && path.endsWith("/actions") && method === "POST") {
-    //   const gameId = path.split("/")[3];
-    //   return await applyAction(gameId, req);
-    // }
+    if (path.startsWith('/api/games/') && path.endsWith('/actions') && method === 'POST') {
+      const gameId = path.split('/')[3];
+      return await applyAction(gameId, req);
+    }
 
     // 404 for unmatched routes
     return jsonResponse({ error: 'Not found' }, 404);
@@ -50,7 +52,7 @@ async function handleRequest(req: Request): Promise<Response> {
   }
 }
 
-const jsonResponse = (data: any, status = 200): Response => {
+const jsonResponse = (data: unknown, status = 200): Response => {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
@@ -59,6 +61,27 @@ const jsonResponse = (data: any, status = 200): Response => {
     },
   });
 };
+
+// --- Action application handler ---
+async function applyAction(gameId: string, req: Request): Promise<Response> {
+  const currentState = gameStates.get(gameId);
+  if (!currentState) {
+    return jsonResponse({ error: 'Game not found' }, 404);
+  }
+  let action: GameAction;
+  try {
+    action = await req.json();
+  } catch (e) {
+    return jsonResponse({ error: 'Invalid JSON' }, 400);
+  }
+  try {
+    const newState = processAction(currentState, action);
+    gameStates.set(gameId, newState);
+    return jsonResponse(newState);
+  } catch (e) {
+    return jsonResponse({ error: (e instanceof Error ? e.message : 'Action failed') }, 400);
+  }
+}
 
 // Start the server
 console.log('🎲 Board game service starting...');
