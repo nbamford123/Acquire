@@ -2,7 +2,8 @@
   "name": "@slacktronix/acquire",
   "version": "1.0.0",
   "tasks": {
-    "start": "deno run --allow-net src/main.ts",
+    "dev": "deno run --allow-net --allow-env --watch service/src/main.ts",
+    "start": "deno run --allow-net --allow-env service/src/main.ts",
     "test": "deno test",
     "lint": "deno lint",
     "fmt": "deno fmt",
@@ -10,11 +11,16 @@
     "fmt:check": "deno fmt --check",
     "validate": "deno fmt && deno check **/*.ts && deno test && deno lint"
   },
+  "compilerOptions": {
+    "lib": ["deno.window"],
+    "strict": true
+  },
   "imports": {
-    "@/": "./src/"
+    "@/types/": "./shared/types/",
+    "@/utils/": "./shared/utils/"
   },
   "lint": {
-    "include": ["src/"],
+    "include": ["./"],
     "exclude": ["**/node_modules/", "**/*test*"],
     "rules": {
       "tags": ["recommended"],
@@ -23,7 +29,7 @@
     }
   },
   "fmt": {
-    "include": ["src/"],
+    "include": ["./"],
     "exclude": ["**/node_modules/"],
     "indentWidth": 2,
     "lineWidth": 100,
@@ -31,5 +37,11 @@
     "singleQuote": true,
     "proseWrap": "preserve",
     "useTabs": false
+  },
+  "deploy": {
+    "project": "your-project-name",
+    "entrypoint": "./main.ts",
+    "include": ["main.ts", "engine/", "src/"],
+    "exclude": ["tests/", "*.test.ts"]
   }
 }
