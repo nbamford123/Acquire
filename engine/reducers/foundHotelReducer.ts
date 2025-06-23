@@ -6,7 +6,8 @@ export const foundHotelReducer = (
   gameState: GameState,
   action: FoundHotelAction,
 ): GameState => {
-  const { playerId, hotelName } = action.payload;
+  const { player, hotelName } = action.payload;
+  const playerId = gameState.players.findIndex((p) => p.name === player);
   if (gameState.currentPlayer !== playerId) {
     throw new GameError(
       'Not your turn',

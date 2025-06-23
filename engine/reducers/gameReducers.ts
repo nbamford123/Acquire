@@ -20,7 +20,7 @@ export const startGameReducer = (
       GameErrorCodes.GAME_INVALID_ACTION,
     );
   }
-  if (action.payload.playerName !== gameState.owner) {
+  if (action.payload.player !== gameState.owner) {
     throw new GameError(
       `Only player ${gameState.owner} can start the game`,
       GameErrorCodes.GAME_INVALID_ACTION,

@@ -26,7 +26,8 @@ export const resolveMergerReducer = (
     );
   }
 
-  const { playerId, shares } = action.payload;
+  const { player, shares } = action.payload;
+  const playerId = gameState.players.findIndex((p) => p.name === player);
   const mergeContext = gameState.mergeContext!;
   const { survivingHotel, mergedHotel, stockholderIds } = mergeContext ?? {};
   if (!stockholderIds || !survivingHotel || !mergedHotel || !shares) {

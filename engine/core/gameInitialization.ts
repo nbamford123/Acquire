@@ -9,16 +9,18 @@ import { initializeHotels, initializePlayer, initializeTiles } from '../domain/i
 export function initializeGame(
   gameId: string,
   ownerId: string,
-): Partial<GameState> {
+): GameState {
   return {
     gameId,
     owner: ownerId,
     currentPhase: GamePhase.WAITING_FOR_PLAYERS,
     currentTurn: 0,
-    tiles: initializeTiles(ROWS, COLS),
+    currentPlayer: 0,
+    lastUpdated: Date.now(),
     players: [
       initializePlayer(ownerId),
     ],
     hotels: initializeHotels(),
+    tiles: initializeTiles(ROWS, COLS),
   };
 }

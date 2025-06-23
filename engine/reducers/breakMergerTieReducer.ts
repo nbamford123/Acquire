@@ -15,7 +15,8 @@ export const breakMergerTieReducer = (
   gameState: GameState,
   action: BreakMergerTieAction,
 ): GameState => {
-  const { playerId, resolvedTie } = action.payload;
+  const { player, resolvedTie } = action.payload;
+  const playerId = gameState.players.findIndex((p) => p.name === player);
   if (gameState.currentPlayer !== playerId) {
     throw new GameError(
       'Not your turn',

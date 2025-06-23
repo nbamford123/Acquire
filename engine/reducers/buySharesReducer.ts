@@ -20,7 +20,8 @@ export const buySharesReducer = (
   gameState: GameState,
   action: BuySharesAction,
 ): GameState => {
-  const { playerId, shares } = action.payload;
+  const { player: playerName, shares } = action.payload;
+  const playerId = gameState.players.findIndex((p) => p.name === playerName);
   if (gameState.currentPlayer !== playerId) {
     throw new GameError(
       'Not your turn',

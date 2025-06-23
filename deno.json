@@ -1,14 +1,14 @@
 {
   "version": "1.0.0",
   "tasks": {
-    "dev": "deno run --allow-net --allow-env --watch service/src/main.ts",
+    "dev": "deno run --allow-net --allow-env --env-file --watch service/src/main.ts",
     "start": "deno run --allow-net --allow-env service/src/main.ts",
     "test": "deno test",
     "lint": "deno lint",
     "fmt": "deno fmt",
     "check": "deno check **/*.ts",
     "fmt:check": "deno fmt --check",
-    "validate": "deno fmt && deno check **/*.ts && deno test && deno lint"
+    "validate": "deno fmt && deno task check && deno test && deno lint"
   },
   "compilerOptions": {
     "lib": ["deno.window"],
@@ -20,7 +20,7 @@
   },
   "lint": {
     "include": ["./"],
-    "exclude": ["**/node_modules/", "**/*test*"],
+    "exclude": ["**/node_modules/", "**/__test__/"],
     "rules": {
       "tags": ["recommended"],
       "include": ["ban-untagged-todo"],

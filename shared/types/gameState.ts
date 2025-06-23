@@ -33,7 +33,7 @@ export interface GameState {
     availableHotels: HOTEL_NAME[];
     tiles: { row: number; col: number }[];
   };
-  error: {
+  error?: {
     code: ErrorCodeValue;
     message: string;
   } | null;

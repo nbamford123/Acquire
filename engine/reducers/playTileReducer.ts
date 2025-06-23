@@ -14,7 +14,8 @@ import { handleMerger } from '../state/gameStateUpdater.ts';
 import { getAdjacentPositions } from '@/utils/index.ts';
 
 const validatePlayTileAction = (gameState: GameState, action: PlayTileAction): BoardTile => {
-  const { playerId, tile } = action.payload;
+  const { player, tile } = action.payload;
+  const playerId = gameState.players.findIndex((p) => p.name === player);
 
   if (gameState.currentPlayer !== playerId) {
     throw new GameError('Not your turn', GameErrorCodes.GAME_INVALID_ACTION);

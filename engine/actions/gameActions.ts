@@ -17,51 +17,51 @@ export const startGame = (playerName: string): StartGameAction => {
 };
 
 export const playTile = (
-  playerId: number,
+  player: string,
   tile: { row: number; col: number },
 ): PlayTileAction => {
   return {
     type: ActionTypes.PLAY_TILE,
-    payload: { playerId, tile },
+    payload: { player, tile },
   };
 };
 
 export const buyShares = (
-  playerId: number,
+  player: string,
   shares: Record<HOTEL_NAME, number>,
 ): BuySharesAction => {
   return {
     type: ActionTypes.BUY_SHARES,
-    payload: { playerId, shares },
+    payload: { player, shares },
   };
 };
 
 export const foundHotel = (
-  playerId: number,
+  player: string,
   hotelName: HOTEL_NAME,
 ): FoundHotelAction => {
   return {
     type: ActionTypes.FOUND_HOTEL,
-    payload: { playerId, hotelName },
+    payload: { player, hotelName },
   };
 };
 
 export const breakMergerTie = (
-  playerId: number,
+  player: string,
   resolvedTie: { survivor: HOTEL_NAME; merged: HOTEL_NAME },
 ): BreakMergerTieAction => {
   return {
     type: ActionTypes.BREAK_MERGER_TIE,
-    payload: { playerId, resolvedTie },
+    payload: { player, resolvedTie },
   };
 };
 
 export const resolveMerger = (
-  playerId: number,
+  player: string,
   shares?: { sell: number; trade: number },
 ): ResolveMergerAction => {
   return {
     type: ActionTypes.RESOLVE_MERGER,
-    payload: { playerId, shares },
+    payload: { player, shares },
   };
 };
