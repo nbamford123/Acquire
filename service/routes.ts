@@ -49,15 +49,15 @@ router.post('/login', async (ctx) => {
 router.post('/games', requireAuth, async (ctx) => {
   try {
     const bodyJson = await ctx.request.body.json();
-    const { playerName } = bodyJson as { playerName?: string };
+    const { player } = bodyJson as { player?: string };
 
-    if (!playerName) {
+    if (!player) {
       ctx.response.status = 400;
       ctx.response.body = { error: 'Player name is required' };
       return;
     }
     const gameId = uid();
-    const game = initializeGame(gameId, playerName);
+    const game = initializeGame(gameId, player);
     gameStates.set(gameId, game);
 
     ctx.response.status = 201;
