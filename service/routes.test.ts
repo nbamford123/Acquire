@@ -213,6 +213,7 @@ Deno.test('POST /games/:id performs actions', async () => {
   const startBody = { action: startGame };
   const startRequest = await superoak(app);
   const startResponse = await startRequest
+    .post(`/games/${gameId}`)
     .set('Cookie', cookies)
     .set('Content-Type', 'application/json')
     .send(JSON.stringify(startBody));

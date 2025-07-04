@@ -1,14 +1,5 @@
 # TO DO
 
-- where is the playerid going to come from on the actions? the ids aren't set until the game starts
-
-## Next Steps
-
-1. Finish the server calls (delete game, etc.)
-2. Write tests-- we don't need kv store for this
-3. Add authorization, KV store, deploy, retest
-4. Client
-
 ## Misc
 
 - end game
@@ -27,82 +18,6 @@ interface gameAction {
 
 then the server can send game actions along with the state update, it will be everything that's happened since your last turn, which mean we will have
 to filter and cull the actions
-
-## Introduce a View Model layer: This layer transforms the full game state into player-specific views.
-
-Add a concept of "visibility": Define which parts of the state are visible to which players.
-
-Let me show you how this could work:
-
-```typescript
-// types.ts (extended)
-export interface GameState {
-  board: Array<Array<string | null>>;
-  players: Player[];
-  currentPlayerIndex: number;
-  // Hidden information
-  playerHands: Record<string, Card[]>; // Maps player IDs to their hands
-  drawPile: Card[];
-  // Other state
-}
-
-export interface Card {
-  id: string;
-  type: string;
-  value: number;
-  // other card properties
-}
-
-export interface PlayerView {
-  board: Array<Array<string | null>>;
-  players: PlayerPublicInfo[];
-  currentPlayerIndex: number;
-  myHand: Card[] | null; // Only the requesting player's hand
-  otherPlayerCardCounts: Record<string, number>; // Just the counts for other players
-  drawPileCount: number; // Only the count, not the actual cards
-  isMyTurn: boolean;
-  // Other filtered information
-}
-
-export interface PlayerPublicInfo {
-  id: string;
-  name: string;
-  score: number;
-  // Other public player info
-}
-
-// viewModels.ts
-import { GameState, PlayerView } from './types';
-
-export function createPlayerView(state: GameState, playerId: string): PlayerView {
-  return {
-    // Information visible to everyone
-    board: state.board,
-    players: state.players.map((player) => ({
-      id: player.id,
-      name: player.name,
-      score: player.score,
-      // Other public info
-    })),
-    currentPlayerIndex: state.currentPlayerIndex,
-
-    // Player-specific information
-    myHand: state.playerHands[playerId] || null,
-    otherPlayerCardCounts: Object.entries(state.playerHands)
-      .filter(([id]) => id !== playerId)
-      .reduce((counts, [id, hand]) => {
-        counts[id] = hand.length;
-        return counts;
-      }, {} as Record<string, number>),
-
-    // Hidden information converted to counts/metadata
-    drawPileCount: state.drawPile.length,
-
-    // Derived convenience properties
-    isMyTurn: state.players[state.currentPlayerIndex]?.id === playerId,
-  };
-}
-```
 
 Additional Considerations for HTTP Transmission
 
@@ -125,83 +40,6 @@ Sanitize error messages that might contain sensitive information
 
 If you're sending frequent updates, consider a diff-based approach rather than full state
 You might want to omit errors from certain state updates if they haven't changed
-
-```typescript
-// Serializable game state
-interface GameState {
-  // Game properties
-  error: {
-    code: string;
-    message: string;
-    timestamp: number;
-  } | null;
-}
-
-// Server-side processing
-function processGameAction(gameId: string, action: GameAction): Response {
-  try {
-    // Get current game state
-    const currentState = getGameState(gameId);
-
-    // Process action
-    const newState = rootReducer(currentState, action);
-
-    // Save state
-    saveGameState(gameId, newState);
-
-    // Return new state
-    return Response.json({
-      success: true,
-      state: newState,
-    });
-  } catch (error) {
-    // Handle unexpected server errors separately from game logic errors
-    console.error('Server error processing game action:', error);
-    return Response.json({
-      success: false,
-      error: {
-        code: 'SERVER_ERROR',
-        message: 'An unexpected error occurred processing your request',
-      },
-    }, { status: 500 });
-  }
-}
-
-// Client-side handling
-async function dispatchGameAction(action: GameAction) {
-  try {
-    const response = await fetch('/api/game/action', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ gameId, action }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      // Transport/server error
-      showError(`Server error: ${data.error?.message || response.statusText}`);
-      return;
-    }
-
-    if (data.success) {
-      // Update local game state
-      updateGameState(data.state);
-
-      // Handle any game logic errors in the state
-      if (data.state.error) {
-        showGameError(data.state.error);
-      }
-    } else {
-      // API-level error
-      showError(data.error?.message || 'Unknown error');
-    }
-  } catch (error) {
-    // Network or parsing error
-    showError('Connection error. Please check your network.');
-  }
-}
-```
 
 ### Multiplayer & Turn-Based Considerations
 

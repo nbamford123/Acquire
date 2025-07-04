@@ -115,8 +115,11 @@ router.post('/games/:id', requireAuth, async (ctx) => {
   try {
     const gameId = ctx.params.id;
     const bodyJson = await ctx.request.body.json();
+    const user = ctx.state.user;
     const { action } = bodyJson as { action: GameAction };
 
+    // Security: always user JWT player
+    action.payload.player = user;
     if (!action || !action.type) {
       ctx.response.status = 400;
       ctx.response.body = { error: 'Action is required with a type field' };
