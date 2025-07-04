@@ -141,5 +141,3 @@ For your UI layer
   onDismiss={() => dispatch({ type: 'CLEAR_ERROR' })}
 />;
 ```
-
-2. **Error persistence across views**: If players might navigate between different views while an error is active, decide whether the error should persist or be cleared on navigation.
