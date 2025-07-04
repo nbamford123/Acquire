@@ -49,15 +49,15 @@ router.post('/login', async (ctx) => {
 router.post('/games', requireAuth, async (ctx) => {
   try {
     const bodyJson = await ctx.request.body.json();
-    const { playerName } = bodyJson as { playerName?: string };
+    const { player } = bodyJson as { player?: string };
 
-    if (!playerName) {
+    if (!player) {
       ctx.response.status = 400;
       ctx.response.body = { error: 'Player name is required' };
       return;
     }
     const gameId = uid();
-    const game = initializeGame(gameId, playerName);
+    const game = initializeGame(gameId, player);
     gameStates.set(gameId, game);
 
     ctx.response.status = 201;
@@ -115,8 +115,11 @@ router.post('/games/:id', requireAuth, async (ctx) => {
   try {
     const gameId = ctx.params.id;
     const bodyJson = await ctx.request.body.json();
+    const user = ctx.state.user;
     const { action } = bodyJson as { action: GameAction };
 
+    // Security: always user JWT player
+    action.payload.player = user;
     if (!action || !action.type) {
       ctx.response.status = 400;
       ctx.response.body = { error: 'Action is required with a type field' };

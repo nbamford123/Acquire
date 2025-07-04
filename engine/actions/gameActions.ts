@@ -9,10 +9,10 @@ import {
 } from '@/types/actionsTypes.ts';
 import type { HOTEL_NAME } from '@/types/index.ts';
 
-export const startGame = (playerName: string): StartGameAction => {
+export const startGame = (player: string): StartGameAction => {
   return {
     type: ActionTypes.START_GAME,
-    payload: { playerName },
+    payload: { player },
   };
 };
 
