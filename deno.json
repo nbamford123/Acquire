@@ -20,7 +20,7 @@
   },
   "lint": {
     "include": ["./"],
-    "exclude": ["**/node_modules/", "**/__test__/"],
+    "exclude": ["**/node_modules/", "**/__test__/", "**/dist/"],
     "rules": {
       "tags": ["recommended"],
       "include": ["ban-untagged-todo"],
@@ -29,7 +29,7 @@
   },
   "fmt": {
     "include": ["./"],
-    "exclude": ["**/node_modules/"],
+    "exclude": ["**/node_modules/", "**/dist/"],
     "indentWidth": 2,
     "lineWidth": 100,
     "semiColons": true,
@@ -38,9 +38,9 @@
     "useTabs": false
   },
   "deploy": {
-    "project": "your-project-name",
-    "entrypoint": "./main.ts",
-    "include": ["main.ts", "engine/", "src/"],
-    "exclude": ["tests/", "*.test.ts"]
+    "project": "acquire",
+    "entrypoint": "./service/main.ts",
+    "include": ["main.ts", "engine/"],
+    "exclude": ["__test__/", "*.test.ts"]
   }
 }

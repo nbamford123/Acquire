@@ -16,7 +16,7 @@ Exploring Deno's "code and go" philosophy - minimal configuration, built-in Type
 - **Persistence**: Deno KV for game state storage
 - **Deployment**: Deno Deploy (serverless)
 
-### Frontend (In Development)
+### Frontend
 - **Framework**: Lit web components
 - **Architecture**: SPA connecting to REST API
 
