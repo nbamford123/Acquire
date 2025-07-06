@@ -1,6 +1,5 @@
 import { css, html, LitElement } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { tw } from "twind";
 
 import { AuthService } from "../services/AuthService.ts";
 
@@ -8,8 +7,10 @@ import { AuthService } from "../services/AuthService.ts";
 export class LoginView extends LitElement {
   @state()
   private email = "";
+
   @state()
   private loading = false;
+
   @state()
   private error = "";
 
@@ -20,6 +21,113 @@ export class LoginView extends LitElement {
       display: block;
       width: 100%;
       min-height: 100vh;
+    }
+
+    .container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    }
+
+    .form-wrapper {
+      max-width: 28rem;
+      width: 100%;
+      padding: 2rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      padding: 2rem;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .title {
+      font-size: 1.875rem;
+      font-weight: 700;
+      color: #111827;
+      margin: 0;
+    }
+
+    .subtitle {
+      margin-top: 0.5rem;
+      color: #6b7280;
+      margin-bottom: 0;
+    }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+
+    .input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 1rem;
+      transition: all 0.15s ease;
+      box-sizing: border-box;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .error {
+      color: #dc2626;
+      font-size: 0.875rem;
+      margin: 0;
+    }
+
+    .button {
+      width: 100%;
+      padding: 0.5rem 1rem;
+      background: #2563eb;
+      color: white;
+      border-radius: 0.375rem;
+      border: none;
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .button:hover:not(:disabled) {
+      background: #1d4ed8;
+    }
+
+    .button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .button:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
     }
   `;
 
@@ -32,7 +140,6 @@ export class LoginView extends LitElement {
 
     try {
       const user = await this.authService.login(this.email);
-
       // Dispatch event to parent
       this.dispatchEvent(
         new CustomEvent<string>("user-login", {
@@ -49,51 +156,37 @@ export class LoginView extends LitElement {
 
   public override render() {
     return html`
-      <div class="${tw(
-        "min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600",
-      )}">
-        <div class="${tw("max-w-md w-full space-y-8 p-8")}">
-          <div class="${tw("bg-white rounded-lg shadow-lg p-8")}">
-            <div class="${tw("text-center mb-8")}">
-              <h2 class="${tw("text-3xl font-bold text-gray-900")}">Welcome</h2>
-              <p class="${tw(
-        "mt-2 text-gray-600",
-      )}">Sign in to start playing</p>
+      <div class="container">
+        <div class="form-wrapper">
+          <div class="card">
+            <div class="header">
+              <h2 class="title">Welcome to Acquire</h2>
+              <p class="subtitle">Sign in to start playing</p>
             </div>
 
-            <form @submit="${this.handleSubmit}" class="${tw("space-y-6")}">
-              <div>
-                <label class="${tw(
-        "block text-sm font-medium text-gray-700 mb-2",
-      )}">
-                  Email
-                </label>
+            <form @submit="${this.handleSubmit}" class="form">
+              <div class="field">
+                <label class="label">Email</label>
                 <input
                   type="text"
+                  class="input"
                   .value="${this.email}"
                   @input="${(e: Event) =>
         this.email = (e.target as HTMLInputElement).value}"
-                  class="${tw(
-        "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
-      )}"
                   required
                 />
               </div>
 
               ${this.error
         ? html`
-          <div class="${tw("text-red-600 text-sm")}">
-            ${this.error}
-          </div>
+          <div class="error">${this.error}</div>
         `
         : ""}
 
               <button
                 type="submit"
+                class="button"
                 ?disabled="${this.loading}"
-                class="${tw(
-        "w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium",
-      )}"
               >
                 ${this.loading ? "Signing in..." : "Sign In"}
               </button>
