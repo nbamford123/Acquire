@@ -8,19 +8,19 @@ import { router } from './routes.ts';
 
 const login = async (app: Application): Promise<string[]> => {
   const request = await superoak(app);
-  const response = await request.post('/login')
+  const response = await request.post('/api/login')
     .set('Content-Type', 'application/json')
     .send('{"email":"test@localhost.com"}');
   return response.headers['set-cookie'] as string[];
 };
 
-Deno.test('POST /login logs in', async () => {
+Deno.test.only('POST /api/login logs in', async () => {
   const app = new Application();
   // Use routes
   app.use(router.routes());
 
   const request = await superoak(app);
-  const response = await request.post('/login')
+  const response = await request.post('/api/login')
     .set('Content-Type', 'application/json')
     .send('{"email":"test@localhost.com"}');
   assertEquals(response.status, 200);
@@ -34,7 +34,7 @@ Deno.test('POST /login invalid email does not log in', async () => {
   app.use(router.routes());
 
   const request = await superoak(app);
-  const response = await request.post('/login')
+  const response = await request.post('/api/login')
     .set('Content-Type', 'application/json')
     .send('{"email":"super@fly.com"}');
   assertEquals(response.status, 403);
@@ -47,7 +47,7 @@ Deno.test('GET /games returns empty game list', async () => {
   const cookies = await login(app);
 
   const request = await superoak(app);
-  const response = await request.get('/games').set('Cookie', cookies);
+  const response = await request.get('/api/games').set('Cookie', cookies);
   assertEquals(response.status, 200);
   const bodyJson = await response.body;
   assertEquals(bodyJson.games.length, 0);
@@ -62,7 +62,7 @@ Deno.test('GET /games returns game list', async () => {
   // Create game 1
   const request = await superoak(app);
   const createResponse = await request
-    .post('/games')
+    .post('/api/games')
     .set('Cookie', cookies)
     .set('Content-Type', 'application/json')
     .send('{"player":"superoak"}');
@@ -71,14 +71,14 @@ Deno.test('GET /games returns game list', async () => {
   // Create game 2
   const request2 = await superoak(app);
   const createResponse2 = await request2
-    .post('/games')
+    .post('/api/games')
     .set('Cookie', cookies)
     .set('Content-Type', 'application/json')
     .send('{"player":"superoak"}');
   const { gameId: game2 } = await createResponse2.body;
 
   const getRequest = await superoak(app);
-  const getResponse = await getRequest.get('/games')
+  const getResponse = await getRequest.get('/api/games')
     .set('Cookie', cookies);
   assertEquals(getResponse.status, 200);
   const { games } = await getResponse.body;
@@ -94,7 +94,7 @@ Deno.test('POST /games fails without player name', async () => {
 
   const request = await superoak(app);
   const response = await request
-    .post('/games')
+    .post('/api/games')
     .set('Cookie', cookies)
     .set('Content-Type', 'application/json')
     .send('{"bogus":"content"}');
@@ -111,7 +111,7 @@ Deno.test('POST /games creates a game and returns the id', async () => {
 
   const request = await superoak(app);
   const response = await request
-    .post('/games')
+    .post('/api/games')
     .set('Cookie', cookies)
     .set('Content-Type', 'application/json')
     .send('{"player":"superoak"}');
@@ -131,7 +131,7 @@ Deno.test('GET /games/:id gets a game', async () => {
 
   // Create a game
   const createResponse = await request
-    .post('/games')
+    .post('/api/games')
     .set('Cookie', cookies)
     .set('Content-Type', 'application/json')
     .send('{"player":"superoak"}');
@@ -139,7 +139,7 @@ Deno.test('GET /games/:id gets a game', async () => {
 
   // Verify game exists
   const getRequest = await superoak(app);
-  const getResponse = await getRequest.get(`/games/${gameId}`)
+  const getResponse = await getRequest.get(`/api/games/${gameId}`)
     .set('Cookie', cookies);
   assertEquals(getResponse.status, 200);
 });
@@ -155,7 +155,7 @@ Deno.test('DELETE /games/:id deletes a game', async () => {
 
   // Create a game
   const createResponse = await request
-    .post('/games')
+    .post('/api/games')
     .set('Cookie', cookies)
     .set('Content-Type', 'application/json')
     .send('{"player":"superoak"}');
@@ -164,7 +164,7 @@ Deno.test('DELETE /games/:id deletes a game', async () => {
   // Delete the game
   const deleteRequest = await superoak(app);
   await deleteRequest
-    .delete(`/games/${gameId}`)
+    .delete(`/api/games/${gameId}`)
     .set('Cookie', cookies)
     .expect(204);
 
@@ -186,7 +186,7 @@ Deno.test('POST /games/:id performs actions', async () => {
 
   // Create a game
   const createResponse = await request
-    .post('/games')
+    .post('/api/games')
     .set('Cookie', cookies)
     .set('Content-Type', 'application/json')
     .send('{"player":"superoak"}');
@@ -200,7 +200,7 @@ Deno.test('POST /games/:id performs actions', async () => {
   const postBody = { action: addPlayer };
   const postRequest = await superoak(app);
   const postResponse = await postRequest
-    .post(`/games/${gameId}`)
+    .post(`/api/games/${gameId}`)
     .set('Cookie', cookies)
     .set('Content-Type', 'application/json')
     .send(JSON.stringify(postBody));
@@ -213,7 +213,7 @@ Deno.test('POST /games/:id performs actions', async () => {
   const startBody = { action: startGame };
   const startRequest = await superoak(app);
   const startResponse = await startRequest
-    .post(`/games/${gameId}`)
+    .post(`/api/games/${gameId}`)
     .set('Cookie', cookies)
     .set('Content-Type', 'application/json')
     .send(JSON.stringify(startBody));

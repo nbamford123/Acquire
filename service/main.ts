@@ -1,7 +1,6 @@
 import { Application } from 'jsr:@oak/oak@17';
 
 import { router } from './routes.ts';
-import { requireAuth } from './middleware.ts';
 
 // Application setup
 const app = new Application();
@@ -46,6 +45,6 @@ app.use(router.allowedMethods());
 
 // Start server
 const port = parseInt(Deno.env.get('PORT') || '8000');
-console.log(`🎲 Board Game Server starting on port ${port}`);
+console.log(`🎲 Acquire Server starting on port ${port}`);
 
 await app.listen({ port });

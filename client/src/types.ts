@@ -4,6 +4,7 @@ export interface AppState {
   currentView: AppView;
   user: string | null;
   selectedGameId: string | null;
+  error: string | null;
 }
 
 export interface GameState {

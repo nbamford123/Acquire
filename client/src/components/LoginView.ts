@@ -11,9 +11,6 @@ export class LoginView extends LitElement {
   @state()
   private loading = false;
 
-  @state()
-  private error = "";
-
   private authService = AuthService.getInstance();
 
   static override styles = css`
@@ -132,15 +129,15 @@ export class LoginView extends LitElement {
   `;
 
   private async handleSubmit(e: Event) {
+    console.log("handle submit called");
     e.preventDefault();
     if (!this.email) return;
 
     this.loading = true;
-    this.error = "";
 
     try {
       const user = await this.authService.login(this.email);
-      // Dispatch event to parent
+      // Dispatch success event to parent
       this.dispatchEvent(
         new CustomEvent<string>("user-login", {
           detail: user,
@@ -148,7 +145,17 @@ export class LoginView extends LitElement {
         }),
       );
     } catch (error) {
-      this.error = error instanceof Error ? error.message : "Login failed";
+      console.log("error occured", error);
+      // Dispatch error event to AppShell
+      const errorMessage = error instanceof Error
+        ? error.message
+        : "Login failed";
+      this.dispatchEvent(
+        new CustomEvent<string>("app-error", {
+          detail: errorMessage,
+          bubbles: true,
+        }),
+      );
     } finally {
       this.loading = false;
     }
@@ -172,16 +179,10 @@ export class LoginView extends LitElement {
                   class="input"
                   .value="${this.email}"
                   @input="${(e: Event) =>
-        this.email = (e.target as HTMLInputElement).value}"
+                    this.email = (e.target as HTMLInputElement).value}"
                   required
                 />
               </div>
-
-              ${this.error
-        ? html`
-          <div class="error">${this.error}</div>
-        `
-        : ""}
 
               <button
                 type="submit"

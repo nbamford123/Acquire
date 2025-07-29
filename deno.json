@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "tasks": {
-    "dev": "deno run --allow-net --allow-env --env-file --watch service/src/main.ts",
+    "dev": "deno run --allow-net --allow-env --env-file --watch service/main.ts",
     "start": "deno run --allow-net --allow-env service/src/main.ts",
     "test": "deno test",
     "lint": "deno lint",

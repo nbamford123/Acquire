@@ -82,6 +82,52 @@ export class AppShell extends LitElement {
     .logout-button:hover {
       color: #b91c1c;
     }
+
+    .error-banner {
+      background-color: #dc2626;
+      color: white;
+      padding: 0.75rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .error-message {
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .error-dismiss {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1.25rem;
+      padding: 0;
+      width: 1.5rem;
+      height: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.25rem;
+      transition: background-color 0.15s ease;
+    }
+
+    .error-dismiss:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
   `;
 
   @state()
@@ -89,13 +135,24 @@ export class AppShell extends LitElement {
     currentView: "login",
     user: null,
     selectedGameId: null,
+    error: null,
   };
 
   private authService = AuthService.getInstance();
+  private errorTimer: number | null = null;
 
   public override connectedCallback() {
     super.connectedCallback();
     this.checkAuthentication();
+    this.addEventListener('app-error', this.handleError as EventListener);
+  }
+
+  public override disconnectedCallback() {
+    super.disconnectedCallback();
+    this.removeEventListener('app-error', this.handleError as EventListener);
+    if (this.errorTimer) {
+      clearTimeout(this.errorTimer);
+    }
   }
 
   private checkAuthentication() {
@@ -110,6 +167,7 @@ export class AppShell extends LitElement {
   }
 
   private handleLogin = (event: CustomEvent<string>) => {
+    console.log("login handled!");
     this.appState = {
       ...this.appState,
       user: event.detail,
@@ -123,6 +181,7 @@ export class AppShell extends LitElement {
       currentView: "login",
       user: null,
       selectedGameId: null,
+      error: null,
     };
   };
 
@@ -142,6 +201,35 @@ export class AppShell extends LitElement {
     };
   };
 
+  private handleError = (event: CustomEvent<string>) => {
+    // Clear any existing timer
+    if (this.errorTimer) {
+      clearTimeout(this.errorTimer);
+    }
+
+    // Set the error
+    this.appState = {
+      ...this.appState,
+      error: event.detail,
+    };
+
+    // Auto-dismiss after 5 seconds
+    this.errorTimer = setTimeout(() => {
+      this.clearError();
+    }, 5000);
+  };
+
+  private clearError = () => {
+    if (this.errorTimer) {
+      clearTimeout(this.errorTimer);
+      this.errorTimer = null;
+    }
+    this.appState = {
+      ...this.appState,
+      error: null,
+    };
+  };
+
   public override render() {
     // Simple guard: redirect to login if not authenticated
     if (!this.appState.user && this.appState.currentView !== "login") {
@@ -150,7 +238,23 @@ export class AppShell extends LitElement {
 
     return html`
       <div class="app-container">
+        ${this.appState.error ? this.renderErrorBanner() : ''}
         ${this.renderHeader()} ${this.renderCurrentView()}
+      </div>
+    `;
+  }
+
+  private renderErrorBanner() {
+    return html`
+      <div class="error-banner">
+        <span class="error-message">${this.appState.error}</span>
+        <button
+          @click="${this.clearError}"
+          class="error-dismiss"
+          aria-label="Dismiss error"
+        >
+          ×
+        </button>
       </div>
     `;
   }
@@ -168,15 +272,15 @@ export class AppShell extends LitElement {
           <div class="header-left">
             <h1 class="app-title">Acquire</h1>
             ${this.appState.currentView === "game-board"
-        ? html`
-          <button
-            @click="${this.handleBackToGameList}"
-            class="back-button"
-          >
-            ← Back to Games
-          </button>
-        `
-        : ""}
+              ? html`
+                <button
+                  @click="${this.handleBackToGameList}"
+                  class="back-button"
+                >
+                  ← Back to Games
+                </button>
+              `
+              : ""}
           </div>
           <div class="header-right">
             <span class="welcome-text">
@@ -197,7 +301,10 @@ export class AppShell extends LitElement {
     switch (this.appState.currentView) {
       case "login":
         return html`
-          <login-view @user-login="${this.handleLogin}"></login-view>
+          <login-view 
+            @user-login="${this.handleLogin}"
+            @app-error="${this.handleError}"
+          ></login-view>
         `;
 
       case "game-list":

@@ -1,7 +1,77 @@
 import { serveFile } from "jsr:@std/http/file-server";
 
+// Store connected clients for live reload
+const clients = new Set<ReadableStreamDefaultController>();
+
+// In dev-server.ts
+const watcher = Deno.watchFs(["./src"]);
+
+const buildBundle = async () => {
+  const build = new Deno.Command("deno", {
+    args: [
+      "bundle",
+      "--platform",
+      "browser",
+      "--output",
+      "dist/bundle.js",
+      "--sourcemap=external",
+      "src/main.ts",
+    ],
+  });
+  await build.output();
+  console.log("📦 Bundle rebuilt");
+
+  // Notify all connected clients to reload
+  notifyReload();
+};
+
+const notifyReload = () => {
+  clients.forEach((controller) => {
+    try {
+      controller.enqueue(`data: reload\n\n`);
+    } catch {
+      clients.delete(controller);
+    }
+  });
+};
+
+// Build initially
+await buildBundle();
+
+// Watch for changes
+(async () => {
+  for await (const event of watcher) {
+    if (
+      event.kind === "modify" &&
+      event.paths.some((path) => path.endsWith(".ts"))
+    ) {
+      await buildBundle();
+    }
+  }
+})();
+
 const handler = async (req: Request): Promise<Response> => {
   const url = new URL(req.url);
+
+  if (url.pathname === "/reload") {
+    const stream = new ReadableStream({
+      start(controller) {
+        clients.add(controller);
+        controller.enqueue(`data: connected\n\n`);
+      },
+      cancel(controller) {
+        clients.delete(controller);
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "content-type": "text/event-stream",
+        "cache-control": "no-cache",
+        "connection": "keep-alive",
+      },
+    });
+  }
 
   if (url.pathname === "/") {
     return new Response(
@@ -12,20 +82,45 @@ const handler = async (req: Request): Promise<Response> => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Acquire</title>
+        <script>
+          if (location.hostname === 'localhost') {
+            new EventSource('/reload').addEventListener('message', () => location.reload());
+          }
+        </script>
       </head>
       <body>
         <script type="module" src="/dist/bundle.js"></script>
       </body>
       </html>
-    `,
+      `,
       {
-        headers: { "content-type": "text/html" },
+        headers: {
+          "content-type": "text/html",
+          "cache-control": "no-cache, no-store, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+        },
       },
     );
   }
 
   try {
-    return await serveFile(req, `.${url.pathname}`);
+    const response = await serveFile(req, `.${url.pathname}`);
+    // Add no-cache headers for bundle.js
+    console.log(url.pathname);
+    if (url.pathname.endsWith("bundle.js")) {
+      const headers = new Headers(response.headers);
+      headers.set("cache-control", "no-cache, no-store, must-revalidate");
+      headers.set("pragma", "no-cache");
+      headers.set("expires", "0");
+
+      return new Response(response.body, {
+        status: response.status,
+        headers: headers,
+      });
+    } else {
+      return response;
+    }
   } catch {
     return new Response("Not Found", { status: 404 });
   }

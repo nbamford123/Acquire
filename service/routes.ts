@@ -23,7 +23,8 @@ router.get('/', (ctx) => {
 });
 
 // login
-router.post('/login', async (ctx) => {
+router.post('/api/login', async (ctx) => {
+  console.log("login called")
   const bodyJson = await ctx.request.body.json();
   const { email } = bodyJson as { email?: string };
 
@@ -46,7 +47,7 @@ router.post('/login', async (ctx) => {
 });
 
 // Create game
-router.post('/games', requireAuth, async (ctx) => {
+router.post('/api/games', requireAuth, async (ctx) => {
   try {
     const bodyJson = await ctx.request.body.json();
     const { player } = bodyJson as { player?: string };
@@ -69,7 +70,7 @@ router.post('/games', requireAuth, async (ctx) => {
 });
 
 // Delete game
-router.delete('/games/:id', requireAuth, (ctx) => {
+router.delete('/api/games/:id', requireAuth, (ctx) => {
   const gameId = ctx.params.id;
   const game = gameStates.get(gameId);
 
@@ -84,7 +85,7 @@ router.delete('/games/:id', requireAuth, (ctx) => {
 });
 
 // Get game-- note this will need to return a player view!
-router.get('/games/:id', requireAuth, (ctx) => {
+router.get('/api/games/:id', requireAuth, (ctx) => {
   const gameId = ctx.params.id;
   const game = gameStates.get(gameId);
 
@@ -99,7 +100,7 @@ router.get('/games/:id', requireAuth, (ctx) => {
 });
 
 // Get list of games
-router.get('/games', requireAuth, (ctx) => {
+router.get('/api/games', requireAuth, (ctx) => {
   const gameList = Array.from(gameStates.values()).map((game) => ({
     id: game.gameId,
     players: game.players.map((player) => player.name),
@@ -111,7 +112,7 @@ router.get('/games', requireAuth, (ctx) => {
 });
 
 // Main game action endpoint
-router.post('/games/:id', requireAuth, async (ctx) => {
+router.post('/api/games/:id', requireAuth, async (ctx) => {
   try {
     const gameId = ctx.params.id;
     const bodyJson = await ctx.request.body.json();
