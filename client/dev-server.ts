@@ -3,7 +3,6 @@ import { serveFile } from "jsr:@std/http/file-server";
 // Store connected clients for live reload
 const clients = new Set<ReadableStreamDefaultController>();
 
-// In dev-server.ts
 const watcher = Deno.watchFs(["./src"]);
 
 const buildBundle = async () => {
@@ -70,6 +69,37 @@ const handler = async (req: Request): Promise<Response> => {
         "cache-control": "no-cache",
         "connection": "keep-alive",
       },
+    });
+  }
+
+  if (url.pathname.startsWith("/api")) {
+    //Proxy to api server on 8000
+    const proxyUrl = new URL(req.url);
+    proxyUrl.protocol = "http:";
+    proxyUrl.hostname = "localhost";
+    proxyUrl.port = "8000";
+
+    // Forward method, headers, and body
+    const proxyReq = new Request(proxyUrl, {
+      method: req.method,
+      headers: req.headers,
+      body: req.method !== "GET" && req.method !== "HEAD"
+        ? req.body
+        : undefined,
+      redirect: "manual",
+    });
+
+    // Fetch from backend and return response
+    const proxyRes = await fetch(proxyReq);
+
+    // Clone headers to avoid immutable issues
+    const headers = new Headers(proxyRes.headers);
+    // Optionally, you can adjust CORS or other headers here
+
+    return new Response(proxyRes.body, {
+      status: proxyRes.status,
+      statusText: proxyRes.statusText,
+      headers,
     });
   }
 

@@ -14,7 +14,7 @@ const login = async (app: Application): Promise<string[]> => {
   return response.headers['set-cookie'] as string[];
 };
 
-Deno.test.only('POST /api/login logs in', async () => {
+Deno.test('POST /api/login logs in', async () => {
   const app = new Application();
   // Use routes
   app.use(router.routes());

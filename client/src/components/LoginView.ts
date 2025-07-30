@@ -145,7 +145,7 @@ export class LoginView extends LitElement {
         }),
       );
     } catch (error) {
-      console.log("error occured", error);
+      console.log("error occurred", error);
       // Dispatch error event to AppShell
       const errorMessage = error instanceof Error
         ? error.message

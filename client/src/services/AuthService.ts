@@ -12,13 +12,11 @@ export class AuthService {
   async login(email: string): Promise<string> {
     try {
       // Use relative path or fallback to localhost for development
-      console.log("prefetch occured")
-      const response = await fetch(`/login`, {
+      const response = await fetch(`/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      console.log("fetch occured")
       if (!response.ok) {
         let errorMessage = `Login failed (${response.status})`;
         
