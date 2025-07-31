@@ -1,15 +1,17 @@
-import { css, html, LitElement } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { css, html, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 
-import type { GameState } from "../types.ts";
+import type { GameState } from '../types.ts';
 
-@customElement("dashboard-view")
+@customElement('dashboard-view')
 export class DashboardView extends LitElement {
-  @property({ type: Object })
+  @property({ type: String })
   user: string | null = null;
-  @state()
+  static override properties = {
+    games: { type: Object, state: true },
+    loading: { type: Boolean, state: true },
+  };
   private games: GameState[] = [];
-  @state()
   private loading = false;
 
   static override styles = css`
@@ -155,20 +157,22 @@ export class DashboardView extends LitElement {
   }
 
   private async loadGames() {
+    const oldLoading = this.loading;
     this.loading = true;
     try {
-      const response = await fetch("/api/games");
+      const response = await fetch('/api/games');
       this.games = await response.json();
     } catch (error) {
-      console.error("Failed to load games:", error);
+      console.error('Failed to load games:', error);
     } finally {
       this.loading = false;
+      this.requestUpdate('loading', oldLoading);
     }
   }
 
   private handleGameSelect(gameId: string) {
     this.dispatchEvent(
-      new CustomEvent<string>("game-select", {
+      new CustomEvent<string>('game-select', {
         detail: gameId,
         bubbles: true,
       }),
@@ -177,15 +181,15 @@ export class DashboardView extends LitElement {
 
   private async createNewGame() {
     try {
-      const response = await fetch("/api/games", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/games', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerName: this.user }),
       });
       const newGame = await response.json();
       this.handleGameSelect(newGame.id);
     } catch (error) {
-      console.error("Failed to create game:", error);
+      console.error('Failed to create game:', error);
     }
   }
 
@@ -203,45 +207,45 @@ export class DashboardView extends LitElement {
         </div>
 
         ${this.loading
-        ? html`
-          <div class="loading-container">
-            <div class="loading-text">Loading games...</div>
-          </div>
-        `
-        : ""}
+          ? html`
+            <div class="loading-container">
+              <div class="loading-text">Loading games...</div>
+            </div>
+          `
+          : ''}
 
         <div class="games-grid">
           ${this.games.map((game) =>
-        html`
-          <div
-            class="game-card"
-            @click="${() => this.handleGameSelect(game.id)}"
-          >
-            <h3 class="game-title">Game ${game.id.slice(0, 8)}</h3>
-            <p class="game-players">
-              ${game.players.length}/${game.maxPlayers || 4} players
-            </p>
-            <div class="game-footer">
-              <span class="game-phase">
-                ${game.phase}
-              </span>
-              <button class="join-button">
-                Join Game →
-              </button>
-            </div>
-          </div>
-        `
-      )}
+            html`
+              <div
+                class="game-card"
+                @click="${() => this.handleGameSelect(game.id)}"
+              >
+                <h3 class="game-title">Game ${game.id.slice(0, 8)}</h3>
+                <p class="game-players">
+                  ${game.players.length}/${game.maxPlayers || 4} players
+                </p>
+                <div class="game-footer">
+                  <span class="game-phase">
+                    ${game.phase}
+                  </span>
+                  <button class="join-button">
+                    Join Game →
+                  </button>
+                </div>
+              </div>
+            `
+          )}
         </div>
 
         ${!this.loading && this.games.length === 0
-        ? html`
-          <div class="empty-state">
-            <p class="empty-title">No games available</p>
-            <p class="empty-description">Create a new game to get started!</p>
-          </div>
-        `
-        : ""}
+          ? html`
+            <div class="empty-state">
+              <p class="empty-title">No games available</p>
+              <p class="empty-description">Create a new game to get started!</p>
+            </div>
+          `
+          : ''}
       </div>
     `;
   }

@@ -24,7 +24,7 @@ router.get('/', (ctx) => {
 
 // login
 router.post('/api/login', async (ctx) => {
-  console.log("login called")
+  console.log('login called');
   const bodyJson = await ctx.request.body.json();
   const { email } = bodyJson as { email?: string };
 

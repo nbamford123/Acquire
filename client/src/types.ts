@@ -1,4 +1,4 @@
-export type AppView = "login" | "game-list" | "game-board";
+export type AppView = 'login' | 'game-list' | 'game-board';
 
 export interface AppState {
   currentView: AppView;
@@ -12,4 +12,4 @@ export interface GameState {
   phase: string;
   maxPlayers: number;
   players: string[];
-};
+}

@@ -29,7 +29,7 @@ export interface GameState {
   lastUpdated: number; // Timestamp
   // shares map of hotel name, number? 1, few, many
   // in player order-- but where does this player go?
-  players: { name: string, money: number, shares: number }; 
+  players: { name: string; money: number; shares: number };
   // Map of hotel name -> remaining shares?
   hotelShares: Hotel[];
   board: BoardTile[];

@@ -1,14 +1,14 @@
 // src/components/AppShell.ts
-import { css, html, LitElement } from "lit";
-import { customElement } from "lit/decorators.js";
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
 
-import type { AppState } from "../types.ts";
-import { AuthService } from "../services/AuthService.ts";
-import "./LoginView.ts";
-import "./DashboardView.ts";
-import "./GameBoardView.ts";
+import type { AppState } from '../types.ts';
+import { AuthService } from '../services/AuthService.ts';
+import './LoginView.ts';
+import './DashboardView.ts';
+import './GameBoardView.ts';
 
-@customElement("app-shell")
+@customElement('app-shell')
 export class AppShell extends LitElement {
   static override styles = css`
     /* Your existing styles... */
@@ -135,7 +135,7 @@ export class AppShell extends LitElement {
   };
 
   private appState: AppState = {
-    currentView: "login",
+    currentView: 'login',
     user: null,
     selectedGameId: null,
     error: null,
@@ -147,7 +147,7 @@ export class AppShell extends LitElement {
       ...this.appState,
       ...newState,
     };
-    this.requestUpdate("appState", oldState);
+    this.requestUpdate('appState', oldState);
   }
 
   private authService = AuthService.getInstance();
@@ -156,12 +156,12 @@ export class AppShell extends LitElement {
   public override connectedCallback() {
     super.connectedCallback();
     this.checkAuthentication();
-    this.addEventListener("app-error", this.handleError as EventListener);
+    this.addEventListener('app-error', this.handleError as EventListener);
   }
 
   public override disconnectedCallback() {
     super.disconnectedCallback();
-    this.removeEventListener("app-error", this.handleError as EventListener);
+    this.removeEventListener('app-error', this.handleError as EventListener);
     if (this.errorTimer) {
       clearTimeout(this.errorTimer);
     }
@@ -172,7 +172,7 @@ export class AppShell extends LitElement {
     if (user) {
       this.updateAppState({
         user,
-        currentView: "game-list",
+        currentView: 'game-list',
       });
     }
   }
@@ -182,14 +182,14 @@ export class AppShell extends LitElement {
   ) => {
     this.updateAppState({
       user: event.detail.email,
-      currentView: "game-list",
+      currentView: 'game-list',
     });
   };
 
   private handleLogout = () => {
     this.authService.logout();
     this.updateAppState({
-      currentView: "login",
+      currentView: 'login',
       user: null,
       selectedGameId: null,
       error: null,
@@ -199,13 +199,13 @@ export class AppShell extends LitElement {
   private handleGameSelect = (event: CustomEvent<string>) => {
     this.updateAppState({
       selectedGameId: event.detail,
-      currentView: "game-board",
+      currentView: 'game-board',
     });
   };
 
   private handleBackToGameList = () => {
     this.updateAppState({
-      currentView: "game-list",
+      currentView: 'game-list',
       selectedGameId: null,
     });
   };
@@ -240,8 +240,8 @@ export class AppShell extends LitElement {
   public override render() {
     return html`
       <div class="app-container">
-        ${this.appState.error ? this.renderErrorBanner() : ""} ${this
-        .renderHeader()} ${this.renderCurrentView()}
+        ${this.appState.error ? this.renderErrorBanner() : ''} ${this
+          .renderHeader()} ${this.renderCurrentView()}
       </div>
     `;
   }
@@ -262,7 +262,7 @@ export class AppShell extends LitElement {
   }
 
   private renderHeader() {
-    if (this.appState.currentView === "login") {
+    if (this.appState.currentView === 'login') {
       return html`
 
       `;
@@ -273,16 +273,16 @@ export class AppShell extends LitElement {
         <div class="header-content">
           <div class="header-left">
             <h1 class="app-title">Acquire</h1>
-            ${this.appState.currentView === "game-board"
-        ? html`
-          <button
-            @click="${this.handleBackToGameList}"
-            class="back-button"
-          >
-            ← Back to Games
-          </button>
-        `
-        : ""}
+            ${this.appState.currentView === 'game-board'
+              ? html`
+                <button
+                  @click="${this.handleBackToGameList}"
+                  class="back-button"
+                >
+                  ← Back to Games
+                </button>
+              `
+              : ''}
           </div>
           <div class="header-right">
             <span class="welcome-text">
@@ -301,7 +301,7 @@ export class AppShell extends LitElement {
   }
   private renderCurrentView() {
     switch (this.appState.currentView) {
-      case "login":
+      case 'login':
         return html`
           <login-view
             @user-login="${this.handleLogin}"
@@ -309,15 +309,15 @@ export class AppShell extends LitElement {
           ></login-view>
         `;
 
-      case "game-list":
+      case 'game-list':
         return html`
-          <game-list-view
+          <dashboard-view
             .user="${this.appState.user}"
             @game-select="${this.handleGameSelect}"
-          ></game-list-view>
+          ></dashboard-view>
         `;
 
-      case "game-board":
+      case 'game-board':
         return html`
           <game-board-view
             .gameId="${this.appState.selectedGameId}"

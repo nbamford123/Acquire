@@ -284,16 +284,25 @@ Deno.test('actionHandlers type safety tests', async (t) => {
           action = { type: actionType, payload: { player: 'TestPlayer' } };
           break;
         case ActionTypes.PLAY_TILE:
-          action = { type: actionType, payload: { player: 'TestPlayer', tile: { row: 0, col: 0 } } };
+          action = {
+            type: actionType,
+            payload: { player: 'TestPlayer', tile: { row: 0, col: 0 } },
+          };
           break;
         case ActionTypes.BUY_SHARES:
           action = { type: actionType, payload: { player: 'TestPlayer', shares: {} } };
           break;
         case ActionTypes.FOUND_HOTEL:
-          action = { type: actionType, payload: { player: 'TestPlayer', hotelName: 'Worldwide' as const } };
+          action = {
+            type: actionType,
+            payload: { player: 'TestPlayer', hotelName: 'Worldwide' as const },
+          };
           break;
         case ActionTypes.RESOLVE_MERGER:
-          action = { type: actionType, payload: { player: 'TestPlayer', shares: { sell: 0, trade: 0 } } };
+          action = {
+            type: actionType,
+            payload: { player: 'TestPlayer', shares: { sell: 0, trade: 0 } },
+          };
           break;
         case ActionTypes.BREAK_MERGER_TIE:
           action = {

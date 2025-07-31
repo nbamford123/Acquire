@@ -13,32 +13,32 @@ export class AuthService {
     try {
       // Use relative path or fallback to localhost for development
       const response = await fetch(`/api/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
       if (!response.ok) {
         let errorMessage = `Login failed (${response.status})`;
-        
+
         // Add status text for common HTTP errors
         switch (response.status) {
           case 400:
-            errorMessage += ": Bad Request - Invalid email format";
+            errorMessage += ': Bad Request - Invalid email format';
             break;
           case 401:
-            errorMessage += ": Unauthorized - Invalid credentials";
+            errorMessage += ': Unauthorized - Invalid credentials';
             break;
           case 403:
-            errorMessage += ": Forbidden - Access denied";
+            errorMessage += ': Forbidden - Access denied';
             break;
           case 404:
-            errorMessage += ": Not Found - Login endpoint not found";
+            errorMessage += ': Not Found - Login endpoint not found';
             break;
           case 405:
-            errorMessage += ": Method Not Allowed - Check server configuration";
+            errorMessage += ': Method Not Allowed - Check server configuration';
             break;
           case 500:
-            errorMessage += ": Internal Server Error";
+            errorMessage += ': Internal Server Error';
             break;
           default:
             errorMessage += `: ${response.statusText}`;
@@ -63,7 +63,7 @@ export class AuthService {
     } catch (error) {
       // Handle network errors
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error("Network error: Unable to connect to server");
+        throw new Error('Network error: Unable to connect to server');
       }
       // Re-throw other errors (including our custom HTTP errors)
       throw error;

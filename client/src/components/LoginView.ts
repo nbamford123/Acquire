@@ -1,14 +1,14 @@
-import { css, html, LitElement } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
 
-import { AuthService } from "../services/AuthService.ts";
+import { AuthService } from '../services/AuthService.ts';
 
-@customElement("login-view")
+@customElement('login-view')
 export class LoginView extends LitElement {
-  @state()
-  private email = "";
-
-  @state()
+  static override properties = {
+    loading: { type: Boolean, state: true },
+  };
+  private email = '';
   private loading = false;
 
   private authService = AuthService.getInstance();
@@ -129,35 +129,34 @@ export class LoginView extends LitElement {
   `;
 
   private async handleSubmit(e: Event) {
-    console.log("handle submit called");
+    console.log('handle submit called');
     e.preventDefault();
     if (!this.email) return;
-
+    const oldLoading = this.loading;
     this.loading = true;
 
     try {
       const user = await this.authService.login(this.email);
       // Dispatch success event to parent
       this.dispatchEvent(
-        new CustomEvent<string>("user-login", {
+        new CustomEvent<string>('user-login', {
           detail: user,
           bubbles: true,
         }),
       );
     } catch (error) {
-      console.log("error occurred", error);
+      console.log('error occurred', error);
       // Dispatch error event to AppShell
-      const errorMessage = error instanceof Error
-        ? error.message
-        : "Login failed";
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
       this.dispatchEvent(
-        new CustomEvent<string>("app-error", {
+        new CustomEvent<string>('app-error', {
           detail: errorMessage,
           bubbles: true,
         }),
       );
     } finally {
       this.loading = false;
+      this.requestUpdate('loading', oldLoading);
     }
   }
 
@@ -178,8 +177,7 @@ export class LoginView extends LitElement {
                   type="text"
                   class="input"
                   .value="${this.email}"
-                  @input="${(e: Event) =>
-                    this.email = (e.target as HTMLInputElement).value}"
+                  @input="${(e: Event) => this.email = (e.target as HTMLInputElement).value}"
                   required
                 />
               </div>
@@ -189,7 +187,7 @@ export class LoginView extends LitElement {
                 class="button"
                 ?disabled="${this.loading}"
               >
-                ${this.loading ? "Signing in..." : "Sign In"}
+                ${this.loading ? 'Signing in...' : 'Sign In'}
               </button>
             </form>
           </div>
