@@ -1,4 +1,4 @@
-import { HOTEL_NAME } from '@/types/index.ts';
+import { HOTEL_NAME } from './index.ts';
 
 export const ActionTypes = {
   START_GAME: 'START_GAME',

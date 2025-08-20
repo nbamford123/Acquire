@@ -1,4 +1,4 @@
-import { roundUpToNearestHundred } from '@/utils/index.ts';
+import { roundUpToNearestHundred } from '../../shared/utils/index.ts';
 
 // playerStockCounts is assumed to be sorted in descending order
 // returns an array of payouts indexed by player id

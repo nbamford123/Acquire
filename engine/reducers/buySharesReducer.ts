@@ -4,7 +4,7 @@ import {
   GameErrorCodes,
   GamePhase,
   type GameState,
-} from '@/types/index.ts';
+} from '../../shared/types/index.ts';
 import {
   boardTiles,
   deadTile,
@@ -14,7 +14,7 @@ import {
   sharePrice,
   updateTiles,
 } from '../domain/index.ts';
-import { filterDefined } from '@/utils/filterDefined.ts';
+import { filterDefined } from '../../shared/utils/filterDefined.ts';
 
 export const buySharesReducer = (
   gameState: GameState,

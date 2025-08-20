@@ -7,8 +7,8 @@ import {
   type HOTEL_TYPE,
   type Share,
   SharePrices,
-} from '@/types/index.ts';
-import { SAFE_HOTEL_SIZE } from '@/types/gameConfig.ts';
+} from '../../shared/types/index.ts';
+import { SAFE_HOTEL_SIZE } from '../../shared/types/gameConfig.ts';
 
 const initializeShares = (): Share[] => Array.from({ length: 25 }, () => ({ location: 'bank' }));
 

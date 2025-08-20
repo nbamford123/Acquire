@@ -1,5 +1,5 @@
 // gameEngine.ts - Pure game logic with no side effects
-import type { GameAction, GameState } from '@/types/index.ts';
+import type { GameAction, GameState } from '../../shared/types/index.ts';
 import { rootReducer } from '../reducers/rootReducer.ts';
 
 export function processAction(state: GameState, action: GameAction): GameState {

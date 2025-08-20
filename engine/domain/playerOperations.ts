@@ -1,4 +1,4 @@
-import type { Player } from '@/types/index.ts';
+import type { Player } from '../../shared/types/index.ts';
 import { INITIAL_PLAYER_MONEY } from '../../shared/types/gameConfig.ts';
 
 export const initializePlayer = (playerName: string): Player => ({

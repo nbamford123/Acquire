@@ -1,4 +1,4 @@
-import type { Tile } from '@/types/tile.ts';
+import type { Tile } from '../types/tile.ts';
 
 /**
  * Sorts an array of tiles in ascending order.

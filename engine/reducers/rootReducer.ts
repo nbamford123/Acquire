@@ -1,4 +1,4 @@
-import { type GameAction, GameError, GameErrorCodes, type GameState } from '@/types/index.ts';
+import { type GameAction, GameError, GameErrorCodes, type GameState } from '../../shared/types/index.ts';
 import { actionHandlers } from './actionHandlers.ts';
 
 export const rootReducer = (

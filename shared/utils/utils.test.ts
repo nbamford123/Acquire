@@ -1,5 +1,5 @@
 import { assertEquals, assertNotEquals } from 'jsr:@std/assert';
-import type { Tile } from '@/types/tile.ts';
+import type { Tile } from '../types/tile.ts';
 
 import { cmpTiles, filterDefined, getAdjacentPositions, shuffleTiles, sortTiles } from './index.ts';
 
