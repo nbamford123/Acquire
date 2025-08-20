@@ -2,6 +2,8 @@
 
 ## Misc
 
+- why do we need a player name when we create a game? Isn't it already in the auth cookie?
+- same with start game action? Weren't we going to always pull the player from the cookie?
 - GameState type in DashboardView should come from the shared types!
 - why does the dev server serve html from a string rather than an index.html file like we will have for deployment? Or will we?
 - figure out a way to make type checking run in the client sub project with that deno.json so it doesn't get all the errors from the root deno.json

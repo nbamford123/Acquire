@@ -8,6 +8,7 @@
     "fmt": "deno fmt",
     "check": "deno check **/*.ts",
     "fmt:check": "deno fmt --check",
+    "test:service": "deno test --config service/deno.json service/ --allow-all --env-file",
     "validate": "deno fmt && deno task check && deno test && deno lint"
   },
   "compilerOptions": {

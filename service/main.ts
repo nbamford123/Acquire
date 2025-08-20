@@ -1,9 +1,12 @@
+import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { getService } from "./routes.ts";
+
+import { setRoutes } from "./routes.ts";
+import type { ServiceEnv } from "./types.ts";
 
 // Application setup
-export const app = getService();
-
+export const app = new Hono<ServiceEnv>();
+setRoutes(app);
 // CORS middleware (useful for frontend development)
 app.use(
   "/*",

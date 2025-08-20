@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import type { Context, Hono } from "hono";
 import { setCookie } from "hono/cookie";
 import { initializeGame } from "../engine/core/gameInitialization.ts";
 import { processAction } from "../engine/core/gameEngine.ts";
@@ -17,15 +17,22 @@ const isProduction = Deno.env.get("ENV") === "production";
 const uid = () =>
   Date.now().toString(36) + Math.random().toString(36).substring(2);
 
-export const getService = () => {
-  return new Hono<ServiceEnv>()
-    // Health check
-    .get("/", (ctx) => {
-      return ctx.json({ message: "Acquire Server is running!" });
-    })
-    // login
-    .post("/api/login", async (ctx) => {
-      const bodyJson = await ctx.req.json();
+const parseJsonBody = async (ctx: Context) => {
+  try {
+    return await ctx.req.json();
+  } catch {
+    throw new Error("Invalid JSON in request body");
+  }
+};
+export const setRoutes = (app: Hono<ServiceEnv>) => {
+  // Health check
+  app.get("/", (ctx) => {
+    return ctx.json({ message: "Acquire Server is running!" });
+  });
+  // login
+  app.post("/api/login", async (ctx) => {
+    try {
+      const bodyJson = await parseJsonBody(ctx);
       const { email } = bodyJson as { email?: string };
 
       if (!email || !isEmailAllowed(email)) {
@@ -40,101 +47,107 @@ export const getService = () => {
         maxAge: 60 * 60 * 24 * 365, // 1 year in milliseconds
       });
       return ctx.json({ success: true, email });
-    })
-    // Create game
-    .post("/api/games", requireAuth, async (ctx) => {
-      try {
-        const bodyJson = await ctx.req.json();
-        const { player } = bodyJson as { player?: string };
+    } catch (error) {
+      return ctx.json({
+        error: (error instanceof Error) ? error.message : String(error),
+      }, 400);
+    }
+  });
+  // Create game
+  app.post("/api/games", requireAuth, async (ctx) => {
+    try {
+      const bodyJson = await parseJsonBody(ctx);
+      const { player } = bodyJson as { player?: string };
 
-        if (!player) {
-          return ctx.json({ error: "Player name is required" }, 400);
-        }
-        const gameId = uid();
-        const game = initializeGame(gameId, player);
-        gameStates.set(gameId, game);
-
-        return ctx.json({ gameId: gameId }, 201);
-      } catch (error) {
-        return ctx.json({
-          error: (error instanceof Error) ? error.message : String(error),
-        }, 400);
+      if (!player) {
+        return ctx.json({ error: "Player name is required" }, 400);
       }
-    })
-    // // Delete game
-    // .delete("/api/games/:id", requireAuth, (ctx) => {
-    //   const gameId = ctx.req.param("id") || "";
-    //   const game = gameStates.get(gameId);
+      const gameId = uid();
+      const game = initializeGame(gameId, player);
+      gameStates.set(gameId, game);
 
-    //   if (!game) {
-    //     return ctx.json({ error: "Game not found" }, 404);
-    //   }
-    //   gameStates.delete(gameId);
-    //   return ctx.status(204);
-    // })
-    // Get game-- note this will need to return a player view!
-    .get("/api/games/:id", requireAuth, (ctx) => {
+      return ctx.json({ gameId: gameId }, 201);
+    } catch (error) {
+      return ctx.json({
+        error: (error instanceof Error) ? error.message : String(error),
+      }, 400);
+    }
+  });
+  // Delete game
+  app.delete("/api/games/:id", requireAuth, async (ctx) => {
+    const gameId = ctx.req.param("id") || "";
+    const game = gameStates.get(gameId);
+
+    if (!game) {
+      return ctx.json({ error: "Game not found" }, 404);
+    }
+    gameStates.delete(gameId);
+    await Promise.resolve(); // Simulate async operation
+    return ctx.body(null, 204);
+  });
+  // Get game-- note this will need to return a player view!
+  app.get("/api/games/:id", requireAuth, (ctx) => {
+    const gameId = ctx.req.param("id") || "";
+    const game = gameStates.get(gameId);
+
+    if (!game) {
+      return ctx.json({ error: "Game not found" }, 404);
+    }
+
+    return ctx.json({ game });
+  });
+  // Get list of games
+  app.get("/api/games", requireAuth, (ctx) => {
+    const gameList = Array.from(gameStates.values()).map((game) => ({
+      id: game.gameId,
+      players: game.players.map((player) => player.name),
+      phase: game.currentPhase,
+      lastUpdated: game.lastUpdated,
+    }));
+
+    return ctx.json({ games: gameList });
+  });
+  // Main game action endpoint
+  app.post("/api/games/:id", requireAuth, async (ctx) => {
+    try {
       const gameId = ctx.req.param("id") || "";
-      const game = gameStates.get(gameId);
+      const bodyJson = await parseJsonBody(ctx);
+      const user = ctx.get("user");
 
-      if (!game) {
+      if (!user) {
+        return ctx.json({ error: "Unauthorized" }, 401);
+      }
+      const { action } = bodyJson as { action: GameAction };
+
+      // Security: always user JWT player
+      action.payload.player = user;
+      if (!action || !action.type) {
+        return ctx.json(
+          { error: "Action is required with a type field" },
+          400,
+        );
+      }
+
+      const currentGame = gameStates.get(gameId);
+      if (!currentGame) {
         return ctx.json({ error: "Game not found" }, 404);
       }
 
-      return ctx.json({ game });
-    })
-    // Get list of games
-    .get("/api/games", requireAuth, (ctx) => {
-      const gameList = Array.from(gameStates.values()).map((game) => ({
-        id: game.gameId,
-        players: game.players.map((player) => player.name),
-        phase: game.currentPhase,
-        lastUpdated: game.lastUpdated,
-      }));
+      // Apply the action through your reducer
+      const updatedGame = processAction(currentGame, action);
 
-      return ctx.json({ games: gameList });
-    })
-    // Main game action endpoint
-    .post("/api/games/:id", requireAuth, async (ctx) => {
-      try {
-        const gameId = ctx.req.param("id") || "";
-        const bodyJson = await ctx.req.json();
-        const user = ctx.get("user");
+      // Save the updated state
+      gameStates.set(gameId, updatedGame);
 
-        if (!user) {
-          return ctx.json({ error: "Unauthorized" }, 401);
-        }
-        const { action } = bodyJson as { action: GameAction };
-
-        // Security: always user JWT player
-        action.payload.player = user;
-        if (!action || !action.type) {
-          return ctx.json(
-            { error: "Action is required with a type field" },
-            400,
-          );
-        }
-
-        const currentGame = gameStates.get(gameId);
-        if (!currentGame) {
-          return ctx.json({ error: "Game not found" }, 404);
-        }
-
-        // Apply the action through your reducer
-        const updatedGame = processAction(currentGame, action);
-
-        // Save the updated state
-        gameStates.set(gameId, updatedGame);
-
-        return ctx.json({
-          game: updatedGame,
-          action: action.type, // Echo back the action type for client confirmation
-        });
-      } catch (error) {
-        console.error("Game action error:", error);
-        return ctx.json({
-          error: (error instanceof Error) ? error.message : String(error),
-        }, 400);
-      }
-    });
+      return ctx.json({
+        game: updatedGame,
+        action: action.type, // Echo back the action type for client confirmation
+      });
+    } catch (error) {
+      console.error("Game action error:", error);
+      return ctx.json({
+        error: (error instanceof Error) ? error.message : String(error),
+      }, 400);
+    }
+  });
 };
