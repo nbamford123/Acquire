@@ -129,7 +129,6 @@ export class LoginView extends LitElement {
   `;
 
   private async handleSubmit(e: Event) {
-    console.log('handle submit called');
     e.preventDefault();
     if (!this.email) return;
     const oldLoading = this.loading;

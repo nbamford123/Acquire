@@ -2,6 +2,7 @@
 
 ## Misc
 
+- header in client should show user name, not email
 - why do we need a player name when we create a game? Isn't it already in the auth cookie?
 - same with start game action? Weren't we going to always pull the player from the cookie?
 - GameState type in DashboardView should come from the shared types!

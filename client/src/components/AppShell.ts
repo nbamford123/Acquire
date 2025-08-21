@@ -167,6 +167,7 @@ export class AppShell extends LitElement {
     }
   }
 
+  // Why have this *and* the custom event to set the user?
   private checkAuthentication() {
     const user = this.authService.getCurrentUser();
     if (user) {
