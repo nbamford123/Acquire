@@ -30,7 +30,9 @@ export const createToken = async (email: string): Promise<string> => {
   );
 };
 
-export const verifyToken = async (token: string): Promise<{ user: string } | null> => {
+export const verifyToken = async (
+  token: string,
+): Promise<{ user: string } | null> => {
   try {
     const payload = await verify(token, key);
     return { user: payload.user as string };

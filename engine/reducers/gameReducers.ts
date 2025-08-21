@@ -1,5 +1,11 @@
 import { MINIMUM_PLAYERS, TILES_PER_HAND } from '../../shared/types/gameConfig.ts';
-import { GameError, GameErrorCodes, GamePhase, type GameState, type Tile } from '../../shared/types/index.ts';
+import {
+  GameError,
+  GameErrorCodes,
+  GamePhase,
+  type GameState,
+  type Tile,
+} from '../../shared/types/index.ts';
 import type { StartGameAction } from '../../shared/types/actionsTypes.ts';
 import { drawTiles, updateTiles } from '../domain/index.ts';
 import { cmpTiles } from '../../shared/utils/index.ts';
