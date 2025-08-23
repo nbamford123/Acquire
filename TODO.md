@@ -9,12 +9,17 @@
 - why does the dev server serve html from a string rather than an index.html file like we will have for deployment? Or will we?
 - figure out a way to make type checking run in the client sub project with that deno.json so it doesn't get all the errors from the root deno.json
 - pre-commit hook? Is that even possible?
-- look up the failures with tw for eventual blog post (work on that in Taiwan?)
 - add at least a debug view where the api server logs requests and responses
 - reload should go to the dashboard or game view-- do we need to persist session info?
 - local dev hot reload doesn't seem to be working
 - end game
 - ttl/culling of old games
+
+## Eventual blog post
+
+- had trouble with tw and deno bundling. What?
+- some decorators don't work with deno bundling-- `@state` in particular
+- the multiple deno.jsons and how they affect, for instance, formatting on autosave
 
 ## Actions
 
