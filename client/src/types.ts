@@ -1,4 +1,4 @@
-export type AppView = 'login' | 'game-list' | 'game-board';
+export type AppView = 'login' | 'game-list' | 'game';
 
 export interface AppState {
   currentView: AppView;
@@ -13,3 +13,4 @@ export interface GameState {
   maxPlayers: number;
   players: string[];
 }
+export type Route = { view: AppView; gameId?: string };

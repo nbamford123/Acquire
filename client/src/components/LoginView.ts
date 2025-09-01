@@ -135,11 +135,11 @@ export class LoginView extends LitElement {
     this.loading = true;
 
     try {
-      const user = await this.authService.login(this.email);
+      const loginResult = await this.authService.login(this.email);
       // Dispatch success event to parent
       this.dispatchEvent(
         new CustomEvent<string>('user-login', {
-          detail: user,
+          detail: loginResult,
           bubbles: true,
         }),
       );

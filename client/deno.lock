@@ -9,6 +9,7 @@
     "jsr:@std/http@*": "1.0.18",
     "jsr:@std/media-types@^1.1.0": "1.1.0",
     "jsr:@std/net@^1.0.4": "1.0.4",
+    "jsr:@std/path@*": "1.1.0",
     "jsr:@std/path@^1.1.0": "1.1.0",
     "jsr:@std/streams@^1.0.10": "1.0.10",
     "npm:lit@^3.3.0": "3.3.0"
@@ -39,7 +40,7 @@
         "jsr:@std/html",
         "jsr:@std/media-types",
         "jsr:@std/net",
-        "jsr:@std/path",
+        "jsr:@std/path@^1.1.0",
         "jsr:@std/streams"
       ]
     },

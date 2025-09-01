@@ -186,8 +186,11 @@ export class DashboardView extends LitElement {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ player: this.user }),
       });
+      if (response.status !== 201) {
+        throw new Error(`${response.status, response.statusText}`);
+      }
       const newGame = await response.json();
-      this.handleGameSelect(newGame.id);
+      this.handleGameSelect(newGame.gameId);
     } catch (error) {
       console.error("Failed to create game:", error);
     }

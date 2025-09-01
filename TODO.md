@@ -1,13 +1,18 @@
 # TO DO
 
 ## Misc
-
-- header in client should show user name, not email
+- unit tests
+- need to persist user name in local storage at least, to survive a refresh
+- prompts on create/join game?
+- client routes do not have auth protection
+- when the start game post method returns, it's in error but client still navigates game/null
+- the client needs to check response codes and for game engine errors. Probably need a central handler (note the auth service does this)
+- test request failures-- does client display an error?
 - why do we need a player name when we create a game? Isn't it already in the auth cookie?
 - same with start game action? Weren't we going to always pull the player from the cookie?
 - GameState type in DashboardView should come from the shared types!
-- why does the dev server serve html from a string rather than an index.html file like we will have for deployment? Or will we?
 - figure out a way to make type checking run in the client sub project with that deno.json so it doesn't get all the errors from the root deno.json
+- the client dev task should be set up to launch from the root dir
 - pre-commit hook? Is that even possible?
 - add at least a debug view where the api server logs requests and responses
 - reload should go to the dashboard or game view-- do we need to persist session info?
@@ -18,8 +23,8 @@
 ## Eventual blog post
 
 - had trouble with tw and deno bundling. What?
-- some decorators don't work with deno bundling-- `@state` in particular
-- the multiple deno.jsons and how they affect, for instance, formatting on autosave
+- some decorators don't work with deno bundling-- `@state` in particular. How did I test/verify that?
+- the multiple deno.jsons and how they affect, for instance, formatting on save
 
 ## Actions
 

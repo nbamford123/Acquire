@@ -1,14 +1,16 @@
 // src/components/AppShell.ts
-import { css, html, LitElement } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { css, html, LitElement } from "lit";
+import { customElement } from "lit/decorators.js";
 
-import type { AppState } from '../types.ts';
-import { AuthService } from '../services/AuthService.ts';
-import './LoginView.ts';
-import './DashboardView.ts';
-import './GameBoardView.ts';
+import type { AppState, Route } from "../types.ts";
+import { AuthService } from "../services/AuthService.ts";
+import { RouterService } from "../services/RouterService.ts";
 
-@customElement('app-shell')
+import "./LoginView.ts";
+import "./DashboardView.ts";
+import "./GameBoardView.ts";
+
+@customElement("app-shell")
 export class AppShell extends LitElement {
   static override styles = css`
     /* Your existing styles... */
@@ -135,11 +137,35 @@ export class AppShell extends LitElement {
   };
 
   private appState: AppState = {
-    currentView: 'login',
+    currentView: "login",
     user: null,
     selectedGameId: null,
     error: null,
   };
+
+  private authService = AuthService.getInstance();
+  private router = RouterService.getInstance();
+  private errorTimer: number | null = null;
+
+  constructor() {
+    super();
+    // Subscribe to route changes
+    this.router.subscribe((route: Route) => {
+      this.appState = {
+        ...this.appState,
+        currentView: route.view,
+        selectedGameId: route.gameId || null,
+      };
+      this.requestUpdate();
+    });
+  }
+
+  public override connectedCallback() {
+    super.connectedCallback();
+    this.checkAuthentication();
+    this.router.init();
+    this.addEventListener("app-error", this.handleError as EventListener);
+  }
 
   private updateAppState(newState: Partial<AppState>) {
     const oldState = this.appState;
@@ -147,68 +173,60 @@ export class AppShell extends LitElement {
       ...this.appState,
       ...newState,
     };
-    this.requestUpdate('appState', oldState);
-  }
-
-  private authService = AuthService.getInstance();
-  private errorTimer: number | null = null;
-
-  public override connectedCallback() {
-    super.connectedCallback();
-    this.checkAuthentication();
-    this.addEventListener('app-error', this.handleError as EventListener);
+    this.requestUpdate("appState", oldState);
   }
 
   public override disconnectedCallback() {
     super.disconnectedCallback();
-    this.removeEventListener('app-error', this.handleError as EventListener);
+    this.removeEventListener("app-error", this.handleError as EventListener);
     if (this.errorTimer) {
       clearTimeout(this.errorTimer);
     }
   }
 
-  // Why have this *and* the custom event to set the user?
+  // Why have this *and* the custom event to set the user? And shouldn't we do this every route? Shouldn't this be handled by the router?
   private checkAuthentication() {
     const user = this.authService.getCurrentUser();
     if (user) {
       this.updateAppState({
         user,
-        currentView: 'game-list',
       });
     }
   }
 
   private handleLogin = (
-    event: CustomEvent<{ success: boolean; email: string }>,
+    event: CustomEvent<{ success: boolean; user: string }>,
   ) => {
     this.updateAppState({
-      user: event.detail.email,
-      currentView: 'game-list',
+      user: event.detail.user,
+      currentView: "game-list",
     });
+    this.router.navigateTo("/dashboard");
   };
 
   private handleLogout = () => {
     this.authService.logout();
     this.updateAppState({
-      currentView: 'login',
+      currentView: "login",
       user: null,
       selectedGameId: null,
       error: null,
     });
+    this.router.navigateTo("/login");
   };
 
   private handleGameSelect = (event: CustomEvent<string>) => {
     this.updateAppState({
       selectedGameId: event.detail,
-      currentView: 'game-board',
     });
+    this.router.navigateTo(`/game/${event.detail}`);
   };
 
   private handleBackToGameList = () => {
     this.updateAppState({
-      currentView: 'game-list',
       selectedGameId: null,
     });
+    this.router.navigateTo(`/game-list}`);
   };
 
   private handleError = (event: CustomEvent<string>) => {
@@ -241,7 +259,7 @@ export class AppShell extends LitElement {
   public override render() {
     return html`
       <div class="app-container">
-        ${this.appState.error ? this.renderErrorBanner() : ''} ${this
+        ${this.appState.error ? this.renderErrorBanner() : ""} ${this
           .renderHeader()} ${this.renderCurrentView()}
       </div>
     `;
@@ -263,7 +281,7 @@ export class AppShell extends LitElement {
   }
 
   private renderHeader() {
-    if (this.appState.currentView === 'login') {
+    if (this.appState.currentView === "login") {
       return html`
 
       `;
@@ -274,7 +292,7 @@ export class AppShell extends LitElement {
         <div class="header-content">
           <div class="header-left">
             <h1 class="app-title">Acquire</h1>
-            ${this.appState.currentView === 'game-board'
+            ${this.appState.currentView === "game"
               ? html`
                 <button
                   @click="${this.handleBackToGameList}"
@@ -283,7 +301,7 @@ export class AppShell extends LitElement {
                   ← Back to Games
                 </button>
               `
-              : ''}
+              : ""}
           </div>
           <div class="header-right">
             <span class="welcome-text">
@@ -302,7 +320,7 @@ export class AppShell extends LitElement {
   }
   private renderCurrentView() {
     switch (this.appState.currentView) {
-      case 'login':
+      case "login":
         return html`
           <login-view
             @user-login="${this.handleLogin}"
@@ -310,7 +328,7 @@ export class AppShell extends LitElement {
           ></login-view>
         `;
 
-      case 'game-list':
+      case "game-list":
         return html`
           <dashboard-view
             .user="${this.appState.user}"
@@ -318,7 +336,7 @@ export class AppShell extends LitElement {
           ></dashboard-view>
         `;
 
-      case 'game-board':
+      case "game":
         return html`
           <game-board-view
             .gameId="${this.appState.selectedGameId}"

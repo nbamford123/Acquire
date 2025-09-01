@@ -1,4 +1,5 @@
-export type Route = { view: string; gameId?: string };
+import type { Route } from "../types.ts";
+
 export class RouterService {
   private static instance: RouterService;
 
@@ -17,15 +18,14 @@ export class RouterService {
 
     globalThis.addEventListener("popstate", () => this.handleRoute());
   }
-
   init() {
     this.handleRoute();
   }
 
+  // TODO: check authentication here? Send to login if it fails?
   handleRoute() {
     const path = globalThis.location.pathname;
     const route = this.parseRoute(path);
-
     if (route) {
       this.currentRoute = route;
       this.notifyListeners(route);
@@ -36,7 +36,7 @@ export class RouterService {
 
   parseRoute(path: string): Route | null {
     const segments = path.split("/").filter(Boolean);
-
+    // I'm not sure this is best... maybe when the path is / and you're logged in, that's the dashboard, else login?
     if (segments.length === 0) {
       return { view: "login" };
     }
@@ -46,9 +46,8 @@ export class RouterService {
     }
 
     if (segments[0] === "game" && segments[1]) {
-      return { view: "game-board", gameId: segments[1] };
+      return { view: "game", gameId: segments[1] };
     }
-
     return null;
   }
 
