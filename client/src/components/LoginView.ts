@@ -1,7 +1,7 @@
 import { css, html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-import { AuthService } from '../services/AuthService.ts';
+import { login } from '../services/ApiService.ts';
 
 @customElement('login-view')
 export class LoginView extends LitElement {
@@ -10,8 +10,6 @@ export class LoginView extends LitElement {
   };
   private email = '';
   private loading = false;
-
-  private authService = AuthService.getInstance();
 
   static override styles = css`
     :host {
@@ -135,7 +133,7 @@ export class LoginView extends LitElement {
     this.loading = true;
 
     try {
-      const loginResult = await this.authService.login(this.email);
+      const loginResult = await login(this.email);
       // Dispatch success event to parent
       this.dispatchEvent(
         new CustomEvent<string>('user-login', {
@@ -144,7 +142,7 @@ export class LoginView extends LitElement {
         }),
       );
     } catch (error) {
-      console.log('error occurred', error);
+      console.error('error occurred', error);
       // Dispatch error event to AppShell
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
       this.dispatchEvent(

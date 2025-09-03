@@ -1,9 +1,10 @@
-import { css, html, LitElement } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { css, html, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 
-import type { GameState } from "../types.ts";
+import { getApi } from '../services/ApiService.ts';
+import type { GameState } from '../types.ts';
 
-@customElement("dashboard-view")
+@customElement('dashboard-view')
 export class DashboardView extends LitElement {
   @property({ type: String })
   user: string | null = null;
@@ -159,20 +160,20 @@ export class DashboardView extends LitElement {
   private async loadGames() {
     this.loading = true;
     try {
-      const response = await fetch("/api/games");
-      const gamesResponse = await response.json();
+      const gamesResponse = await getApi('/api/games');
       this.games = gamesResponse.games || [];
     } catch (error) {
-      console.error("Failed to load games:", error);
+      // Add a try/catch in getApi and just do the finally here
+      console.error('Failed to load games:', error);
     } finally {
       this.loading = false;
-      this.requestUpdate("loading", true);
+      this.requestUpdate('loading', true);
     }
   }
 
   private handleGameSelect(gameId: string) {
     this.dispatchEvent(
-      new CustomEvent<string>("game-select", {
+      new CustomEvent<string>('game-select', {
         detail: gameId,
         bubbles: true,
       }),
@@ -181,9 +182,9 @@ export class DashboardView extends LitElement {
 
   private async createNewGame() {
     try {
-      const response = await fetch("/api/games", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/games', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ player: this.user }),
       });
       if (response.status !== 201) {
@@ -192,7 +193,7 @@ export class DashboardView extends LitElement {
       const newGame = await response.json();
       this.handleGameSelect(newGame.gameId);
     } catch (error) {
-      console.error("Failed to create game:", error);
+      console.error('Failed to create game:', error);
     }
   }
 
@@ -215,7 +216,7 @@ export class DashboardView extends LitElement {
               <div class="loading-text">Loading games...</div>
             </div>
           `
-          : ""}
+          : ''}
 
         <div class="games-grid">
           ${this.games.map((game) =>
@@ -248,7 +249,7 @@ export class DashboardView extends LitElement {
               <p class="empty-description">Create a new game to get started!</p>
             </div>
           `
-          : ""}
+          : ''}
       </div>
     `;
   }

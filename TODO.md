@@ -1,10 +1,12 @@
 # TO DO
 
 ## Misc
-- unit tests
+
+- better game ids, something like they do for docker instances on desktop
+- unit tests for client
+- more unit tests for service-- and check at least one endpoint for a 401 without logging in
 - need to persist user name in local storage at least, to survive a refresh
 - prompts on create/join game?
-- client routes do not have auth protection
 - when the start game post method returns, it's in error but client still navigates game/null
 - the client needs to check response codes and for game engine errors. Probably need a central handler (note the auth service does this)
 - test request failures-- does client display an error?

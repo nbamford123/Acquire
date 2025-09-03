@@ -6,9 +6,9 @@
     <title>Acquire</title>
     <script>
       // Only include live reload in development
-      if (location.hostname === "localhost") {
-        new EventSource("/reload").addEventListener(
-          "message",
+      if (location.hostname === 'localhost') {
+        new EventSource('/reload').addEventListener(
+          'message',
           () => location.reload(),
         );
       }
