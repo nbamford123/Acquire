@@ -1,4 +1,4 @@
-import type { Route } from '../types.ts';
+import type { Route } from "../types.ts";
 
 export class RouterService {
   private static instance: RouterService;
@@ -16,7 +16,7 @@ export class RouterService {
     this.currentRoute = null;
     this.listeners = [];
 
-    globalThis.addEventListener('popstate', () => this.handleRoute());
+    globalThis.addEventListener("popstate", () => this.handleRoute());
   }
   init() {
     this.handleRoute();
@@ -29,29 +29,30 @@ export class RouterService {
       this.currentRoute = route;
       this.notifyListeners(route);
     } else {
-      this.navigateTo('/');
+      this.navigateTo("/");
     }
   }
 
   parseRoute(path: string): Route | null {
-    const segments = path.split('/').filter(Boolean);
+    console.log({ path });
+    const segments = path.split("/").filter(Boolean);
     // I'm not sure this is best... maybe when the path is / and you're logged in, that's the dashboard, else login?
     if (segments.length === 0) {
-      return { view: 'login' };
+      return { view: "login" };
     }
 
-    if (segments[0] === 'dashboard') {
-      return { view: 'game-list' };
+    if (segments[0] === "dashboard") {
+      return { view: "game-list" };
     }
 
-    if (segments[0] === 'game' && segments[1]) {
-      return { view: 'game', gameId: segments[1] };
+    if (segments[0] === "game" && segments[1]) {
+      return { view: "game", gameId: segments[1] };
     }
     return null;
   }
 
   navigateTo(path: string) {
-    globalThis.history.pushState({}, '', path);
+    globalThis.history.pushState({}, "", path);
     this.handleRoute();
   }
 

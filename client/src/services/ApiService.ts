@@ -2,8 +2,8 @@ export const login = async (email: string): Promise<string> => {
   try {
     // Use relative path or fallback to localhost for development
     const response = await fetch(`/api/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
     if (!response.ok) {
@@ -29,8 +29,8 @@ export const login = async (email: string): Promise<string> => {
     return userData;
   } catch (error) {
     // Handle network errors
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new Error('Network error: Unable to connect to server');
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      throw new Error("Network error: Unable to connect to server");
     }
     // Re-throw other errors (including our custom HTTP errors)
     throw error;
@@ -41,15 +41,16 @@ const checkResult = async (res: Response) => {
   if (!res.ok) {
     if (res.status === 401) {
       globalThis.dispatchEvent(
-        new CustomEvent<string>('auth-error', {
+        new CustomEvent<string>("auth-error", {
           bubbles: true,
         }),
       );
     }
     const body = await res.json();
-    const errorMessage = body.error || 'Unknown Error';
+    const errorMessage = body.error || "Unknown Error";
+    console.log("dispatching app error", errorMessage);
     globalThis.dispatchEvent(
-      new CustomEvent<string>('app-error', {
+      new CustomEvent<string>("app-error", {
         detail: errorMessage,
         bubbles: true,
       }),
@@ -63,6 +64,18 @@ export const getApi = async (path: string) => {
   const getResponse = await fetch(path);
   if (await checkResult(getResponse)) {
     return await getResponse.json();
+  }
+  return null;
+};
+
+export const postApi = async (path: string, body: Record<string, unknown>) => {
+  const postResponse = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (await checkResult(postResponse)) {
+    return await postResponse.json();
   }
   return null;
 };

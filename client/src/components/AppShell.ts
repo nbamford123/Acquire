@@ -221,7 +221,7 @@ export class AppShell extends LitElement {
     this.updateAppState({
       selectedGameId: null,
     });
-    this.router.navigateTo(`/game-list}`);
+    this.router.navigateTo('/dashboard');
   };
 
   private handleError = (event: CustomEvent<string>) => {

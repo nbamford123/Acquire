@@ -1,7 +1,10 @@
 # TO DO
 
 ## Misc
-
+- app error getting dispatched, but no display in dashboard
+- root deno.json should have a task to run the client in dev mode, too
+- better info on game card, player names, in session or not. Allow people to see game w/o being a player? Maybe a "observer" view for that.
+- header isn't sticky
 - better game ids, something like they do for docker instances on desktop
 - unit tests for client
 - more unit tests for service-- and check at least one endpoint for a 401 without logging in
@@ -27,6 +30,7 @@
 - had trouble with tw and deno bundling. What?
 - some decorators don't work with deno bundling-- `@state` in particular. How did I test/verify that?
 - the multiple deno.jsons and how they affect, for instance, formatting on save
+- annoyance-- I don't want to have to repeat my format settings in the child deno.json files, but autosave doesn't pick them up from the parent
 
 ## Actions
 

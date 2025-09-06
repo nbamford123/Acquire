@@ -34,7 +34,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       const bodyJson = await parseJsonBody(ctx);
       const { email } = bodyJson as { email?: string };
       const user = validateUser(email || '');
-      if (!email || email === null) {
+      if (!email || user === null) {
         return ctx.json({ error: 'Access denied' }, 403);
       }
       // create jwt token and add it to cookie

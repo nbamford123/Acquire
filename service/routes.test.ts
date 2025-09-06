@@ -35,7 +35,7 @@ Deno.test('POST /api/login logs in', async () => {
   );
   assertEquals(response.status, 200);
   const data = await response.json();
-  assertEquals((data as { email: string }).email, 'test@localhost.com');
+  assertEquals((data as { user: string }).user, 'Test');
 });
 
 Deno.test('POST /login invalid email does not log in', async () => {
