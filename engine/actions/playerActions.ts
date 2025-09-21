@@ -1,4 +1,4 @@
-import { ActionTypes, type AddPlayerAction } from '@/types/actionsTypes.ts';
+import { ActionTypes, type AddPlayerAction } from '../types/actionsTypes.ts';
 
 export const addPlayer = (player: string): AddPlayerAction => {
   return {

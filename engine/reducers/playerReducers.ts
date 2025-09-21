@@ -1,6 +1,13 @@
-import { GameError, GameErrorCodes, GamePhase, type GameState } from '../../shared/types/index.ts';
-import { MAX_PLAYERS, RESERVED_NAMES } from '../../shared/types/gameConfig.ts';
-import type { AddPlayerAction, RemovePlayerAction } from '../../shared/types/actionsTypes.ts';
+import {
+  type AddPlayerAction,
+  GameError,
+  GameErrorCodes,
+  GamePhase,
+  type GameState,
+  MAX_PLAYERS,
+  type RemovePlayerAction,
+  RESERVED_NAMES,
+} from '../types/index.ts';
 import { initializePlayer } from '../domain/index.ts';
 
 export const addPlayerReducer = (

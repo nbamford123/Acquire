@@ -1,5 +1,4 @@
-import { assertEquals, assertThrows } from 'jsr:@std/assert';
-import { expect } from 'jsr:@std/expect';
+import { assertEquals, assertThrows } from '@std/assert';
 import {
   boardTiles,
   deadTile,
@@ -13,14 +12,16 @@ import {
 } from '../../domain/tileOperations.ts';
 import {
   type BoardTile,
+  COLS,
   GameError,
   GameErrorCodes,
   type Hotel,
   type HOTEL_NAME,
   type HOTEL_TYPE,
+  ROWS,
+  SAFE_HOTEL_SIZE,
   type Tile,
-} from '@/types/index.ts';
-import { CHARACTER_CODE_A, COLS, ROWS, SAFE_HOTEL_SIZE } from '../../../shared/types/gameConfig.ts';
+} from '../../types/index.ts';
 
 // Helper function to create a tile
 function createTile(

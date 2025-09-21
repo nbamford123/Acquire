@@ -18,9 +18,9 @@ import {
   type Hotel,
   type HOTEL_NAME,
   type HOTEL_TYPE,
+  SAFE_HOTEL_SIZE,
   type Share,
-} from '@/types/index.ts';
-import { SAFE_HOTEL_SIZE } from '../../../shared/types/gameConfig.ts';
+} from '../../types/index.ts';
 
 // Helper function to create a hotel
 function createHotel(

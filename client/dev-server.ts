@@ -1,5 +1,5 @@
-import { serveFile } from 'jsr:@std/http/file-server';
-import { join } from 'jsr:@std/path';
+import { serveFile } from '@std/http/file-server';
+import { join } from '@std/path';
 
 // Store connected clients for live reload
 const clients = new Set<ReadableStreamDefaultController>();
@@ -118,6 +118,34 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response('Not Found', { status: 404 });
     }
   }
+  // Ensure JS bundles and sourcemaps are not cached by the browser in dev
+  try {
+    const contentType = resp.headers.get('content-type') ?? '';
+    const isJs = url.pathname.endsWith('.js') ||
+      contentType.includes('javascript');
+    const isMap = url.pathname.endsWith('.map') ||
+      contentType.includes('application/json');
+
+    if (isJs || isMap) {
+      const headers = new Headers(resp.headers);
+      // Strong no-cache for dev server
+      headers.set(
+        'cache-control',
+        'no-store, no-cache, must-revalidate, max-age=0',
+      );
+      headers.set('pragma', 'no-cache');
+      headers.set('expires', '0');
+
+      return new Response(resp.body, {
+        status: resp.status,
+        statusText: resp.statusText,
+        headers,
+      });
+    }
+  } catch {
+    // If headers/body cannot be read for some reason, fall back to original response
+  }
+
   return resp;
 };
 

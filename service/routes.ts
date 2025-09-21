@@ -2,7 +2,7 @@ import type { Context, Hono } from 'hono';
 import { setCookie } from 'hono/cookie';
 import { initializeGame } from '../engine/core/gameInitialization.ts';
 import { processAction } from '../engine/core/gameEngine.ts';
-import type { GameAction, GameState } from '../shared/types/index.ts';
+import type { GameAction, GameState } from '@acquire/engine/types';
 
 import { createToken, validateUser } from './auth.ts';
 import { requireAuth } from './middleware.ts';
@@ -35,7 +35,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       const { email } = bodyJson as { email?: string };
       const user = validateUser(email || '');
       if (!email || user === null) {
-        return ctx.json({ error: 'Access denied' }, 403);
+        return ctx.json({ error: 'Invalid login' }, 403);
       }
       // create jwt token and add it to cookie
       const token = await createToken(email);

@@ -1,25 +1,23 @@
 {
   "version": "1.0.0",
+  "workspace": ["./engine", "./service", "./client"],
   "tasks": {
+    "dev:engine": "cd engine && deno task dev",
+    "dev:service": "cd service && deno task dev",
+    "dev:client": "cd client && deno task dev",
     "dev": "deno run --allow-net --allow-env --env-file --watch service/main.ts",
     "start": "deno run --allow-net --allow-env service/main.ts",
-    "check:all": "deno task check:engine && deno task check:service && deno task check:client",
-    "check:client": "deno check client/**/*.ts --config client/deno.json",
-    "check:engine": "deno check engine/**/*.ts",
-    "check:service": "deno check service/**/*.ts --config service/deno.json",
     "fmt:check": "deno fmt --check",
-    "test:all": "deno task test:engine && deno task test:service",
-    "test:engine": "deno test engine/",
-    "test:service": "deno test --config service/deno.json service/ --allow-all --env-file",
-    "validate": "deno fmt  && deno lint && deno task check:all && deno task test:all"
+    "validate": "deno fmt  && deno lint && deno check && deno test --allow-all --env-file"
   },
   "compilerOptions": {
     "lib": ["deno.window"],
     "strict": true
   },
   "imports": {
-    "@/types/": "./shared/types/",
-    "@/utils/": "./shared/utils/"
+    "@std/assert": "jsr:@std/assert@1.0.14",
+    "@std/expect": "jsr:@std/expect@1.0.17",
+    "@acquire/engine/types": "./engine/types/index.ts"
   },
   "lint": {
     "include": ["./"],

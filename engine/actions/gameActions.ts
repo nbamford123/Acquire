@@ -3,11 +3,11 @@ import {
   type BreakMergerTieAction,
   type BuySharesAction,
   type FoundHotelAction,
+  type HOTEL_NAME,
   type PlayTileAction,
   type ResolveMergerAction,
   type StartGameAction,
-} from '@/types/actionsTypes.ts';
-import type { HOTEL_NAME } from '@/types/index.ts';
+} from '../types/index.ts';
 
 export const startGame = (player: string): StartGameAction => {
   return {

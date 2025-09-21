@@ -11,7 +11,7 @@ import {
   type RemovePlayerAction,
   type ResolveMergerAction,
   type StartGameAction,
-} from '../../shared/types/index.ts';
+} from '../types/index.ts';
 import {
   addPlayerReducer,
   breakMergerTieReducer,

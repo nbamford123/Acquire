@@ -6,11 +6,4 @@ export interface AppState {
   selectedGameId: string | null;
   error: string | null;
 }
-
-export interface GameState {
-  id: string;
-  phase: string;
-  maxPlayers: number;
-  players: string[];
-}
 export type Route = { view: AppView; gameId?: string };

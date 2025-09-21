@@ -8,7 +8,7 @@ import {
   type Player,
   type ResolvedTie,
   type Tile,
-} from '../../shared/types/index.ts';
+} from '../types/index.ts';
 import {
   boardTiles,
   calculateShareholderPayouts,

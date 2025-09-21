@@ -1,8 +1,12 @@
-import { getAdjacentPositions, shuffleTiles } from '../../shared/utils/index.ts';
-import { type BoardTile, GameError, GameErrorCodes, type Tile } from '../../shared/types/index.ts';
+import { getAdjacentPositions, shuffleTiles } from '../utils/index.ts';
+import {
+  type BoardTile,
+  CHARACTER_CODE_A,
+  GameError,
+  GameErrorCodes,
+  type Tile,
+} from '../types/index.ts';
 import { hotelSafe } from './index.ts';
-import { CHARACTER_CODE_A } from '../../shared/types/gameConfig.ts';
-import {} from '../../shared/types/errorCodes.ts';
 
 export const initializeTiles = (rows: number, cols: number): Tile[] =>
   Array.from(

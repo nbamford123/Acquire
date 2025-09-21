@@ -1,5 +1,4 @@
-import { GamePhase, type GameState } from '../../shared/types/index.ts';
-import { COLS, ROWS } from '../../shared/types/gameConfig.ts';
+import { COLS, GamePhase, type GameState, ROWS } from '../types/index.ts';
 import { initializeHotels, initializePlayer, initializeTiles } from '../domain/index.ts';
 
 /**

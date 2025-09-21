@@ -1,11 +1,10 @@
-import { css, html, LitElement } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { css, html, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 
-import { getApi, postApi } from "../services/ApiService.ts";
-import type { GameState } from "../types.ts";
-import { ActionTypes } from "@acquire/types";
+import { getApi, postApi } from '../services/ApiService.ts';
+import { ActionTypes, GameList, MAX_PLAYERS } from '@acquire/engine/types';
 
-@customElement("dashboard-view")
+@customElement('dashboard-view')
 export class DashboardView extends LitElement {
   @property({ type: String })
   user: string | null = null;
@@ -13,7 +12,7 @@ export class DashboardView extends LitElement {
     games: { type: Object, state: true },
     loading: { type: Boolean, state: true },
   };
-  private games: GameState[] = [];
+  private games: GameList = [];
   private loading = false;
 
   static override styles = css`
@@ -160,17 +159,17 @@ export class DashboardView extends LitElement {
   private async loadGames() {
     this.loading = true;
     try {
-      const gamesResponse = await getApi("/api/games");
+      const gamesResponse = await getApi('/api/games');
       this.games = gamesResponse.games || [];
     } finally {
       this.loading = false;
-      this.requestUpdate("loading", true);
+      this.requestUpdate('loading', true);
     }
   }
 
   private handleGameSelect(gameId: string) {
     this.dispatchEvent(
-      new CustomEvent<string>("game-select", {
+      new CustomEvent<string>('game-select', {
         detail: gameId,
         bubbles: true,
       }),
@@ -179,10 +178,10 @@ export class DashboardView extends LitElement {
 
   private async createNewGame() {
     try {
-      const newGame = await postApi("/api/games", { player: this.user });
+      const newGame = await postApi('/api/games', { player: this.user });
       this.handleGameSelect(newGame.gameId);
     } catch (error) {
-      console.error("Failed to create game:", error);
+      console.error('Failed to create game:', error);
     }
   }
 
@@ -205,7 +204,7 @@ export class DashboardView extends LitElement {
               <div class="loading-text">Loading games...</div>
             </div>
           `
-          : ""}
+          : ''}
 
         <div class="games-grid">
           ${this.games.map((game) =>
@@ -216,7 +215,7 @@ export class DashboardView extends LitElement {
               >
                 <h3 class="game-title">Game ${game.id.slice(0, 8)}</h3>
                 <p class="game-players">
-                  ${game.players.length}/${game.maxPlayers || 4} players
+                  ${game.players.length}/${MAX_PLAYERS} players
                 </p>
                 <div class="game-footer">
                   <span class="game-phase">
@@ -245,7 +244,7 @@ export class DashboardView extends LitElement {
               <p class="empty-description">Create a new game to get started!</p>
             </div>
           `
-          : ""}
+          : ''}
       </div>
     `;
   }

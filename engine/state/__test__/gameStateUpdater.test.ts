@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from 'jsr:@std/assert';
+import { assertEquals, assertThrows } from '@std/assert';
 import { handleMerger } from '../gameStateUpdater.ts';
 import { initializeTiles } from '../../domain/tileOperations.ts';
 import { initializeHotels } from '../../domain/hotelOperations.ts';
@@ -9,12 +9,12 @@ import {
   GamePhase,
   type Hotel,
   type HOTEL_NAME,
+  INITIAL_PLAYER_MONEY,
   type MergeContext,
   type Player,
   type ResolvedTie,
   type Tile,
-} from '@/types/index.ts';
-import { INITIAL_PLAYER_MONEY } from '../../../shared/types/gameConfig.ts';
+} from '../../types/index.ts';
 
 // Helper function to create test players
 function createTestPlayers(): Player[] {

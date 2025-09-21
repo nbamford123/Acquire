@@ -1,8 +1,10 @@
-import { css, html, LitElement } from "lit";
-import { customElement, property } from "lit/decorators.js";
-import type { PlayerView } from "../../../shared/types/playerView.ts";
+import { css, html, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 
-@customElement("game-board-view")
+import { getApi } from '../services/ApiService.ts';
+import type { PlayerView } from '@acquire/engine/types';
+
+@customElement('game-board-view')
 export class GameBoardView extends LitElement {
   @property({ type: String })
   gameId: string | null = null;
@@ -122,14 +124,8 @@ export class GameBoardView extends LitElement {
   async loadGameState() {
     this.loading = true;
     try {
-      // Replace with your actual API call
-      const response = await fetch(
-        `/api/game/${this.gameId}?player=${this.playerId}`,
-      );
-      if (!response.ok) throw new Error("Failed to load game");
-      this.playerView = await response.json();
-    } catch (_err) {
-      this.playerView = null;
+      this.playerView = await getApi(`/api/games/${this.gameId}`);
+      console.log({ playerView: this.playerView });
     } finally {
       this.loading = false;
       this.requestUpdate();
@@ -147,16 +143,12 @@ export class GameBoardView extends LitElement {
       { length: 9 },
       (_, row) =>
         Array.from({ length: 12 }, (_, col) => {
-          const tile = this.playerView!.board.find((t) =>
-            t.row === row && t.col === col
-          );
+          const tile = this.playerView!.board.find((t) => t.row === row && t.col === col);
           return html`
-            <div class="tile${tile?.hotel ? " hotel" : ""}">
+            <div class="tile${tile?.hotel ? ' hotel' : ''}">
               ${tile
-                ? (tile.hotel
-                  ? tile.hotel
-                  : `${row + 1}${String.fromCharCode(65 + col)}`)
-                : ""}
+                ? (tile.hotel ? tile.hotel : `${row + 1}${String.fromCharCode(65 + col)}`)
+                : ''}
             </div>
           `;
         }),
@@ -168,18 +160,14 @@ export class GameBoardView extends LitElement {
     `;
   }
 
-  renderSidePlayers(position: "left" | "right") {
+  renderSidePlayers(position: 'left' | 'right') {
     if (!this.playerView) return null;
     // Exclude current player
     const currentPlayerName = this.playerView.player;
-    const others = this.playerView.players.filter((p) =>
-      p.name !== currentPlayerName
-    );
+    const others = this.playerView.players.filter((p) => p.name !== currentPlayerName);
     // Split for left/right
     const half = Math.ceil(others.length / 2);
-    const sidePlayers = position === "left"
-      ? others.slice(0, half)
-      : others.slice(half);
+    const sidePlayers = position === 'left' ? others.slice(0, half) : others.slice(half);
     return html`
       <div class="side-panel">
         ${sidePlayers.map((p) =>
@@ -249,8 +237,8 @@ export class GameBoardView extends LitElement {
     }
     return html`
       <div class="board-layout">
-        ${this.renderSidePlayers("left")} ${this.renderBoard()} ${this
-          .renderSidePlayers("right")}
+        ${this.renderSidePlayers('left')} ${this.renderBoard()} ${this
+          .renderSidePlayers('right')}
       </div>
       <div class="bottom-panel">
         ${this.renderCurrentPlayerPanel()}

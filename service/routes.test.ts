@@ -1,8 +1,8 @@
 import type { Hono } from 'hono';
-import { assertEquals } from 'jsr:@std/assert';
-import { expect } from 'jsr:@std/expect';
+import { assertEquals } from '@std/assert';
+import { expect } from '@std/expect';
 
-import { ActionTypes, type AddPlayerAction, type StartGameAction } from '../shared/types/index.ts';
+import { ActionTypes, type AddPlayerAction, type StartGameAction } from '@acquire/engine/types';
 import { app } from './main.ts';
 import type { ServiceEnv } from './types.ts';
 

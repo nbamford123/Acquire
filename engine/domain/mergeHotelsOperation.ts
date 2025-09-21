@@ -6,7 +6,7 @@ import {
   type MergeContext,
   type MergeResult,
   ResolvedTie,
-} from '../../shared/types/index.ts';
+} from '../types/index.ts';
 import { getTiedHotels, hotelSafe, hotelTiles } from '../domain/index.ts';
 
 export const mergeHotels = (

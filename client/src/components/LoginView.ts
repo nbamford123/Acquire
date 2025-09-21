@@ -1,7 +1,7 @@
 import { css, html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-import { login } from '../services/ApiService.ts';
+import { postApi } from '../services/ApiService.ts';
 
 @customElement('login-view')
 export class LoginView extends LitElement {
@@ -133,24 +133,16 @@ export class LoginView extends LitElement {
     this.loading = true;
 
     try {
-      const loginResult = await login(this.email);
-      // Dispatch success event to parent
-      this.dispatchEvent(
-        new CustomEvent<string>('user-login', {
-          detail: loginResult,
-          bubbles: true,
-        }),
-      );
-    } catch (error) {
-      console.error('error occurred', error);
-      // Dispatch error event to AppShell
-      const errorMessage = error instanceof Error ? error.message : 'Login failed';
-      this.dispatchEvent(
-        new CustomEvent<string>('app-error', {
-          detail: errorMessage,
-          bubbles: true,
-        }),
-      );
+      const loginResult = await postApi('/api/login', { email: this.email });
+      if (loginResult !== null) {
+        // Dispatch success event to parent
+        this.dispatchEvent(
+          new CustomEvent<string>('user-login', {
+            detail: loginResult,
+            bubbles: true,
+          }),
+        );
+      }
     } finally {
       this.loading = false;
       this.requestUpdate('loading', oldLoading);

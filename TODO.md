@@ -1,7 +1,8 @@
 # TO DO
 
 ## Misc
-- app error getting dispatched, but no display in dashboard
+
+- the workspace thing lets me inherit ftm and stuff, which is awesome
 - root deno.json should have a task to run the client in dev mode, too
 - better info on game card, player names, in session or not. Allow people to see game w/o being a player? Maybe a "observer" view for that.
 - header isn't sticky

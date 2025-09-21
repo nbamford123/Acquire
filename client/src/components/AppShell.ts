@@ -5,6 +5,8 @@ import { customElement } from 'lit/decorators.js';
 import type { AppState, Route } from '../types.ts';
 import { RouterService } from '../services/RouterService.ts';
 
+import { bus } from '../services/EventBus.ts';
+
 import './LoginView.ts';
 import './DashboardView.ts';
 import './GameBoardView.ts';
@@ -161,12 +163,11 @@ export class AppShell extends LitElement {
   public override connectedCallback() {
     super.connectedCallback();
     this.router.init();
-    this.addEventListener('app-error', (e: Event) => {
-      if (e instanceof CustomEvent && typeof e.detail === 'string') {
-        this.handleError(e);
-      }
-    });
-    this.addEventListener('auth-error', () => this.handleSessionExpired());
+    bus.addEventListener('app-error', this.handleError as EventListener);
+    bus.addEventListener(
+      'auth-error',
+      this.handleSessionExpired as EventListener,
+    );
   }
 
   private updateAppState(newState: Partial<AppState>) {
@@ -183,7 +184,11 @@ export class AppShell extends LitElement {
     if (this.errorTimer) {
       clearTimeout(this.errorTimer);
     }
-    this.removeEventListener('app-error', this.handleError as EventListener);
+    bus.removeEventListener('app-error', this.handleError as EventListener);
+    bus.removeEventListener(
+      'auth-error',
+      this.handleSessionExpired as EventListener,
+    );
   }
 
   private handleLogin = (

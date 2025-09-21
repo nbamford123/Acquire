@@ -4,7 +4,7 @@ import {
   GamePhase,
   type GameState,
   type ResolveMergerAction,
-} from '../../shared/types/index.ts';
+} from '../types/index.ts';
 import {
   assignSharesToPlayer,
   boardTiles,

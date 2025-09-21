@@ -3,6 +3,7 @@ import { playTileReducer } from '../playTileReducer.ts';
 import { initializeTiles } from '../../domain/tileOperations.ts';
 import { initializeHotels } from '../../domain/hotelOperations.ts';
 import {
+  ActionTypes,
   GameError,
   GameErrorCodes,
   GamePhase,
@@ -10,11 +11,10 @@ import {
   type Hotel,
   type HOTEL_NAME,
   type HOTEL_TYPE,
+  INITIAL_PLAYER_MONEY,
   type Player,
   type Tile,
-} from '@/types/index.ts';
-import { ActionTypes } from '@/types/actionsTypes.ts';
-import { INITIAL_PLAYER_MONEY } from '../../../shared/types/gameConfig.ts';
+} from '../../types/index.ts';
 
 // Helper function to create a basic game state
 function createBasicGameState(overrides: Partial<GameState> = {}): GameState {

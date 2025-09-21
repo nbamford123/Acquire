@@ -6,7 +6,7 @@ import {
   GamePhase,
   type GameState,
   type HOTEL_NAME,
-} from '../../shared/types/index.ts';
+} from '../types/index.ts';
 import { getHotelsByNames } from '../domain/index.ts';
 import { handleMerger } from '../state/gameStateUpdater.ts';
 import { boardTiles, getBoardTile } from '../domain/tileOperations.ts';
