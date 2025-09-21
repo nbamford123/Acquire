@@ -4,7 +4,12 @@ import { expect } from '@std/expect';
 
 import { ActionTypes, type AddPlayerAction, type StartGameAction } from '@acquire/engine/types';
 import { app } from './main.ts';
+import { clearCache } from './auth.ts';
 import type { ServiceEnv } from './types.ts';
+
+// Mock environment for testing
+clearCache();
+Deno.env.set('ALLOWED_EMAILS', 'TestUser:test@example.com, Admin:admin@test.com');
 
 const login = async (app: Hono<ServiceEnv>): Promise<string> => {
   const response = await app.fetch(
@@ -13,7 +18,7 @@ const login = async (app: Hono<ServiceEnv>): Promise<string> => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email: 'test@localhost.com' }),
+      body: JSON.stringify({ email: 'test@example.com' }),
     }),
   );
 
@@ -30,12 +35,12 @@ Deno.test('POST /api/login logs in', async () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email: 'test@localhost.com' }),
+      body: JSON.stringify({ email: 'test@example.com' }),
     }),
   );
   assertEquals(response.status, 200);
   const data = await response.json();
-  assertEquals((data as { user: string }).user, 'Test');
+  assertEquals((data as { user: string }).user, 'TestUser');
 });
 
 Deno.test('POST /login invalid email does not log in', async () => {
