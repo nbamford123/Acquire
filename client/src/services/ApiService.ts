@@ -27,11 +27,11 @@ export const getApi = async (path: string) => {
   return null;
 };
 
-export const postApi = async (path: string, body: Record<string, unknown>) => {
+export const postApi = async (path: string, body?: Record<string, unknown>) => {
   const postResponse = await fetch(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: body ? JSON.stringify(body) : undefined,
   });
   if (await checkResult(postResponse)) {
     return await postResponse.json();

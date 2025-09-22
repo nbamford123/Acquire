@@ -115,24 +115,6 @@ Deno.test('GET /games returns game list', async () => {
   assertEquals(games.map((g: { id: string }) => g.id), [game1, game2]);
 });
 
-Deno.test('POST /games fails without player name', async () => {
-  const cookies = await login(app);
-
-  const response = await app.fetch(
-    new Request('http://localhost/api/games', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cookie': cookies,
-      },
-      body: JSON.stringify({}), // No player name
-    }),
-  );
-  const bodyJson = await response.json();
-  assertEquals(response.status, 400);
-  assertEquals(bodyJson, { error: 'Player name is required' });
-});
-
 Deno.test('POST /games creates a game and returns the id', async () => {
   const cookies = await login(app);
 
@@ -143,7 +125,6 @@ Deno.test('POST /games creates a game and returns the id', async () => {
         'Content-Type': 'application/json',
         'Cookie': cookies,
       },
-      body: JSON.stringify({ player: 'hono' }),
     }),
   );
   const bodyJson = await response.json();

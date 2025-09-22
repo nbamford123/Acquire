@@ -163,11 +163,11 @@ export class GameBoardView extends LitElement {
   renderSidePlayers(position: 'left' | 'right') {
     if (!this.playerView) return null;
     // Exclude current player
-    const currentPlayerName = this.playerView.player;
-    const others = this.playerView.players.filter((p) => p.name !== currentPlayerName);
     // Split for left/right
-    const half = Math.ceil(others.length / 2);
-    const sidePlayers = position === 'left' ? others.slice(0, half) : others.slice(half);
+    const half = Math.ceil(this.playerView.players.length / 2);
+    const sidePlayers = position === 'left'
+      ? this.playerView.players.slice(0, half)
+      : this.playerView.players.slice(half);
     return html`
       <div class="side-panel">
         ${sidePlayers.map((p) =>
@@ -176,9 +176,9 @@ export class GameBoardView extends LitElement {
               <div><strong>${p.name}</strong></div>
               <div>Money: $${p.money}</div>
               <div class="share-list">
-                ${p.shares.map((s) =>
+                ${Object.entries(p.shares).map(([hotelName, shareCount]) =>
                   html`
-                    <span class="share">${s.name} (${s.shares.length})</span>
+                    <span class="share">${hotelName} (${shareCount})</span>
                   `
                 )}
               </div>
@@ -192,33 +192,28 @@ export class GameBoardView extends LitElement {
   renderCurrentPlayerPanel() {
     if (!this.playerView) return null;
     const player = this.playerView;
+    // TODO(me): how is currentplayer going to be available here? Passed as an attribute?
     return html`
       <div class="current-player-info">
-        <div><strong>${player.player}</strong> (You)</div>
+        <div><strong>YOU</strong> (You)</div>
         <div>Money: $${player.money}</div>
         <div>Shares:</div>
         <div class="share-list">
-          ${player.stocks.map((s) =>
+          ${Object.entries(player.stocks).map(([hotelName, shares]) =>
             html`
-              <span class="share">${s.name} (${s.shares.length})</span>
+              <span class="share">${hotelName} (${shares})</span>
             `
           )}
         </div>
         <div>Your Tiles:</div>
         <div class="tiles-list">
-          ${Array.isArray(player.tiles)
-            ? player.tiles.map((t) =>
-              html`
-                <span class="tile">${t.row + 1}${String.fromCharCode(
-                  65 + t.col,
-                )}</span>
-              `
-            )
-            : html`
-              <span class="tile">${player.tiles.row + 1}${String.fromCharCode(
-                65 + player.tiles.col,
+          ${player.tiles.map((t) =>
+            html`
+              <span class="tile">${t.row + 1}${String.fromCharCode(
+                65 + t.col,
               )}</span>
-            `}
+            `
+          )}
         </div>
       </div>
     `;

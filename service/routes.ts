@@ -1,7 +1,7 @@
 import type { Context, Hono } from 'hono';
 import { setCookie } from 'hono/cookie';
-import { initializeGame } from '../engine/core/gameInitialization.ts';
-import { processAction } from '../engine/core/gameEngine.ts';
+import { initializeGame, processAction } from '@acquire/engine/core';
+import { getPlayerView } from '@acquire/engine/utils';
 import type { GameAction, GameState } from '@acquire/engine/types';
 
 import { createToken, validateUser } from './auth.ts';
@@ -53,16 +53,12 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
     }
   });
   // Create game
-  app.post('/api/games', requireAuth, async (ctx) => {
+  app.post('/api/games', requireAuth, (ctx) => {
     try {
-      const bodyJson = await parseJsonBody(ctx);
-      const { player } = bodyJson as { player?: string };
+      const user = ctx.get('user') || '';
 
-      if (!player) {
-        return ctx.json({ error: 'Player name is required' }, 400);
-      }
       const gameId = uid();
-      const game = initializeGame(gameId, player);
+      const game = initializeGame(gameId, user);
       gameStates.set(gameId, game);
 
       return ctx.json({ gameId: gameId }, 201);
@@ -76,7 +72,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
   app.delete('/api/games/:id', requireAuth, async (ctx) => {
     const gameId = ctx.req.param('id') || '';
     const game = gameStates.get(gameId);
-
+    // TODO(me): only owner should be able to delete game
     if (!game) {
       return ctx.json({ error: 'Game not found' }, 404);
     }
@@ -92,8 +88,8 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
     if (!game) {
       return ctx.json({ error: 'Game not found' }, 404);
     }
-
-    return ctx.json({ game });
+    const user = ctx.get('user') || '';
+    return ctx.json({ game: getPlayerView(user, game) });
   });
   // Get list of games
   app.get('/api/games', requireAuth, (ctx) => {
@@ -118,7 +114,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       }
       const { action } = bodyJson as { action: GameAction };
 
-      // Security: always user JWT player
+      // Security: always use JWT player
       action.payload.player = user;
       if (!action || !action.type) {
         return ctx.json(
@@ -139,7 +135,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       gameStates.set(gameId, updatedGame);
 
       return ctx.json({
-        game: updatedGame,
+        game: getPlayerView(user, updatedGame),
         action: action.type, // Echo back the action type for client confirmation
       });
     } catch (error) {

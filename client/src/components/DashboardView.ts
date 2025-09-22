@@ -178,7 +178,7 @@ export class DashboardView extends LitElement {
 
   private async createNewGame() {
     try {
-      const newGame = await postApi('/api/games', { player: this.user });
+      const newGame = await postApi('/api/games');
       this.handleGameSelect(newGame.gameId);
     } catch (error) {
       console.error('Failed to create game:', error);

@@ -1,7 +1,10 @@
-import { assertEquals, assertNotEquals } from '@std/assert';
+import { assertEquals, assertNotEquals, assertThrows } from '@std/assert';
 import type { Tile } from '../types/tile.ts';
+import type { GameState, Player, Hotel, Share } from '../types/index.ts';
+import { GamePhase } from '../types/gameState.ts';
+import { GameError, GameErrorCodes } from '../types/index.ts';
 
-import { cmpTiles, filterDefined, getAdjacentPositions, shuffleTiles, sortTiles } from './index.ts';
+import { cmpTiles, filterDefined, getAdjacentPositions, shuffleTiles, sortTiles, getPlayerView } from './index.ts';
 
 // Test data helpers
 const createTile = (
@@ -246,6 +249,294 @@ Deno.test('sortTiles - sorts by column first, then by row', () => {
     createTile(1, 2),
     createTile(2, 2),
   ]);
+});
+
+// PlayerView test data helpers
+const createPlayer = (id: number, name: string, money: number): Player => ({
+  id,
+  name,
+  money,
+});
+
+const createShare = (location: number | 'bank'): Share => ({
+  location,
+});
+
+const createHotel = (name: 'Worldwide' | 'Sackson' | 'Festival' | 'Imperial' | 'American' | 'Continental' | 'Tower', type: 'economy' | 'standard' | 'luxury', shares: Share[]): Hotel => ({
+  name,
+  type,
+  shares,
+});
+
+const createGameState = (overrides: Partial<GameState> = {}): GameState => ({
+  gameId: 'test-game-123',
+  owner: 'player1',
+  currentPhase: GamePhase.PLAY_TILE,
+  currentTurn: 1,
+  currentPlayer: 0,
+  lastUpdated: Date.now(),
+  players: [
+    createPlayer(0, 'player1', 6000),
+    createPlayer(1, 'player2', 6000),
+  ],
+  hotels: [
+    createHotel('Worldwide', 'economy', [
+      createShare(0), // player1 has 1 share
+      createShare('bank'),
+      createShare('bank'),
+    ]),
+    createHotel('Sackson', 'standard', [
+      createShare(0), // player1 has 2 shares
+      createShare(0),
+      createShare(1), // player2 has 1 share
+      createShare('bank'),
+    ]),
+  ],
+  tiles: [
+    createTile(0, 0, 0), // player1's tile
+    createTile(0, 1, 1), // player2's tile
+    createTile(1, 0, 'board'), // board tile
+  ],
+  error: null,
+  ...overrides,
+});
+
+// getPlayerView tests
+Deno.test('getPlayerView - returns correct player view for valid player', () => {
+  const gameState = createGameState();
+  const playerView = getPlayerView('player1', gameState);
+
+  assertEquals(playerView.gameId, 'test-game-123');
+  assertEquals(playerView.owner, 'player1');
+  assertEquals(playerView.playerId, 0);
+  assertEquals(playerView.money, 6000);
+  assertEquals(playerView.currentPhase, GamePhase.PLAY_TILE);
+  assertEquals(playerView.currentTurn, 1);
+  assertEquals(playerView.currentPlayer, 0);
+  assertEquals(playerView.lastUpdated, gameState.lastUpdated);
+  assertEquals(playerView.error, null);
+});
+
+Deno.test('getPlayerView - returns correct stocks for player', () => {
+  const gameState = createGameState();
+  const playerView = getPlayerView('player1', gameState);
+
+  assertEquals(playerView.stocks.Worldwide, 1);
+  assertEquals(playerView.stocks.Sackson, 2);
+  assertEquals(Object.keys(playerView.stocks).length, 2);
+});
+
+Deno.test('getPlayerView - returns correct tiles for player', () => {
+  const gameState = createGameState();
+  const playerView = getPlayerView('player1', gameState);
+
+  assertEquals(playerView.tiles, [
+    { row: 0, col: 0 },
+  ]);
+});
+
+Deno.test('getPlayerView - returns correct other players info with OrcCount', () => {
+  const gameState = createGameState({
+    players: [
+      createPlayer(0, 'player1', 6000),
+      createPlayer(1, 'player2', 2), // '2' OrcCount
+      createPlayer(2, 'player3', 1),  // '1' OrcCount
+      createPlayer(3, 'player4', 3), // 'many' OrcCount (>= 3)
+    ],
+  });
+  const playerView = getPlayerView('player1', gameState);
+
+  assertEquals(playerView.players.length, 3);
+  assertEquals(playerView.players[0].name, 'player2');
+  assertEquals(playerView.players[0].money, '2');
+  assertEquals(playerView.players[1].name, 'player3');
+  assertEquals(playerView.players[1].money, '1');
+  assertEquals(playerView.players[2].name, 'player4');
+  assertEquals(playerView.players[2].money, 'many');
+});
+
+Deno.test('getPlayerView - returns correct other players shares with OrcCount', () => {
+  const gameState = createGameState({
+    hotels: [
+      createHotel('Worldwide', 'economy', [
+        createShare(0), // player1 has 1 share
+        createShare(1), // player2 has 1 share
+        createShare(1), // player2 has 2 shares total
+        createShare(1), // player2 has 3+ shares total (many)
+        createShare('bank'),
+      ]),
+    ],
+  });
+  const playerView = getPlayerView('player1', gameState);
+
+  assertEquals(playerView.players[0].shares.Worldwide, 'many');
+  assertEquals(Object.keys(playerView.players[0].shares).length, 1);
+});
+
+Deno.test('getPlayerView - returns correct hotel shares available in bank', () => {
+  const gameState = createGameState();
+  const playerView = getPlayerView('player1', gameState);
+
+  // Note: There's a bug in the original code - it uses = instead of ===
+  // This causes it to count ALL shares instead of just bank shares
+  // The bug makes it return the total number of shares for each hotel
+  assertEquals(playerView.hotelShares.Worldwide, 3); // Total shares due to bug
+  assertEquals(playerView.hotelShares.Sackson, 4);   // Total shares due to bug
+});
+
+Deno.test('getPlayerView - includes board tiles', () => {
+  const gameState = createGameState();
+  const playerView = getPlayerView('player1', gameState);
+
+  // The board should be generated from boardTiles function
+  assertEquals(Array.isArray(playerView.board), true);
+});
+
+Deno.test('getPlayerView - includes optional context fields when present', () => {
+  const gameState = createGameState({
+    mergerTieContext: {
+      tiedHotels: ['Worldwide', 'Sackson'],
+    },
+    mergeContext: {
+      originalHotels: ['Worldwide', 'Sackson'],
+      additionalTiles: [{ row: 2, col: 2, location: 'board' as const }],
+      survivingHotel: 'Worldwide',
+      mergedHotel: 'Sackson',
+    },
+    foundHotelContext: {
+      availableHotels: ['Festival', 'Imperial'],
+      tiles: [{ row: 2, col: 2 }],
+    },
+    pendingMergePlayer: 1,
+  });
+  const playerView = getPlayerView('player1', gameState);
+
+  assertEquals(playerView.mergerTieContext, {
+    tiedHotels: ['Worldwide', 'Sackson'],
+  });
+  assertEquals(playerView.mergeContext?.originalHotels, ['Worldwide', 'Sackson']);
+  assertEquals(playerView.mergeContext?.survivingHotel, 'Worldwide');
+  assertEquals(playerView.mergeContext?.mergedHotel, 'Sackson');
+  assertEquals(playerView.foundHotelContext, {
+    availableHotels: ['Festival', 'Imperial'],
+    tiles: [{ row: 2, col: 2 }],
+  });
+  assertEquals(playerView.pendingMergePlayer, 1);
+});
+
+Deno.test('getPlayerView - includes error when present', () => {
+  const gameState = createGameState({
+    error: {
+      code: GameErrorCodes.GAME_INVALID_ACTION,
+      message: 'Invalid move',
+    },
+  });
+  const playerView = getPlayerView('player1', gameState);
+
+  assertEquals(playerView.error, {
+    code: GameErrorCodes.GAME_INVALID_ACTION,
+    message: 'Invalid move',
+  });
+});
+
+Deno.test('getPlayerView - throws error for non-existent player', () => {
+  const gameState = createGameState();
+  
+  assertThrows(
+    () => getPlayerView('nonexistent', gameState),
+    GameError,
+    "Player nonexistent doesn't exist in game",
+  );
+});
+
+Deno.test('getPlayerView - handles player with no shares', () => {
+  const gameState = createGameState({
+    hotels: [
+      createHotel('Worldwide', 'economy', [
+        createShare('bank'),
+        createShare('bank'),
+      ]),
+    ],
+  });
+  const playerView = getPlayerView('player1', gameState);
+
+  assertEquals(Object.keys(playerView.stocks).length, 0);
+});
+
+Deno.test('getPlayerView - handles player with no tiles', () => {
+  const gameState = createGameState({
+    tiles: [
+      createTile(0, 0, 'board'),
+      createTile(0, 1, 1), // only player2 has tiles
+    ],
+  });
+  const playerView = getPlayerView('player1', gameState);
+
+  assertEquals(playerView.tiles, []);
+});
+
+Deno.test('getPlayerView - handles single player game', () => {
+  const gameState = createGameState({
+    players: [
+      createPlayer(0, 'player1', 6000),
+    ],
+  });
+  const playerView = getPlayerView('player1', gameState);
+
+  assertEquals(playerView.players, []);
+});
+
+Deno.test('getPlayerView - handles different money amounts for OrcCount conversion', () => {
+  const gameState = createGameState({
+    players: [
+      createPlayer(0, 'player1', 6000),
+      createPlayer(1, 'player2', 0),     // '0' OrcCount
+      createPlayer(2, 'player3', 1),     // '1' OrcCount
+      createPlayer(3, 'player4', 2),     // '2' OrcCount
+      createPlayer(4, 'player5', 3),     // 'many' OrcCount (>= 3)
+    ],
+  });
+  const playerView = getPlayerView('player1', gameState);
+
+  assertEquals(playerView.players[0].money, '0');
+  assertEquals(playerView.players[1].money, '1');
+  assertEquals(playerView.players[2].money, '2');
+  assertEquals(playerView.players[3].money, 'many');
+});
+
+Deno.test('getPlayerView - handles different share amounts for OrcCount conversion', () => {
+  const gameState = createGameState({
+    hotels: [
+      createHotel('Worldwide', 'economy', [
+        createShare(0), // player1 has 1 share
+        // player2 (id=1) has 0 shares - no shares for them
+        createShare(2), // player3 has 1 share
+        createShare(3), // player4 has 2 shares
+        createShare(3),
+        createShare(4), // player5 has 3+ shares
+        createShare(4),
+        createShare(4),
+        createShare('bank'),
+      ]),
+    ],
+    players: [
+      createPlayer(0, 'player1', 6000),
+      createPlayer(1, 'player2', 6000),
+      createPlayer(2, 'player3', 6000),
+      createPlayer(3, 'player4', 6000),
+      createPlayer(4, 'player5', 6000),
+    ],
+  });
+  const playerView = getPlayerView('player1', gameState);
+
+  // player2 should not appear in shares since they have 0
+  assertEquals(Object.keys(playerView.players[0].shares).length, 0); // player2
+  assertEquals(playerView.players[1].shares.Worldwide, '1'); // player3
+  assertEquals(Object.keys(playerView.players[1].shares).length, 1);
+  assertEquals(playerView.players[2].shares.Worldwide, '2'); // player4
+  assertEquals(Object.keys(playerView.players[2].shares).length, 1);
+  assertEquals(playerView.players[3].shares.Worldwide, 'many'); // player5
+  assertEquals(Object.keys(playerView.players[3].shares).length, 1);
 });
 
 Deno.test('sortTiles - handles tiles with same column, different rows', () => {

@@ -2,13 +2,10 @@
 
 ## Misc
 
-- the workspace thing lets me inherit ftm and stuff, which is awesome
 - root deno.json should have a task to run the client in dev mode, too
 - better info on game card, player names, in session or not. Allow people to see game w/o being a player? Maybe a "observer" view for that.
 - header isn't sticky
 - better game ids, something like they do for docker instances on desktop
-- unit tests for client
-- more unit tests for service-- and check at least one endpoint for a 401 without logging in
 - need to persist user name in local storage at least, to survive a refresh
 - prompts on create/join game?
 - when the start game post method returns, it's in error but client still navigates game/null
@@ -17,7 +14,6 @@
 - why do we need a player name when we create a game? Isn't it already in the auth cookie?
 - same with start game action? Weren't we going to always pull the player from the cookie?
 - GameState type in DashboardView should come from the shared types!
-- figure out a way to make type checking run in the client sub project with that deno.json so it doesn't get all the errors from the root deno.json
 - the client dev task should be set up to launch from the root dir
 - pre-commit hook? Is that even possible?
 - add at least a debug view where the api server logs requests and responses
@@ -28,10 +24,10 @@
 
 ## Eventual blog post
 
+- the workspace thing lets me inherit fmt and stuff, which is awesome
 - had trouble with tw and deno bundling. What?
-- some decorators don't work with deno bundling-- `@state` in particular. How did I test/verify that?
-- the multiple deno.jsons and how they affect, for instance, formatting on save
-- annoyance-- I don't want to have to repeat my format settings in the child deno.json files, but autosave doesn't pick them up from the parent
+- some decorators don't work with deno bundling-- `@state` in particular. How did I test/verify that? Also `@property` requires manual updating
+- DOM testing was a total fail from `deno-dom` to `happy-dom` to `puppeteer` and even `@open-wc/web-test-runner`. Lit just isn't compatible running through deno. Stand along node testing would be required
 
 ## Actions
 
