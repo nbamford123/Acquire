@@ -124,7 +124,8 @@ export class GameBoardView extends LitElement {
   async loadGameState() {
     this.loading = true;
     try {
-      this.playerView = await getApi(`/api/games/${this.gameId}`);
+      const playerViewResponse = await getApi(`/api/games/${this.gameId}`);
+      this.playerView = playerViewResponse.game;
       console.log({ playerView: this.playerView });
     } finally {
       this.loading = false;

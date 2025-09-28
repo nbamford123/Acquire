@@ -1,5 +1,20 @@
 # TO DO
 
+## Game Board
+
+- title on page somewhere
+- game state on page somewhere, at least until it's started
+- owner has start option when players >= 2
+- don't include current player in playerview players
+- tile numbers on tiles
+- what will a played tile look like?
+- how will we show hotels?
+
+1. get state/start working-- just mock gamestate with enough players for now
+2. might as well make sure the initial draw/player order works
+3. mock up other game states with stocks
+4. possible to log in as other players to play turns
+
 ## Misc
 
 - root deno.json should have a task to run the client in dev mode, too

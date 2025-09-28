@@ -1,10 +1,17 @@
 import { assertEquals, assertNotEquals, assertThrows } from '@std/assert';
 import type { Tile } from '../types/tile.ts';
-import type { GameState, Player, Hotel, Share } from '../types/index.ts';
+import type { GameState, Hotel, Player, Share } from '../types/index.ts';
 import { GamePhase } from '../types/gameState.ts';
 import { GameError, GameErrorCodes } from '../types/index.ts';
 
-import { cmpTiles, filterDefined, getAdjacentPositions, shuffleTiles, sortTiles, getPlayerView } from './index.ts';
+import {
+  cmpTiles,
+  filterDefined,
+  getAdjacentPositions,
+  getPlayerView,
+  shuffleTiles,
+  sortTiles,
+} from './index.ts';
 
 // Test data helpers
 const createTile = (
@@ -262,7 +269,11 @@ const createShare = (location: number | 'bank'): Share => ({
   location,
 });
 
-const createHotel = (name: 'Worldwide' | 'Sackson' | 'Festival' | 'Imperial' | 'American' | 'Continental' | 'Tower', type: 'economy' | 'standard' | 'luxury', shares: Share[]): Hotel => ({
+const createHotel = (
+  name: 'Worldwide' | 'Sackson' | 'Festival' | 'Imperial' | 'American' | 'Continental' | 'Tower',
+  type: 'economy' | 'standard' | 'luxury',
+  shares: Share[],
+): Hotel => ({
   name,
   type,
   shares,
@@ -340,7 +351,7 @@ Deno.test('getPlayerView - returns correct other players info with OrcCount', ()
     players: [
       createPlayer(0, 'player1', 6000),
       createPlayer(1, 'player2', 2), // '2' OrcCount
-      createPlayer(2, 'player3', 1),  // '1' OrcCount
+      createPlayer(2, 'player3', 1), // '1' OrcCount
       createPlayer(3, 'player4', 3), // 'many' OrcCount (>= 3)
     ],
   });
@@ -381,7 +392,7 @@ Deno.test('getPlayerView - returns correct hotel shares available in bank', () =
   // This causes it to count ALL shares instead of just bank shares
   // The bug makes it return the total number of shares for each hotel
   assertEquals(playerView.hotelShares.Worldwide, 3); // Total shares due to bug
-  assertEquals(playerView.hotelShares.Sackson, 4);   // Total shares due to bug
+  assertEquals(playerView.hotelShares.Sackson, 4); // Total shares due to bug
 });
 
 Deno.test('getPlayerView - includes board tiles', () => {
@@ -441,7 +452,7 @@ Deno.test('getPlayerView - includes error when present', () => {
 
 Deno.test('getPlayerView - throws error for non-existent player', () => {
   const gameState = createGameState();
-  
+
   assertThrows(
     () => getPlayerView('nonexistent', gameState),
     GameError,
@@ -490,10 +501,10 @@ Deno.test('getPlayerView - handles different money amounts for OrcCount conversi
   const gameState = createGameState({
     players: [
       createPlayer(0, 'player1', 6000),
-      createPlayer(1, 'player2', 0),     // '0' OrcCount
-      createPlayer(2, 'player3', 1),     // '1' OrcCount
-      createPlayer(3, 'player4', 2),     // '2' OrcCount
-      createPlayer(4, 'player5', 3),     // 'many' OrcCount (>= 3)
+      createPlayer(1, 'player2', 0), // '0' OrcCount
+      createPlayer(2, 'player3', 1), // '1' OrcCount
+      createPlayer(3, 'player4', 2), // '2' OrcCount
+      createPlayer(4, 'player5', 3), // 'many' OrcCount (>= 3)
     ],
   });
   const playerView = getPlayerView('player1', gameState);
