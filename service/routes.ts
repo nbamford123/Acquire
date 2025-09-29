@@ -80,7 +80,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
     await Promise.resolve(); // Simulate async operation
     return ctx.body(null, 204);
   });
-  // Get game-- note this will need to return a player view!
+  // Get game
   app.get('/api/games/:id', requireAuth, (ctx) => {
     const gameId = ctx.req.param('id') || '';
     const game = gameStates.get(gameId);
