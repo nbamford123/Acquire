@@ -2,7 +2,7 @@ import { css, html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { getApi, postApi } from '../services/ApiService.ts';
-import { ActionTypes, GameList, MAX_PLAYERS } from '@acquire/engine/types';
+import { ActionTypes, GameInfo, MAX_PLAYERS } from '@acquire/engine/types';
 
 @customElement('dashboard-view')
 export class DashboardView extends LitElement {
@@ -12,7 +12,7 @@ export class DashboardView extends LitElement {
     games: { type: Object, state: true },
     loading: { type: Boolean, state: true },
   };
-  private games: GameList = [];
+  private games: GameInfo[] = [];
   private loading = false;
 
   static override styles = css`
@@ -185,11 +185,47 @@ export class DashboardView extends LitElement {
     }
   }
 
+  private getGameCard = (game: GameInfo) => {
+    return html`
+      <div
+        class="game-card"
+        @click="${() => this.handleGameSelect(game.id)}"
+      >
+        <h3 class="game-title">Game ${game.id.slice(0, 8)}</h3>
+        <p class="game-players">
+          ${game.players.length}/${MAX_PLAYERS} players
+        </p>
+        <ul>
+          ${game.players.map((player) =>
+            html`
+              <li style="${player === this.user ? 'font-weight: 700;' : ''}">${player}</li>
+            `
+          )}
+        </ul>
+        <div class="game-footer">
+          <span class="game-phase">
+            ${game.phase}
+          </span>
+          <button class="join-button" @click="${() => {
+            postApi(`/api/games/${game.id}`, {
+              type: ActionTypes.ADD_PLAYER,
+              payload: {
+                player: this.user,
+              },
+            });
+          }}">
+            Join Game →
+          </button>
+        </div>
+      </div>
+    `;
+  };
+
   public override render() {
     return html`
       <div class="container">
         <div class="header">
-          <h2 class="title">Available Games</h2>
+          <h2 class="title">Current Games</h2>
           <button
             @click="${this.createNewGame}"
             class="create-button"
@@ -205,35 +241,16 @@ export class DashboardView extends LitElement {
             </div>
           `
           : ''}
-
+        <h3>Your games</h3>
         <div class="games-grid">
-          ${this.games.map((game) =>
-            html`
-              <div
-                class="game-card"
-                @click="${() => this.handleGameSelect(game.id)}"
-              >
-                <h3 class="game-title">Game ${game.id.slice(0, 8)}</h3>
-                <p class="game-players">
-                  ${game.players.length}/${MAX_PLAYERS} players
-                </p>
-                <div class="game-footer">
-                  <span class="game-phase">
-                    ${game.phase}
-                  </span>
-                  <button class="join-button" @click="${() => {
-                    postApi(`/api/games/${game.id}`, {
-                      type: ActionTypes.ADD_PLAYER,
-                      payload: {
-                        player: this.user,
-                      },
-                    });
-                  }}">
-                    Join Game →
-                  </button>
-                </div>
-              </div>
-            `
+          ${this.games.filter((game) => game.players.includes(this.user || '')).map(
+            this.getGameCard,
+          )}
+        </div>
+        <h3>Available games</h3>
+        <div class="games-grid">
+          ${this.games.filter((game) => !game.players.includes(this.user || '')).map(
+            this.getGameCard,
           )}
         </div>
 

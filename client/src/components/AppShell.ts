@@ -6,6 +6,7 @@ import type { AppState, Route } from '../types.ts';
 import { RouterService } from '../services/RouterService.ts';
 
 import { bus } from '../services/EventBus.ts';
+import { clearUser, getUser, setUser } from '../services/UserService.ts';
 
 import './LoginView.ts';
 import './DashboardView.ts';
@@ -163,11 +164,26 @@ export class AppShell extends LitElement {
   public override connectedCallback() {
     super.connectedCallback();
     this.router.init();
+
     bus.addEventListener('app-error', this.handleError as EventListener);
     bus.addEventListener(
       'auth-error',
       this.handleSessionExpired as EventListener,
     );
+    this.loadPersistedState();
+  }
+
+  private loadPersistedState() {
+    // Rehydrate persisted user on attach so reloads restore UI state.
+    const persisted = getUser();
+    if (persisted) {
+      this.appState = {
+        ...this.appState,
+        user: persisted,
+      };
+      // ensure Lit knows state changed
+      this.requestUpdate();
+    }
   }
 
   private updateAppState(newState: Partial<AppState>) {
@@ -197,6 +213,8 @@ export class AppShell extends LitElement {
     this.updateAppState({
       user: event.detail.user,
     });
+    // persist username
+    setUser(event.detail.user);
     this.router.navigateTo('/dashboard');
   };
 
@@ -206,6 +224,7 @@ export class AppShell extends LitElement {
       selectedGameId: null,
       error: 'Session expired or invalid. Please log in again.',
     });
+    clearUser();
     this.router.navigateTo('/login');
   };
 
@@ -215,6 +234,7 @@ export class AppShell extends LitElement {
       selectedGameId: null,
       error: null,
     });
+    clearUser();
     this.router.navigateTo('/login');
   };
 

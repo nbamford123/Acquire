@@ -7,7 +7,7 @@ import { assertEquals } from '@std/assert';
 import { RouterService } from '../../services/RouterService.ts';
 // event bus not used directly in these tests
 
-import { AppShell } from '../AppShell.ts';
+import { getUser } from '../../services/UserService.ts';
 
 // Interface used only in tests to access internal handlers without using `any`.
 interface TestableAppShell {
@@ -18,12 +18,14 @@ interface TestableAppShell {
   handleError(evt: CustomEvent<string>): void;
   clearError(): void;
   handleBackToGameList(): void;
+  loadPersistedState(): void;
   // internal state accessor for assertions
-  appState?: { error: string };
+  appState?: { error: string; user?: string };
   errorTimer?: unknown;
 }
 
 Deno.test('AppShell basic handlers and router interaction', async (t) => {
+  const { AppShell } = await import('../AppShell.ts');
   // Grab the RouterService singleton and spy on navigateTo
   const router = RouterService.getInstance();
 
@@ -98,6 +100,7 @@ Deno.test('AppShell basic handlers and router interaction', async (t) => {
 Deno.test('AppShell error handling and event-bus integration', async (t) => {
   const router = RouterService.getInstance();
   // construct but don't attach to DOM; we'll use the bus to trigger handlers
+  const { AppShell } = await import('../AppShell.ts');
   const app = new AppShell();
 
   await t.step('dispatching app-error sets error and can be cleared', () => {
@@ -138,4 +141,46 @@ Deno.test('AppShell error handling and event-bus integration', async (t) => {
   );
 
   // cleanup: nothing to restore
+});
+
+Deno.test('AppShell rehydrates user from persisted storage on init', async () => {
+  // Provide a simple localStorage mock with the key AppShell expects
+  const store: Record<string, string> = {
+    'acquire.currentUser': 'Charlie',
+  };
+  const mockLocalStorage = {
+    getItem: (k: string) => (k in store ? store[k] : null),
+    setItem: (k: string, v: string) => {
+      store[k] = v;
+    },
+    removeItem: (k: string) => {
+      delete store[k];
+    },
+  } as unknown as Storage;
+
+  globalThis.localStorage.setItem('acquire.currentUser', 'Charlie');
+  // console.log(
+  //   globalThis.localStorage,
+  //   mockLocalStorage,
+  //   globalThis.localStorage === mockLocalStorage,
+  // );
+  // Verify the UserService can read the mocked localStorage first
+  assertEquals(getUser(), 'Charlie');
+
+  // Create AppShell after localStorage is populated to simulate a reload
+  const { AppShell } = await import('../AppShell.ts');
+
+  const app = new AppShell();
+
+  // Verify getUser still returns the persisted value after connectedCallback
+  assertEquals(getUser(), 'Charlie');
+
+  (app as unknown as TestableAppShell).loadPersistedState();
+
+  // @ts-ignore: access private appState for test
+  assertEquals((app as unknown as TestableAppShell).appState?.['user'], 'Charlie');
+
+  // Clean up test-only global
+  // @ts-ignore: clean up test-only global
+  delete (globalThis as unknown as Storage).localStorage;
 });

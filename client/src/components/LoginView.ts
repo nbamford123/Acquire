@@ -2,6 +2,7 @@ import { css, html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 import { postApi } from '../services/ApiService.ts';
+import { getUser } from '../services/UserService.ts';
 
 @customElement('login-view')
 export class LoginView extends LitElement {
@@ -10,6 +11,14 @@ export class LoginView extends LitElement {
   };
   private email = '';
   private loading = false;
+
+  constructor() {
+    super();
+    const persisted = getUser();
+    if (persisted) {
+      this.email = persisted;
+    }
+  }
 
   static override styles = css`
     :host {

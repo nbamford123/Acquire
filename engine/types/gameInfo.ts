@@ -1,7 +1,7 @@
 import type { GamePhase } from './gameState.ts';
-export type GameList = {
+export type GameInfo = {
   id: string;
   players: string[];
   phase: GamePhase;
   lastUpdated: number;
-}[];
+};

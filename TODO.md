@@ -1,10 +1,18 @@
 # TO DO
 
+## Dashboard
+
+- join game -confirmation dialog
+- game card has go to game instead of join when you're a player, join action still performed from dashboard.
+
+
 ## Game Board
 
 - title on page somewhere
 - game state on page somewhere, at least until it's started
-- owner has start option when players >= 2
+- owner has start option when players >= 2, confirmation dialog
+- owner has delete option, confirmation dialog
+- before game has started, players can leave, confimation dialog
 - don't include current player in playerview players
 - tile numbers on tiles
 - what will a played tile look like?
