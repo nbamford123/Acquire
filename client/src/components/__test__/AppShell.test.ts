@@ -24,6 +24,13 @@ interface TestableAppShell {
   errorTimer?: unknown;
 }
 
+Deno.test.beforeAll(() => {
+  //@ts-ignore mocking for tests
+  globalThis.CSSStyleSheet = class {
+    replaceSync() {}
+  };
+});
+
 Deno.test('AppShell basic handlers and router interaction', async (t) => {
   const { AppShell } = await import('../AppShell.ts');
   // Grab the RouterService singleton and spy on navigateTo

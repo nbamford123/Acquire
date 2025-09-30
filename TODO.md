@@ -5,7 +5,7 @@
 - join game -confirmation dialog
 - game card has "go to game" instead of join when you're a player
 - join action still performed from dashboard.
-- section for games currently running you're *not* a player in? Maybe an "observe" action?
+- section for games currently running you're _not_ a player in? Maybe an "observe" action?
 
 ## Game Board
 

@@ -1,5 +1,5 @@
 // src/components/AppShell.ts
-import { css, html, LitElement } from 'lit';
+import { css, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 import type { AppState, Route } from '../types.ts';
@@ -8,12 +8,13 @@ import { RouterService } from '../services/RouterService.ts';
 import { bus } from '../services/EventBus.ts';
 import { clearUser, getUser, setUser } from '../services/UserService.ts';
 
+import { StyledComponent } from './StyledComponent.ts';
 import './LoginView.ts';
 import './DashboardView.ts';
 import './GameBoardView.ts';
 
 @customElement('app-shell')
-export class AppShell extends LitElement {
+export class AppShell extends StyledComponent {
   static override styles = css`
     /* Your existing styles... */
 
