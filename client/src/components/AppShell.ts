@@ -279,10 +279,10 @@ export class AppShell extends StyledComponent {
 
   public override render() {
     return html`
-      <div class="app-container">
+      <main class="container-fluid">
         ${this.appState.error ? this.renderErrorBanner() : ''} ${this
           .renderHeader()} ${this.renderCurrentView()}
-      </div>
+      </main>
     `;
   }
 

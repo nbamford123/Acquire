@@ -1,4 +1,4 @@
-import { css, html, type CSSResultGroup } from 'lit';
+import { css, type CSSResultGroup, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 import { StyledComponent } from './StyledComponent.ts';
@@ -26,17 +26,10 @@ export class LoginView extends StyledComponent {
       super.styles,
       css`
         :host {
-          display: block;
-          width: 100%;
-          min-height: 100vh;
-        }
-
-        .container {
-          min-height: 100vh;
           display: flex;
-          align-items: center;
+          height: 100vh;
           justify-content: center;
-          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+          align-items: center;
         }
 
         .form-wrapper {
@@ -117,8 +110,9 @@ export class LoginView extends StyledComponent {
   private async handleSubmit(e: Event) {
     e.preventDefault();
     if (!this.email) return;
-    const oldLoading = this.loading;
+
     this.loading = true;
+    this.requestUpdate();
 
     try {
       const loginResult = await postApi('/api/login', { email: this.email });
@@ -133,43 +127,36 @@ export class LoginView extends StyledComponent {
       }
     } finally {
       this.loading = false;
-      this.requestUpdate('loading', oldLoading);
+      this.requestUpdate();
     }
   }
 
   public override render() {
-    console.log(this.shadowRoot?.adoptedStyleSheets);
     return html`
-      <div class="container">
-        <div class="form-wrapper">
-          <div class="card">
-            <div class="header">
-              <h2 class="title">Welcome to Acquire</h2>
-              <p class="subtitle">Sign in to start playing</p>
-            </div>
-
-            <form @submit="${this.handleSubmit}" class="form">
-              <div class="field">
-                <label class="label">Email</label>
-                <input
-                  type="text"
-                  class="input"
-                  .value="${this.email}"
-                  @input="${(e: Event) => this.email = (e.target as HTMLInputElement).value}"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                ?disabled="${this.loading}"
-              >
-                ${this.loading ? 'Signing in...' : 'Sign In'}
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
+      <article class="form-wrapper">
+        <header>
+          <h2>Welcome to Acquire</h2>
+          <p>Sign in to start playing</p>
+        </header>
+        <form @submit="${this.handleSubmit}">
+          <label>Email
+            <input
+              type="email"
+              .value="${this.email}"
+              @input="${(e: Event) => this.email = (e.target as HTMLInputElement).value}"
+              required
+              placeholder="Email"
+            />
+          </label>
+          <button
+            type="submit"
+            ?disabled="${this.loading}"
+            aria-busy="${this.loading}"
+          >
+            ${this.loading ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
+      </article>
     `;
   }
 }
