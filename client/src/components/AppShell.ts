@@ -28,13 +28,14 @@ export class AppShell extends StyledComponent {
 
       .header {
         background-color: white;
+        border-bottom: 1px solid var(--pico-color-azure-150);
         padding-left: 16px;
         padding-right: 16px;
         width: 100%;
       }
 
       .back-button {
-        color: #2563eb;
+        color: var(--pico-color-blue-500);
         font-weight: 500;
         background: none;
         border: none;
@@ -43,7 +44,7 @@ export class AppShell extends StyledComponent {
       }
 
       .back-button:hover {
-        color: #1d4ed8;
+        color: var(--pico-color-blue-650);
       }
 
       .toastify-error {
@@ -193,34 +194,36 @@ export class AppShell extends StyledComponent {
     }
 
     return html`
-      <nav class="header">
-        <ul>
-          <li><h1>Acquire</h1></li>
-        </ul>
-        <ul>
-          ${this.appState.currentView === 'game'
-            ? html`
-              <li>
-                <button
-                  @click="${this.handleBackToGameList}"
-                  class="back-button"
-                >
-                  ← Back to Games
-                </button>
-              </li>
-            `
-            : ''}
-          <li>Welcome, ${this.appState.user}</li>
-          <li>
-            <button
-              class="secondary"
-              @click="${this.handleLogout}"
-            >
-              Logout
-            </button>
-          </li>
-        </ul>
-      </nav>
+      <header>
+        <nav class="header">
+          <ul>
+            <li><h1>Acquire</h1></li>
+          </ul>
+          <ul>
+            ${this.appState.currentView === 'game'
+              ? html`
+                <li>
+                  <button
+                    @click="${this.handleBackToGameList}"
+                    class="back-button"
+                  >
+                    ← Back to Games
+                  </button>
+                </li>
+              `
+              : ''}
+            <li>Welcome, ${this.appState.user}</li>
+            <li>
+              <button
+                class="secondary"
+                @click="${this.handleLogout}"
+              >
+                Logout
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </header>
     `;
   }
 

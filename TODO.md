@@ -1,5 +1,11 @@
 # TO DO
 
+## Client general
+
+- body has default padding/margin, should be 0
+- 100vh is slightly too tall, causes scroll bar
+- body should scroll with sticky header if necessary
+
 ## Dashboard
 
 - join game -confirmation dialog
@@ -26,7 +32,6 @@
 
 ## Misc
 
-- picocss? toastify?
 - root deno.json should have a task to run the client in dev mode, too
 - better info on game card, player names, in session or not. Allow people to see game w/o being a player? Maybe a "observer" view for that.
 - header isn't sticky
