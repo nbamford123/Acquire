@@ -11,7 +11,8 @@
     "@std/path": "jsr:@std/path@1.1.2",
     "@std/http": "jsr:@std/http@1.0.20",
     "lit": "npm:lit@^3.3.0",
-    "lit/decorators": "npm:lit@^3.3.0/decorators.js"
+    "lit/decorators": "npm:lit@^3.3.0/decorators.js",
+    "toastify-js": "npm:toastify-js@^1.12.0"
   },
   "tasks": {
     "dev": "deno run --allow-net --allow-env --env-file --watch --allow-read --allow-write dev-server.ts",

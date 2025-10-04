@@ -25,83 +25,11 @@ export class LoginView extends StyledComponent {
     return [
       super.styles,
       css`
-        :host {
-          display: flex;
-          height: 100vh;
-          justify-content: center;
-          align-items: center;
-        }
-
         .form-wrapper {
+          margin-bottom: 0;
           max-width: 28rem;
           width: 100%;
           padding: 2rem;
-        }
-
-        .card {
-          background: white;
-          border-radius: 0.5rem;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-          padding: 2rem;
-        }
-
-        .header {
-          text-align: center;
-          margin-bottom: 2rem;
-        }
-
-        .title {
-          font-size: 1.875rem;
-          font-weight: 700;
-          color: #111827;
-          margin: 0;
-        }
-
-        .subtitle {
-          margin-top: 0.5rem;
-          color: #6b7280;
-          margin-bottom: 0;
-        }
-
-        .form {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-
-        .field {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .label {
-          display: block;
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #374151;
-          margin-bottom: 0.5rem;
-        }
-
-        .input {
-          width: 100%;
-          padding: 0.5rem 0.75rem;
-          border: 1px solid #d1d5db;
-          border-radius: 0.375rem;
-          font-size: 1rem;
-          transition: all 0.15s ease;
-          box-sizing: border-box;
-        }
-
-        .input:focus {
-          outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .error {
-          color: #dc2626;
-          font-size: 0.875rem;
-          margin: 0;
         }
       `,
     ];
@@ -134,10 +62,8 @@ export class LoginView extends StyledComponent {
   public override render() {
     return html`
       <article class="form-wrapper">
-        <header>
-          <h2>Welcome to Acquire</h2>
-          <p>Sign in to start playing</p>
-        </header>
+        <h1>Welcome to Acquire</h1>
+        <p>Sign in to start playing</p>
         <form @submit="${this.handleSubmit}">
           <label>Email
             <input
