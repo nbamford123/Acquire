@@ -34,9 +34,7 @@
 
 - root deno.json should have a task to run the client in dev mode, too
 - better info on game card, player names, in session or not. Allow people to see game w/o being a player? Maybe a "observer" view for that.
-- header isn't sticky
 - better game ids, something like they do for docker instances on desktop
-- need to persist user name in local storage at least, to survive a refresh
 - prompts on create/join game?
 - when the start game post method returns, it's in error but client still navigates game/null
 - the client needs to check response codes and for game engine errors. Probably need a central handler (note the auth service does this)
@@ -44,10 +42,8 @@
 - why do we need a player name when we create a game? Isn't it already in the auth cookie?
 - same with start game action? Weren't we going to always pull the player from the cookie?
 - GameState type in DashboardView should come from the shared types!
-- the client dev task should be set up to launch from the root dir
 - pre-commit hook? Is that even possible?
 - add at least a debug view where the api server logs requests and responses
-- reload should go to the dashboard or game view-- do we need to persist session info?
 - local dev hot reload doesn't seem to be working
 - end game
 - ttl/culling of old games
@@ -58,6 +54,7 @@
 - had trouble with tw and deno bundling. What?
 - some decorators don't work with deno bundling-- `@state` in particular. How did I test/verify that? Also `@property` requires manual updating
 - DOM testing was a total fail from `deno-dom` to `happy-dom` to `puppeteer` and even `@open-wc/web-test-runner`. Lit just isn't compatible running through deno. Stand along node testing would be required
+- pulling in picocss via typescript file is a bit weird, but it works. Also had to add the css files for pico and toastify to the repo because deno bundle doesn't do remote imports
 
 ## Actions
 
