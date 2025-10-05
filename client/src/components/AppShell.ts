@@ -22,7 +22,6 @@ export class AppShell extends StyledComponent {
         flex-direction: column;
         min-height: 100vh;
         align-items: center;
-        justify-content: center;
         background-color: var(--pico-color-azure-50);
       }
 
@@ -194,8 +193,8 @@ export class AppShell extends StyledComponent {
     }
 
     return html`
-      <header>
-        <nav class="header">
+      <header class="header">
+        <nav>
           <ul>
             <li><h1>Acquire</h1></li>
           </ul>

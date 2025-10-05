@@ -95,6 +95,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
   app.get('/api/games', requireAuth, (ctx) => {
     const gameList = Array.from(gameStates.values()).map((game) => ({
       id: game.gameId,
+      currentPlayer: game.pendingMergePlayer || game.currentPlayer,
       players: game.players.map((player) => player.name),
       phase: game.currentPhase,
       lastUpdated: game.lastUpdated,

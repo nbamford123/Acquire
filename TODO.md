@@ -2,19 +2,22 @@
 
 ## Client general
 
+- component styles in separate files
+- we need to enforce types on the api calls
 - body has default padding/margin, should be 0
 - 100vh is slightly too tall, causes scroll bar
 - body should scroll with sticky header if necessary
 
 ## Dashboard
 
-- join game -confirmation dialog
+- make the time calculation work right, and add "updated" or "created".
 - game card has "go to game" instead of join when you're a player
-- join action still performed from dashboard.
+- join action still performed from dashboard, let's move this to the game board view
 - section for games currently running you're _not_ a player in? Maybe an "observe" action?
 
 ## Game Board
 
+- join game -confirmation dialog
 - title on page somewhere
 - game state on page somewhere, at least until it's started
 - owner has start option when players >= 2, confirmation dialog
