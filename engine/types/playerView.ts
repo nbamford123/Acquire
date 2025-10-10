@@ -26,7 +26,7 @@ export interface PlayerView {
   // in player order
   players: { name: string; money: OrcCount; shares: Record<HOTEL_NAME, OrcCount> }[];
   // Existing hotels with available shares
-  hotelShares: Record<HOTEL_NAME, number>;
+  hotels: Record<HOTEL_NAME, { shares: number; size: number }>;
   board: BoardTile[];
   mergerTieContext?: {
     // for break tie we need to give user the hotels

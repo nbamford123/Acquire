@@ -52,7 +52,6 @@ function createHotel(
 ): Hotel {
   return {
     name,
-    type,
     shares: Array(25).fill(null).map((_, i) => ({
       location: 'bank' as const,
     })),

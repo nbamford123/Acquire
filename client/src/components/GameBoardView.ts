@@ -1,15 +1,19 @@
-import { css, html, LitElement } from 'lit';
+import { css, html, type TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { getApi } from '../services/ApiService.ts';
-import type { PlayerView } from '@acquire/engine/types';
+import { COLS, type HOTEL_NAME, type OrcCount, type PlayerView, ROWS } from '@acquire/engine/types';
+import { getHotelPrice, getTileLabel } from '@acquire/engine/utils';
+import { StyledComponent } from './StyledComponent.ts';
 
 @customElement('game-board-view')
-export class GameBoardView extends LitElement {
+export class GameBoardView extends StyledComponent {
   @property({ type: String })
   gameId: string | null = null;
+
   @property({ type: String })
-  playerId: string | null = null;
+  private user: string | null = null;
+
   static override properties = {
     playerView: { type: Object, state: true },
     loading: { type: Boolean, state: true },
@@ -17,111 +21,259 @@ export class GameBoardView extends LitElement {
   private playerView: PlayerView | null = null;
   private loading = false;
 
-  static override styles = css`
-    :host {
-      display: block;
-      width: 100%;
-      min-height: calc(100vh - 4rem);
-    }
-    .board-layout {
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      align-items: stretch;
-      height: 70vh;
-      margin: 2rem 0;
-    }
-    .side-panel {
-      width: 12rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      justify-content: flex-start;
-      align-items: stretch;
-    }
-    .game-board {
-      background: #f3f4f6;
-      border-radius: 0.75rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      padding: 1.5rem;
-      display: grid;
-      grid-template-columns: repeat(12, 2.5rem);
-      grid-template-rows: repeat(9, 2.5rem);
-      gap: 0.25rem;
-      align-items: center;
-      justify-items: center;
-    }
-    .tile {
-      width: 2.5rem;
-      height: 2.5rem;
-      background: white;
-      border-radius: 0.25rem;
-      border: 1px solid #d1d5db;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: box-shadow 0.15s;
-    }
-    .tile.hotel {
-      background: #e0e7ff;
-      border-color: #6366f1;
-    }
-    .player-info {
-      background: #fff;
-      border-radius: 0.5rem;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
-      padding: 1rem;
-      margin-bottom: 1rem;
-      font-size: 0.95rem;
-    }
-    .bottom-panel {
-      width: 100%;
-      background: #f9fafb;
-      border-top: 1px solid #e5e7eb;
-      padding: 1.5rem 0.5rem 1.5rem 0.5rem;
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-      gap: 2rem;
-    }
-    .current-player-info {
-      background: #fff;
-      border-radius: 0.5rem;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
-      padding: 1.5rem;
-      min-width: 20rem;
-      font-size: 1rem;
-    }
-    .tiles-list {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-    .share-list {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      margin-top: 0.5rem;
-    }
-    .share {
-      background: #e0e7ff;
-      color: #3730a3;
-      border-radius: 0.25rem;
-      padding: 0.25rem 0.5rem;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-  `;
+  static override styles = [
+    super.styles,
+    css`
+      :host {
+        display: block;
+        padding: 1rem;
+      }
+
+      .game-container {
+        display: grid;
+        grid-template-columns: 1fr auto 280px;
+        gap: 1rem;
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+
+      .board-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .game-board {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        grid-template-rows: repeat(9, 1fr);
+        gap: 4px;
+        background: var(--pico-background-color);
+        padding: 1rem;
+        border-radius: 8px;
+        aspect-ratio: 12/9;
+        max-width: 900px;
+      }
+
+      .board-cell {
+        background: var(--pico-card-background-color);
+        border: 2px solid var(--pico-muted-border-color);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        min-height: 40px;
+      }
+
+      .board-cell:hover {
+        background: var(--pico-primary-hover);
+        border-color: var(--pico-primary);
+        transform: scale(1.05);
+      }
+
+      .board-cell.placed {
+        background: var(--pico-primary);
+        color: white;
+        border-color: var(--pico-primary);
+      }
+
+      .current-player-view {
+        padding: 1rem;
+        background: var(--pico-card-background-color);
+        border-radius: 8px;
+        border: 2px solid var(--pico-primary);
+      }
+
+      .current-player-view h3 {
+        margin-top: 0;
+        color: var(--pico-primary);
+      }
+
+      .tile-hand {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+      }
+
+      .tile {
+        padding: 0.5rem 0.75rem;
+        background: var(--pico-secondary);
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        color: var(--pico-contrast);
+      }
+
+      .tile:hover {
+        background: var(--pico-secondary-hover);
+        transform: translateY(-2px);
+      }
+
+      .bank-section {
+        width: 300px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .bank-card {
+        padding: 1rem;
+        margin: 0;
+        background: var(--pico-card-background-color);
+        border-radius: 8px;
+        border: 1px solid var(--pico-muted-border-color);
+      }
+
+      .bank-card h4 {
+        margin-top: 0;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+      }
+
+      .bank-cash {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--pico-primary);
+        margin-bottom: 0.5rem;
+      }
+
+      .hotel-chain {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        border-radius: 6px;
+        border: 2px solid;
+      }
+
+      .hotel-chain.tower {
+        border-color: #e74c3c;
+        background: rgba(231, 76, 60, 0.1);
+      }
+      .hotel-chain.luxor {
+        border-color: #f39c12;
+        background: rgba(243, 156, 18, 0.1);
+      }
+      .hotel-chain.american {
+        border-color: #3498db;
+        background: rgba(52, 152, 219, 0.1);
+      }
+      .hotel-chain.worldwide {
+        border-color: #9b59b6;
+        background: rgba(155, 89, 182, 0.1);
+      }
+      .hotel-chain.festival {
+        border-color: #1abc9c;
+        background: rgba(26, 188, 156, 0.1);
+      }
+      .hotel-chain.imperial {
+        border-color: #e67e22;
+        background: rgba(230, 126, 34, 0.1);
+      }
+      .hotel-chain.continental {
+        border-color: #2ecc71;
+        background: rgba(46, 204, 113, 0.1);
+      }
+
+      .hotel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.25rem;
+      }
+
+      .hotel-name {
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+
+      .hotel-size {
+        font-size: 0.85rem;
+        color: var(--pico-muted-color);
+      }
+
+      .hotel-stock {
+        font-size: 0.85rem;
+        color: var(--pico-muted-color);
+      }
+
+      .hotel-price {
+        font-weight: 600;
+        color: var(--pico-primary);
+        font-size: 0.9rem;
+      }
+
+      .players-sidebar {
+        width: 280px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .player-card {
+        padding: 1rem;
+        margin: 0;
+        background: var(--pico-card-background-color);
+        border-radius: 8px;
+        border: 1px solid var(--pico-muted-border-color);
+      }
+
+      .player-card.active {
+        border: 2px solid var(--pico-primary);
+        background: var(--pico-primary-focus);
+      }
+
+      .player-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+
+      .player-name {
+        font-weight: 700;
+        font-size: 1rem;
+        margin: 0;
+      }
+
+      .player-cash {
+        color: var(--pico-primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .player-stocks {
+        font-size: 0.85rem;
+        color: var(--pico-muted-color);
+        margin-top: 0.5rem;
+      }
+
+      @media (max-width: 1400px) {
+        .game-container {
+          grid-template-columns: 1fr;
+        }
+
+        .bank-section,
+        .players-sidebar {
+          width: 100%;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+      }
+    `,
+  ];
 
   public override connectedCallback() {
     super.connectedCallback();
     this.loadGameState();
   }
 
-  async loadGameState() {
+  private async loadGameState() {
     this.loading = true;
     try {
       const playerViewResponse = await getApi(`/api/games/${this.gameId}`);
@@ -133,91 +285,33 @@ export class GameBoardView extends LitElement {
     }
   }
 
-  renderBoard() {
-    if (!this.playerView) {
-      return html`
-        <div>Loading...</div>
-      `;
+  private renderBoard() {
+    const cells: TemplateResult<1>[] = [];
+
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 1; col <= COLS; col++) {
+        const position = getTileLabel({ row, col });
+        const placedTile = this.playerView?.board.find((tile) =>
+          tile.row === row && tile.col === col
+        );
+        cells.push(html`
+          <div
+            class="board-cell ${placedTile ? 'placed' : ''} ${placedTile?.hotel || ''}"
+            @click="${() => this.handleCellClick(position)}"
+          >
+            ${position}
+          </div>
+        `);
+      }
     }
-    // Board is 12x9
-    const boardTiles = Array.from(
-      { length: 9 },
-      (_, row) =>
-        Array.from({ length: 12 }, (_, col) => {
-          const tile = this.playerView!.board.find((t) => t.row === row && t.col === col);
-          return html`
-            <div class="tile${tile?.hotel ? ' hotel' : ''}">
-              ${tile
-                ? (tile.hotel ? tile.hotel : `${row + 1}${String.fromCharCode(65 + col)}`)
-                : ''}
-            </div>
-          `;
-        }),
-    );
-    return html`
-      <div class="game-board">
-        ${boardTiles.flat()}
-      </div>
-    `;
+
+    return cells;
   }
 
-  renderSidePlayers(position: 'left' | 'right') {
-    if (!this.playerView) return null;
-    // Exclude current player
-    // Split for left/right
-    const half = Math.ceil(this.playerView.players.length / 2);
-    const sidePlayers = position === 'left'
-      ? this.playerView.players.slice(0, half)
-      : this.playerView.players.slice(half);
-    return html`
-      <div class="side-panel">
-        ${sidePlayers.map((p) =>
-          html`
-            <div class="player-info">
-              <div><strong>${p.name}</strong></div>
-              <div>Money: $${p.money}</div>
-              <div class="share-list">
-                ${Object.entries(p.shares).map(([hotelName, shareCount]) =>
-                  html`
-                    <span class="share">${hotelName} (${shareCount})</span>
-                  `
-                )}
-              </div>
-            </div>
-          `
-        )}
-      </div>
-    `;
-  }
-
-  renderCurrentPlayerPanel() {
-    if (!this.playerView) return null;
-    const player = this.playerView;
-    // TODO(me): how is currentplayer going to be available here? Passed as an attribute?
-    return html`
-      <div class="current-player-info">
-        <div><strong>YOU</strong> (You)</div>
-        <div>Money: $${player.money}</div>
-        <div>Shares:</div>
-        <div class="share-list">
-          ${Object.entries(player.stocks).map(([hotelName, shares]) =>
-            html`
-              <span class="share">${hotelName} (${shares})</span>
-            `
-          )}
-        </div>
-        <div>Your Tiles:</div>
-        <div class="tiles-list">
-          ${player.tiles.map((t) =>
-            html`
-              <span class="tile">${t.row + 1}${String.fromCharCode(
-                65 + t.col,
-              )}</span>
-            `
-          )}
-        </div>
-      </div>
-    `;
+  private formatStocks(stocks: Record<HOTEL_NAME, number | OrcCount>) {
+    return Object.entries(stocks)
+      .map(([chain, count]) => `${chain}: ${count}`)
+      .join(' | ');
   }
 
   public override render() {
@@ -226,18 +320,85 @@ export class GameBoardView extends LitElement {
         <div>Loading game...</div>
       `;
     }
-    if (!this.playerView) {
+    if (!this.playerView || !this.user) {
       return html`
         <div>Game not found or error loading.</div>
       `;
     }
     return html`
-      <div class="board-layout">
-        ${this.renderSidePlayers('left')} ${this.renderBoard()} ${this
-          .renderSidePlayers('right')}
-      </div>
-      <div class="bottom-panel">
-        ${this.renderCurrentPlayerPanel()}
+      <div class="game-container">
+        <div class="board-section">
+          <h2>Acquire Game Board</h2>
+
+          <div class="game-board">
+            ${this.renderBoard()}
+          </div>
+
+          <article class="current-player-view">
+            <h3>Your Turn</h3>
+            <div class="player-header">
+              <span class="player-name">${this.user}</span>
+              <span class="player-cash">$${this.playerView.money.toLocaleString()}</span>
+            </div>
+            <div class="player-stocks">
+              Stocks: ${this.formatStocks(this.playerView.stocks)}
+            </div>
+            <div style="margin-top: 1rem;">
+              <strong>Your Tiles:</strong>
+              <div class="tile-hand">
+                ${this.playerView.tiles.map((tile) =>
+                  html`
+                    <button class="tile" @click="${() => this.handleTileClick(tile)}">
+                      ${getTileLabel(tile)}
+                    </button>
+                  `
+                )}
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="bank-section">
+          <article class="bank-card">
+            <h4>Hotel Chains</h4>
+            ${Object.entries(this.playerView.hotels).map(([name, { size, shares }]) =>
+              html`
+                <div class="hotel-chain ${name}">
+                  <div class="hotel-header">
+                    <span class="hotel-name">${name}</span>
+                    <span class="hotel-size">${size > 0 ? `Size: ${size}` : 'Inactive'}</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="hotel-stock">Available: ${shares}</span>
+                    <span class="hotel-price">${size > 0
+                      ? `$${getHotelPrice(name as HOTEL_NAME, size)}`
+                      : '—'}</span>
+                  </div>
+                </div>
+              `
+            )}
+          </article>
+        </div>
+
+        <div class="players-sidebar">
+          ${this.playerView.players.map((player, index) =>
+            html`
+              <article class="player-card ${index === this.playerView?.currentPlayer
+                ? 'active'
+                : ''}">
+                <div class="player-header">
+                  <span class="player-name">
+                    ${player.name}
+                  </span>
+                  <span class="player-cash">$${player.money}</span>
+                </div>
+                <div class="player-stocks">
+                  ${this.formatStocks(player.shares)}
+                </div>
+              </article>
+            `
+          )}
+        </div>
       </div>
     `;
   }

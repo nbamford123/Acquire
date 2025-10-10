@@ -6,14 +6,13 @@
 - we need to enforce types on the api calls
 - body has default padding/margin, should be 0
 - 100vh is slightly too tall, causes scroll bar
-- body should scroll with sticky header if necessary
+- the specific pico azure background (and azure colors in general) aren't light/darkmode sensitive
 
 ## Dashboard
 
 - make the time calculation work right, and add "updated" or "created".
-- game card has "go to game" instead of join when you're a player
-- join action still performed from dashboard, let's move this to the game board view
-- section for games currently running you're _not_ a player in? Maybe an "observe" action?
+- should the join/etc. buttons actually be styled links?
+- create game states for 6/6 players, playing/other owner/etc
 
 ## Game Board
 

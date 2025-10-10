@@ -1,6 +1,7 @@
 {
   "name": "@acquire/engine",
   "exports": {
-    "./types": "./types/index.ts"
+    "./types": "./types/index.ts",
+    "./utils": "./utils/index.ts"
   }
 }

@@ -17,22 +17,39 @@ export class AppShell extends StyledComponent {
   static override styles = [
     super.styles,
     css`
-      .app-container {
+      /* Root app layout: header outside of the scrollable content area */
+      .app-root {
         display: flex;
         flex-direction: column;
         min-height: 100vh;
-        align-items: center;
         background-color: var(--pico-color-azure-50);
+        width: 100%;
       }
-
+      /* The header sits above the scrollable content */
       .header {
-        background-color: white;
+        background-color: var(--pico-background-color);
         border-bottom: 1px solid var(--pico-color-azure-150);
         padding-left: 16px;
         padding-right: 16px;
         width: 100%;
+        box-sizing: border-box;
+        z-index: 1;
       }
-
+      /* Main content area grows to fill available space and scrolls vertically when needed */
+      .content {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        box-sizing: border-box;
+        padding: 16px;
+      }
+      .content.center {
+        justify-content: center;
+      }
       .back-button {
         color: var(--pico-color-blue-500);
         font-weight: 500;
@@ -41,11 +58,9 @@ export class AppShell extends StyledComponent {
         cursor: pointer;
         transition: color 0.15s ease;
       }
-
       .back-button:hover {
         color: var(--pico-color-blue-650);
       }
-
       .toastify-error {
         color: white;
         font-size: 0.875rem;
@@ -178,10 +193,13 @@ export class AppShell extends StyledComponent {
   };
 
   public override render() {
+    const loginView = this.appState.currentView === 'login';
     return html`
-      <main class="app-container">
-        ${this.renderHeader()} ${this.renderCurrentView()}
-      </main>
+      <div class="app-root">
+        ${loginView ? '' : this.renderHeader()}
+        <main class="${`content${loginView ? ' center' : ''}`}">${this
+          .renderCurrentView()}</main>
+      </div>
     `;
   }
 
@@ -247,7 +265,7 @@ export class AppShell extends StyledComponent {
         return html`
           <game-board-view
             .gameId="${this.appState.selectedGameId}"
-            .playerId="${this.appState.user}"
+            .user="${this.appState.user}"
             @back-to-list="${this.handleBackToGameList}"
           ></game-board-view>
         `;

@@ -33,6 +33,7 @@ export const getPlayerView = (playerName: string, gameState: GameState): PlayerV
       GameErrorCodes.GAME_INVALID_ACTION,
     );
   }
+  const board = boardTiles(gameState.tiles);
   return {
     gameId: gameState.gameId,
     owner: gameState.owner,
@@ -62,14 +63,17 @@ export const getPlayerView = (playerName: string, gameState: GameState): PlayerV
           : players,
       [] as Array<{ name: string; money: OrcCount; shares: Record<HOTEL_NAME, OrcCount> }>,
     ),
-    hotelShares: gameState.hotels.reduce(
+    hotels: gameState.hotels.reduce(
       (hotelShares, hotel) => ({
         ...hotelShares,
-        [hotel.name]: hotel.shares.filter((share) => share.location = 'bank').length,
+        [hotel.name]: {
+          shares: hotel.shares.filter((share) => share.location = 'bank').length,
+          size: board.filter((tile) => tile.hotel === hotel.name).length,
+        },
       }),
-      {} as Record<HOTEL_NAME, number>,
+      {} as Record<HOTEL_NAME, { shares: number; size: number }>,
     ),
-    board: boardTiles(gameState.tiles),
+    board,
     mergerTieContext: gameState.mergerTieContext,
     mergeContext: gameState.mergeContext,
     foundHotelContext: gameState.foundHotelContext,

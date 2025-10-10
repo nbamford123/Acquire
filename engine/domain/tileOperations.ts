@@ -1,11 +1,6 @@
 import { getAdjacentPositions, shuffleTiles } from '../utils/index.ts';
-import {
-  type BoardTile,
-  CHARACTER_CODE_A,
-  GameError,
-  GameErrorCodes,
-  type Tile,
-} from '../types/index.ts';
+import { type BoardTile, GameError, GameErrorCodes, type Tile } from '../types/index.ts';
+import { getTileLabel } from '../utils/getTileLabel.ts';
 import { hotelSafe } from './index.ts';
 
 export const initializeTiles = (rows: number, cols: number): Tile[] =>
@@ -18,9 +13,6 @@ export const initializeTiles = (rows: number, cols: number): Tile[] =>
     }),
   );
 
-export const tileLabel = (tile: Tile): string =>
-  `${tile.row + 1}${String.fromCharCode(tile.col + CHARACTER_CODE_A)}`;
-
 // Return only the tiles on board
 export const boardTiles = (tiles: Tile[]): BoardTile[] =>
   tiles.filter(
@@ -30,7 +22,7 @@ export const boardTiles = (tiles: Tile[]): BoardTile[] =>
 export const deadTile = (tile: Tile, boardTiles: BoardTile[]): boolean => {
   if (tile.location === 'board') {
     throw new GameError(
-      `invalid check for dead tile ${tileLabel(tile)}`,
+      `invalid check for dead tile ${getTileLabel(tile)}`,
       GameErrorCodes.GAME_PROCESSING_ERROR,
     );
   }

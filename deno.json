@@ -20,8 +20,8 @@
     "@acquire/engine/core": "./engine/core/index.ts",
     "@acquire/engine/types": "./engine/types/index.ts",
     "@acquire/engine/utils": "./engine/utils/index.ts",
-    "hono": "jsr:@hono/hono@^4.0.0",
-    "hono/cookie": "jsr:@hono/hono@^4.0.0/cookie.ts"
+    "hono": "jsr:@hono/hono@^4.9.10",
+    "hono/cookie": "jsr:@hono/hono@^4.9.10/cookie.ts"
   },
 
   "lint": {

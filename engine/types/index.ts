@@ -15,7 +15,7 @@ export { type ErrorCodeValue, GameError, GameErrorCodes } from './errorCodes.ts'
 export * from './gameConfig.ts';
 export type { GameInfo } from './gameInfo.ts';
 export { GamePhase, type GameState } from './gameState.ts';
-export { type Hotel, type HOTEL_NAME, type HOTEL_TYPE, SharePrices } from './hotel.ts';
+export * from './hotel.ts';
 export type { MergeContext, MergeResult, ResolvedTie } from './mergerTypes.ts';
 export type { Player } from './player.ts';
 export type * from './playerView.ts';

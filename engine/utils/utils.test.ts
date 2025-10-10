@@ -275,7 +275,6 @@ const createHotel = (
   shares: Share[],
 ): Hotel => ({
   name,
-  type,
   shares,
 });
 
@@ -391,8 +390,8 @@ Deno.test('getPlayerView - returns correct hotel shares available in bank', () =
   // Note: There's a bug in the original code - it uses = instead of ===
   // This causes it to count ALL shares instead of just bank shares
   // The bug makes it return the total number of shares for each hotel
-  assertEquals(playerView.hotelShares.Worldwide, 3); // Total shares due to bug
-  assertEquals(playerView.hotelShares.Sackson, 4); // Total shares due to bug
+  assertEquals(playerView.hotels['Worldwide'].shares, 3); // Total shares due to bug
+  assertEquals(playerView.hotels['Sackson'].shares, 4); // Total shares due to bug
 });
 
 Deno.test('getPlayerView - includes board tiles', () => {

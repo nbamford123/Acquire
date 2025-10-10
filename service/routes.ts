@@ -2,7 +2,7 @@ import type { Context, Hono } from 'hono';
 import { setCookie } from 'hono/cookie';
 import { initializeGame, processAction } from '@acquire/engine/core';
 import { getPlayerView } from '@acquire/engine/utils';
-import type { GameAction, GameState } from '@acquire/engine/types';
+import type { GameAction, GameInfo, GameState } from '@acquire/engine/types';
 
 import { createToken, validateUser } from './auth.ts';
 import { requireAuth } from './middleware.ts';
@@ -93,9 +93,10 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
   });
   // Get list of games
   app.get('/api/games', requireAuth, (ctx) => {
-    const gameList = Array.from(gameStates.values()).map((game) => ({
+    const gameList: GameInfo[] = Array.from(gameStates.values()).map((game) => ({
       id: game.gameId,
-      currentPlayer: game.pendingMergePlayer || game.currentPlayer,
+      currentPlayer: game.players[game.pendingMergePlayer || game.currentPlayer].name,
+      owner: game.owner,
       players: game.players.map((player) => player.name),
       phase: game.currentPhase,
       lastUpdated: game.lastUpdated,

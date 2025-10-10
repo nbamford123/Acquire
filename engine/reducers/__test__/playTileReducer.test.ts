@@ -52,7 +52,6 @@ function createHotel(
 ): Hotel {
   return {
     name,
-    type,
     shares: Array(25).fill(null).map((_, i) => ({
       location: 'bank' as const,
     })),
@@ -359,8 +358,8 @@ Deno.test('playTileReducer hotel founding tests', async (t) => {
     ]);
 
     gameState.hotels = [
-      { name: 'Worldwide', type: 'economy', shares: [{ location: 1 }, { location: 2 }] },
-      { name: 'Sackson', type: 'economy', shares: [{ location: 1 }, { location: 2 }] },
+      { name: 'Worldwide', shares: [{ location: 1 }, { location: 2 }] },
+      { name: 'Sackson', shares: [{ location: 1 }, { location: 2 }] },
     ];
 
     // Place unhotel tiles on board
