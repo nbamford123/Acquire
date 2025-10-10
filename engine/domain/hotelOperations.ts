@@ -3,30 +3,22 @@ import {
   GameError,
   GameErrorCodes,
   type Hotel,
+  HOTEL_CONFIG,
   type HOTEL_NAME,
-  type HOTEL_TYPE,
+  HOTEL_NAMES,
+  SAFE_HOTEL_SIZE,
   type Share,
   SharePrices,
-} from '@/types/index.ts';
-import { SAFE_HOTEL_SIZE } from '@/types/gameConfig.ts';
+} from '../types/index.ts';
 
 const initializeShares = (): Share[] => Array.from({ length: 25 }, () => ({ location: 'bank' }));
 
-const initializeHotel = (name: HOTEL_NAME, type: HOTEL_TYPE): Hotel => ({
+const initializeHotel = (name: HOTEL_NAME): Hotel => ({
   name: name,
-  type: type,
   shares: initializeShares(),
 });
 
-export const initializeHotels = (): Hotel[] => [
-  initializeHotel('Worldwide', 'economy'),
-  initializeHotel('Sackson', 'economy'),
-  initializeHotel('Festival', 'standard'),
-  initializeHotel('Imperial', 'standard'),
-  initializeHotel('American', 'standard'),
-  initializeHotel('Continental', 'luxury'),
-  initializeHotel('Tower', 'luxury'),
-];
+export const initializeHotels = (): Hotel[] => HOTEL_NAMES.map(initializeHotel);
 
 export const remainingShares = (hotel: Hotel) =>
   hotel.shares.filter((s) => s.location === 'bank').length;
@@ -58,7 +50,7 @@ export const hotelTiles = (hotel: HOTEL_NAME, tiles: BoardTile[]) =>
 
 const findCurrentHotelPrice = (hotel: Hotel, tiles: BoardTile[]) => {
   const size = hotelTiles(hotel.name, tiles).length;
-  const prices = SharePrices[hotel.type];
+  const prices = SharePrices[HOTEL_CONFIG[hotel.name]];
   for (const [bracket, price] of Object.entries(prices)) {
     if (size <= Number(bracket)) {
       return price;

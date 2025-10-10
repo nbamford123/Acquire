@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "deno.ns", "es2022"],
+    "strict": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "imports": {
+    "@std/testing": "jsr:@std/testing@1.0.15",
+    "@std/path": "jsr:@std/path@1.1.2",
+    "@std/http": "jsr:@std/http@1.0.20",
+    "lit": "npm:lit@^3.3.0",
+    "lit/decorators": "npm:lit@^3.3.0/decorators.js",
+    "toastify-js": "npm:toastify-js@^1.12.0"
+  },
+  "tasks": {
+    "dev": "deno run --allow-net --allow-env --env-file --watch --allow-read --allow-write dev-server.ts",
+    "build": "deno bundle --platform browser --output dist/bundle.js --sourcemap=external src/main.ts",
+    "preview": "deno run --allow-net --allow-read dist/server.ts",
+    "deploy": "deno run --allow-net --allow-read --allow-write deploy.ts"
+  }
+}

@@ -7,8 +7,8 @@ import {
   type HOTEL_NAME,
   type MergeContext,
   type ResolvedTie,
-} from '@/types/index.ts';
-import { SAFE_HOTEL_SIZE } from '../../../shared/types/gameConfig.ts';
+  SAFE_HOTEL_SIZE,
+} from '../../types/index.ts';
 
 // Helper function to create board tiles
 function createBoardTile(row: number, col: number, hotel?: HOTEL_NAME): BoardTile {

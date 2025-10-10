@@ -1,45 +1,38 @@
 import type {
   BoardTile,
   ErrorCodeValue,
+  GamePhase,
   Hotel,
   HOTEL_NAME,
   MergeContext,
   Player,
 } from './index.ts';
 
-// Game phases
-export enum GamePhase {
-  WAITING_FOR_PLAYERS = 'WAITING_FOR_PLAYERS',
-  PLAY_TILE = 'PLAY_TILE',
-  FOUND_HOTEL = 'FOUND_HOTEL',
-  RESOLVE_MERGER = 'RESOLVE_MERGER',
-  BREAK_MERGER_TIE = 'BREAK_MERGER_TIE',
-  BUY_SHARES = 'BUY_SHARES',
-  GAME_OVER = 'GAME_OVER',
-}
+export type OrcCount = '0' | '1' | '2' | 'many';
 
-// Serializable game state
-export interface GameState {
+// Player view of game state
+export interface PlayerView {
   gameId: string;
   owner: string;
+  playerId: number; // this player
+  money: number; // this player's money
+  stocks: Record<HOTEL_NAME, number>; // only hotels this player has shares in
+  tiles: { row: number; col: number }[]; // this players tiles
   currentPhase: GamePhase;
   currentTurn: number;
   currentPlayer: number; // Player id
   pendingMergePlayer?: number; // next player to act in merger
   lastUpdated: number; // Timestamp
-  // shares map of hotel name, number? 1, few, many
-  // in player order-- but where does this player go?
-  players: { name: string, money: number, shares: number }; 
-  // Map of hotel name -> remaining shares?
-  hotelShares: Hotel[];
+  // in player order
+  players: { name: string; money: OrcCount; shares: Record<HOTEL_NAME, OrcCount> }[];
+  // Existing hotels with available shares
+  hotels: Record<HOTEL_NAME, { shares: number; size: number }>;
   board: BoardTile[];
-  playerTiles: { row: number; col: number };
   mergerTieContext?: {
     // for break tie we need to give user the hotels
     tiedHotels: HOTEL_NAME[];
   };
   mergeContext?: MergeContext;
-  // change this to hotel name, too
   foundHotelContext?: {
     availableHotels: HOTEL_NAME[];
     tiles: { row: number; col: number }[];

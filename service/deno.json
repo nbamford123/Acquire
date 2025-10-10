@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@std/testing": "jsr:@std/testing@^1.0.15",
+    "hono": "jsr:@hono/hono@^4.0.0"
+  }
+}

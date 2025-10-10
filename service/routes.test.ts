@@ -1,221 +1,251 @@
-import { Application } from 'jsr:@oak/oak@17';
-import { superoak } from 'https://deno.land/x/superoak/mod.ts';
-import { assertEquals } from 'jsr:@std/assert';
-import { expect } from 'jsr:@std/expect';
+import type { Hono } from 'hono';
+import { assertEquals } from '@std/assert';
+import { expect } from '@std/expect';
 
-import { ActionTypes, type AddPlayerAction, type StartGameAction } from '@/types/index.ts';
-import { router } from './routes.ts';
+import { ActionTypes, type AddPlayerAction, type StartGameAction } from '@acquire/engine/types';
+import { app } from './main.ts';
+import { clearCache } from './auth.ts';
+import type { ServiceEnv } from './types.ts';
 
-const login = async (app: Application): Promise<string[]> => {
-  const request = await superoak(app);
-  const response = await request.post('/login')
-    .set('Content-Type', 'application/json')
-    .send('{"email":"test@localhost.com"}');
-  return response.headers['set-cookie'] as string[];
+// Mock environment for testing
+clearCache();
+Deno.env.set('ALLOWED_EMAILS', 'TestUser:test@example.com, Admin:admin@test.com');
+
+const login = async (app: Hono<ServiceEnv>): Promise<string> => {
+  const response = await app.fetch(
+    new Request('http://localhost/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: 'test@example.com' }),
+    }),
+  );
+
+  const setCookieHeaders = response.headers.getSetCookie() || [];
+  return setCookieHeaders.map((cookie: string) => cookie.split(';')[0]).join(
+    '; ',
+  );
 };
 
-Deno.test('POST /login logs in', async () => {
-  const app = new Application();
-  // Use routes
-  app.use(router.routes());
-
-  const request = await superoak(app);
-  const response = await request.post('/login')
-    .set('Content-Type', 'application/json')
-    .send('{"email":"test@localhost.com"}');
+Deno.test('POST /api/login logs in', async () => {
+  const response = await app.fetch(
+    new Request('http://localhost/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: 'test@example.com' }),
+    }),
+  );
   assertEquals(response.status, 200);
-  const bodyJson = await response.body;
-  assertEquals(bodyJson.email, 'test@localhost.com');
+  const data = await response.json();
+  assertEquals((data as { user: string }).user, 'TestUser');
 });
 
 Deno.test('POST /login invalid email does not log in', async () => {
-  const app = new Application();
-  // Use routes
-  app.use(router.routes());
-
-  const request = await superoak(app);
-  const response = await request.post('/login')
-    .set('Content-Type', 'application/json')
-    .send('{"email":"super@fly.com"}');
+  const response = await app.fetch(
+    new Request('http://localhost/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: 'super@fly.com' }),
+    }),
+  );
   assertEquals(response.status, 403);
 });
 
 Deno.test('GET /games returns empty game list', async () => {
-  const app = new Application();
-  // Use routes
-  app.use(router.routes());
   const cookies = await login(app);
-
-  const request = await superoak(app);
-  const response = await request.get('/games').set('Cookie', cookies);
+  // Make a raw request instead
+  const response = await app.fetch(
+    new Request('http://localhost/api/games', {
+      method: 'GET',
+      headers: {
+        'Cookie': cookies,
+      },
+    }),
+  );
   assertEquals(response.status, 200);
-  const bodyJson = await response.body;
+  const bodyJson = await response.json();
   assertEquals(bodyJson.games.length, 0);
 });
 
 Deno.test('GET /games returns game list', async () => {
-  const app = new Application();
-  // Use routes
-  app.use(router.routes());
   const cookies = await login(app);
 
   // Create game 1
-  const request = await superoak(app);
-  const createResponse = await request
-    .post('/games')
-    .set('Cookie', cookies)
-    .set('Content-Type', 'application/json')
-    .send('{"player":"superoak"}');
-  const { gameId: game1 } = await createResponse.body;
+  const createResponse = await app.fetch(
+    new Request('http://localhost/api/games', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': cookies,
+      },
+      body: JSON.stringify({ player: 'hono' }),
+    }),
+  );
+  const { gameId: game1 } = await createResponse.json();
 
   // Create game 2
-  const request2 = await superoak(app);
-  const createResponse2 = await request2
-    .post('/games')
-    .set('Cookie', cookies)
-    .set('Content-Type', 'application/json')
-    .send('{"player":"superoak"}');
-  const { gameId: game2 } = await createResponse2.body;
+  const createResponse2 = await app.fetch(
+    new Request('http://localhost/api/games', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': cookies,
+      },
+      body: JSON.stringify({ player: 'hono' }),
+    }),
+  );
+  const { gameId: game2 } = await createResponse2.json();
 
-  const getRequest = await superoak(app);
-  const getResponse = await getRequest.get('/games')
-    .set('Cookie', cookies);
+  const getResponse = await app.fetch(
+    new Request('http://localhost/api/games', {
+      method: 'GET',
+      headers: {
+        'Cookie': cookies,
+      },
+    }),
+  );
   assertEquals(getResponse.status, 200);
-  const { games } = await getResponse.body;
+  const { games } = await getResponse.json();
   assertEquals(games.length, 2);
   assertEquals(games.map((g: { id: string }) => g.id), [game1, game2]);
 });
 
-Deno.test('POST /games fails without player name', async () => {
-  const app = new Application();
-  // Use routes
-  app.use(router.routes());
-  const cookies = await login(app);
-
-  const request = await superoak(app);
-  const response = await request
-    .post('/games')
-    .set('Cookie', cookies)
-    .set('Content-Type', 'application/json')
-    .send('{"bogus":"content"}');
-  const bodyJson = await response.body;
-  assertEquals(response.status, 400);
-  assertEquals(bodyJson, { error: 'Player name is required' });
-});
-
 Deno.test('POST /games creates a game and returns the id', async () => {
-  const app = new Application();
-  // Use routes
-  app.use(router.routes());
   const cookies = await login(app);
 
-  const request = await superoak(app);
-  const response = await request
-    .post('/games')
-    .set('Cookie', cookies)
-    .set('Content-Type', 'application/json')
-    .send('{"player":"superoak"}');
-  const bodyJson = await response.body;
+  const response = await app.fetch(
+    new Request('http://localhost/api/games', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': cookies,
+      },
+    }),
+  );
+  const bodyJson = await response.json();
   assertEquals(response.status, 201);
   expect(bodyJson.gameId).toEqual(expect.any(String));
 });
 
 Deno.test('GET /games/:id gets a game', async () => {
-  const app = new Application();
-  // Use routes
-  app.use(router.routes());
-  app.use(router.allowedMethods());
   const cookies = await login(app);
 
-  const request = await superoak(app);
+  const createResponse = await app.fetch(
+    new Request('http://localhost/api/games', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': cookies,
+      },
+      body: JSON.stringify({ player: 'hono' }),
+    }),
+  );
 
-  // Create a game
-  const createResponse = await request
-    .post('/games')
-    .set('Cookie', cookies)
-    .set('Content-Type', 'application/json')
-    .send('{"player":"superoak"}');
-  const { gameId } = await createResponse.body;
+  const { gameId } = await createResponse.json();
 
   // Verify game exists
-  const getRequest = await superoak(app);
-  const getResponse = await getRequest.get(`/games/${gameId}`)
-    .set('Cookie', cookies);
+  const getResponse = await app.fetch(
+    new Request(`http://localhost/api/games/${gameId}`, {
+      method: 'GET',
+      headers: {
+        'Cookie': cookies,
+      },
+    }),
+  );
   assertEquals(getResponse.status, 200);
+  const gameResponse = await getResponse.json();
+  assertEquals(gameResponse.game.gameId, gameId);
 });
 
 Deno.test('DELETE /games/:id deletes a game', async () => {
-  const app = new Application();
-  // Use routes
-  app.use(router.routes());
-  app.use(router.allowedMethods());
   const cookies = await login(app);
 
-  const request = await superoak(app);
-
-  // Create a game
-  const createResponse = await request
-    .post('/games')
-    .set('Cookie', cookies)
-    .set('Content-Type', 'application/json')
-    .send('{"player":"superoak"}');
-  const { gameId } = await createResponse.body;
+  const createResponse = await app.fetch(
+    new Request('http://localhost/api/games', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': cookies,
+      },
+      body: JSON.stringify({ player: 'hono' }),
+    }),
+  );
+  const { gameId } = await createResponse.json();
 
   // Delete the game
-  const deleteRequest = await superoak(app);
-  await deleteRequest
-    .delete(`/games/${gameId}`)
-    .set('Cookie', cookies)
-    .expect(204);
+  const deleteResponse = await app.fetch(
+    new Request(`http://localhost/api/games/${gameId}`, {
+      method: 'DELETE',
+      headers: {
+        'Cookie': cookies,
+      },
+    }),
+  );
+  expect(deleteResponse.status).toBe(204);
 
   // Verify game no longer exists
-  const getRequest2 = await superoak(app);
-  await getRequest2.get(`/games/${gameId}`)
-    .set('Cookie', cookies)
-    .expect(404);
+  const getResponse = await app.fetch(
+    new Request(`http://localhost/api/games/${gameId}`, {
+      method: 'GET',
+      headers: {
+        'Cookie': cookies,
+      },
+    }),
+  );
+  expect(getResponse.status).toBe(404);
 });
 
 Deno.test('POST /games/:id performs actions', async () => {
-  const app = new Application();
-  // Use routes
-  app.use(router.routes());
-  app.use(router.allowedMethods());
   const cookies = await login(app);
 
-  const request = await superoak(app);
-
   // Create a game
-  const createResponse = await request
-    .post('/games')
-    .set('Cookie', cookies)
-    .set('Content-Type', 'application/json')
-    .send('{"player":"superoak"}');
-  const { gameId } = await createResponse.body;
+  const createResponse = await app.fetch(
+    new Request('http://localhost/api/games', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': cookies,
+      },
+      body: JSON.stringify({ player: 'hono' }),
+    }),
+  );
+  const { gameId } = await createResponse.json();
 
   // Add player
   const addPlayer: AddPlayerAction = {
     type: ActionTypes.ADD_PLAYER,
     payload: { player: 'notsosuperoak' },
   };
-  const postBody = { action: addPlayer };
-  const postRequest = await superoak(app);
-  const postResponse = await postRequest
-    .post(`/games/${gameId}`)
-    .set('Cookie', cookies)
-    .set('Content-Type', 'application/json')
-    .send(JSON.stringify(postBody));
+  const postResponse = await app.fetch(
+    new Request(`http://localhost/api/games/${gameId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': cookies,
+      },
+      body: JSON.stringify({ action: addPlayer }),
+    }),
+  );
   assertEquals(postResponse.status, 200);
 
   const startGame: StartGameAction = {
     type: ActionTypes.START_GAME,
-    payload: { player: 'superoak' },
+    payload: { player: 'hono' },
   };
-  const startBody = { action: startGame };
-  const startRequest = await superoak(app);
-  const startResponse = await startRequest
-    .post(`/games/${gameId}`)
-    .set('Cookie', cookies)
-    .set('Content-Type', 'application/json')
-    .send(JSON.stringify(startBody));
+  const startResponse = await app.fetch(
+    new Request(`http://localhost/api/games/${gameId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': cookies,
+      },
+      body: JSON.stringify({ action: startGame }),
+    }),
+  );
   assertEquals(startResponse.status, 200);
 });

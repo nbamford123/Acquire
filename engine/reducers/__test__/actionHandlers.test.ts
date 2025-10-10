@@ -3,14 +3,13 @@ import { actionHandlers } from '../actionHandlers.ts';
 import { initializeTiles } from '../../domain/tileOperations.ts';
 import { initializeHotels } from '../../domain/hotelOperations.ts';
 import {
+  ActionTypes,
   GameError,
-  GameErrorCodes,
   GamePhase,
   type GameState,
+  INITIAL_PLAYER_MONEY,
   type Player,
-} from '@/types/index.ts';
-import { ActionTypes } from '@/types/actionsTypes.ts';
-import { INITIAL_PLAYER_MONEY } from '../../../shared/types/gameConfig.ts';
+} from '../../types/index.ts';
 
 // Helper function to create a basic game state
 function createBasicGameState(overrides: Partial<GameState> = {}): GameState {
@@ -284,16 +283,25 @@ Deno.test('actionHandlers type safety tests', async (t) => {
           action = { type: actionType, payload: { player: 'TestPlayer' } };
           break;
         case ActionTypes.PLAY_TILE:
-          action = { type: actionType, payload: { player: 'TestPlayer', tile: { row: 0, col: 0 } } };
+          action = {
+            type: actionType,
+            payload: { player: 'TestPlayer', tile: { row: 0, col: 0 } },
+          };
           break;
         case ActionTypes.BUY_SHARES:
           action = { type: actionType, payload: { player: 'TestPlayer', shares: {} } };
           break;
         case ActionTypes.FOUND_HOTEL:
-          action = { type: actionType, payload: { player: 'TestPlayer', hotelName: 'Worldwide' as const } };
+          action = {
+            type: actionType,
+            payload: { player: 'TestPlayer', hotelName: 'Worldwide' as const },
+          };
           break;
         case ActionTypes.RESOLVE_MERGER:
-          action = { type: actionType, payload: { player: 'TestPlayer', shares: { sell: 0, trade: 0 } } };
+          action = {
+            type: actionType,
+            payload: { player: 'TestPlayer', shares: { sell: 0, trade: 0 } },
+          };
           break;
         case ActionTypes.BREAK_MERGER_TIE:
           action = {

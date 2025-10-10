@@ -2,7 +2,7 @@ import type { ErrorCodeValue, Hotel, HOTEL_NAME, MergeContext, Player, Tile } fr
 
 // Game phases
 export enum GamePhase {
-  WAITING_FOR_PLAYERS = 'WAITING_FOR_PLAYERS',
+  WAITING_FOR_PLAYERS = 'Waiting for players',
   PLAY_TILE = 'PLAY_TILE',
   FOUND_HOTEL = 'FOUND_HOTEL',
   RESOLVE_MERGER = 'RESOLVE_MERGER',
@@ -28,7 +28,6 @@ export interface GameState {
     tiedHotels: HOTEL_NAME[];
   };
   mergeContext?: MergeContext;
-  // change this to hotel name, too
   foundHotelContext?: {
     availableHotels: HOTEL_NAME[];
     tiles: { row: number; col: number }[];

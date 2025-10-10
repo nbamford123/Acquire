@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acquire</title>
+    <link rel="stylesheet" href="reset.css">
+    <link rel="stylesheet" href="pico.colors.min.css">
+    <link rel="stylesheet" href="toastify.css">
+    <script>
+      // Only include live reload in development
+      if (location.hostname === 'localhost') {
+        new EventSource('/reload').addEventListener(
+          'message',
+          () => location.reload(),
+        );
+      }
+    </script>
+  </head>
+  <body>
+    <script type="module" src="/dist/bundle.js"></script>
+  </body>
+</html>

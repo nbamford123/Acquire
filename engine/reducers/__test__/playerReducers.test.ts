@@ -3,14 +3,15 @@ import { addPlayerReducer, removePlayerReducer } from '../playerReducers.ts';
 import { initializeTiles } from '../../domain/tileOperations.ts';
 import { initializeHotels } from '../../domain/hotelOperations.ts';
 import {
+  ActionTypes,
   GameError,
   GameErrorCodes,
   GamePhase,
   type GameState,
+  INITIAL_PLAYER_MONEY,
+  MAX_PLAYERS,
   type Player,
-} from '@/types/index.ts';
-import { ActionTypes } from '@/types/actionsTypes.ts';
-import { INITIAL_PLAYER_MONEY, MAX_PLAYERS } from '../../../shared/types/gameConfig.ts';
+} from '../../types/index.ts';
 
 // Helper function to create a basic game state
 function createBasicGameState(overrides: Partial<GameState> = {}): GameState {

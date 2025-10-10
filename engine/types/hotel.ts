@@ -1,18 +1,33 @@
 import type { Share, Tile } from './index.ts';
 
-export type HOTEL_NAME =
-  | 'Worldwide'
-  | 'Sackson'
-  | 'Festival'
-  | 'Imperial'
-  | 'American'
-  | 'Continental'
-  | 'Tower';
+export const HOTEL_NAMES = [
+  'Worldwide',
+  'Sackson',
+  'Festival',
+  'Imperial',
+  'American',
+  'Continental',
+  'Tower',
+] as const;
 
-export type HOTEL_TYPE = 'economy' | 'standard' | 'luxury';
+export type HOTEL_NAME = typeof HOTEL_NAMES[number];
+
+export const HOTEL_TYPES = ['economy', 'standard', 'luxury'] as const;
+export type HOTEL_TYPE = typeof HOTEL_TYPES[number];
+
+// The mapping object
+export const HOTEL_CONFIG = {
+  Worldwide: 'economy',
+  Sackson: 'economy',
+  Festival: 'standard',
+  Imperial: 'standard',
+  American: 'standard',
+  Continental: 'luxury',
+  Tower: 'luxury',
+} as const satisfies Record<HOTEL_NAME, HOTEL_TYPE>;
+
 export type Hotel = {
   name: HOTEL_NAME;
-  type: HOTEL_TYPE;
   shares: Share[];
 };
 

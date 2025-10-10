@@ -7,9 +7,9 @@ import {
   GameErrorCodes,
   GamePhase,
   type GameState,
+  INITIAL_PLAYER_MONEY,
   type Player,
-} from '@/types/index.ts';
-import { INITIAL_PLAYER_MONEY } from '../../../shared/types/gameConfig.ts';
+} from '../../types/index.ts';
 
 // Helper function to create a basic game state
 function createBasicGameState(overrides: Partial<GameState> = {}): GameState {

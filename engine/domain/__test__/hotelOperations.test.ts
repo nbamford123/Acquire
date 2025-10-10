@@ -16,11 +16,12 @@ import {
   GameError,
   GameErrorCodes,
   type Hotel,
+  HOTEL_CONFIG,
   type HOTEL_NAME,
   type HOTEL_TYPE,
+  SAFE_HOTEL_SIZE,
   type Share,
-} from '@/types/index.ts';
-import { SAFE_HOTEL_SIZE } from '../../../shared/types/gameConfig.ts';
+} from '../../types/index.ts';
 
 // Helper function to create a hotel
 function createHotel(
@@ -29,7 +30,7 @@ function createHotel(
   shareLocations: Array<'bank' | number> = Array(25).fill('bank'),
 ): Hotel {
   const shares: Share[] = shareLocations.map((location) => ({ location }));
-  return { name, type, shares };
+  return { name, shares };
 }
 
 // Helper function to create board tiles
@@ -70,7 +71,7 @@ Deno.test('initializeHotels', async (t) => {
 
     expectedHotels.forEach((expected, index) => {
       assertEquals(hotels[index].name, expected.name);
-      assertEquals(hotels[index].type, expected.type);
+      assertEquals(HOTEL_CONFIG[hotels[index].name], expected.type);
       assertEquals(hotels[index].shares.length, 25);
 
       // All shares should start in bank
@@ -494,6 +495,5 @@ Deno.test('getHotelsByNames', async (t) => {
 
     assertEquals(result.length, 1);
     assertEquals(result[0].name, 'Continental');
-    assertEquals(result[0].type, 'luxury');
   });
 });

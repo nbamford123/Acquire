@@ -1,8 +1,15 @@
-import { MINIMUM_PLAYERS, TILES_PER_HAND } from '../../shared/types/gameConfig.ts';
-import { GameError, GameErrorCodes, GamePhase, type GameState, type Tile } from '@/types/index.ts';
-import type { StartGameAction } from '@/types/actionsTypes.ts';
+import {
+  GameError,
+  GameErrorCodes,
+  GamePhase,
+  type GameState,
+  MINIMUM_PLAYERS,
+  type StartGameAction,
+  type Tile,
+  TILES_PER_HAND,
+} from '../types/index.ts';
 import { drawTiles, updateTiles } from '../domain/index.ts';
-import { cmpTiles } from '@/utils/index.ts';
+import { cmpTiles } from '../utils/index.ts';
 
 export const startGameReducer = (
   gameState: GameState,

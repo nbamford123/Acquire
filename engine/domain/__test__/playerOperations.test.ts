@@ -1,7 +1,6 @@
-import { assertEquals } from 'jsr:@std/assert';
+import { assertEquals } from '@std/assert';
 import { initializePlayer } from '../../domain/playerOperations.ts';
-import { INITIAL_PLAYER_MONEY } from '../../../shared/types/gameConfig.ts';
-import type { Player } from '@/types/index.ts';
+import { INITIAL_PLAYER_MONEY, type Player } from '../../types/index.ts';
 
 Deno.test('initializePlayer', async (t) => {
   await t.step('creates player with correct default values', () => {

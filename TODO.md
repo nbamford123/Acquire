@@ -1,9 +1,62 @@
 # TO DO
 
+## Client general
+
+- component styles in separate files
+- we need to enforce types on the api calls
+- body has default padding/margin, should be 0
+- 100vh is slightly too tall, causes scroll bar
+- the specific pico azure background (and azure colors in general) aren't light/darkmode sensitive
+
+## Dashboard
+
+- make the time calculation work right, and add "updated" or "created".
+- should the join/etc. buttons actually be styled links?
+- create game states for 6/6 players, playing/other owner/etc
+
+## Game Board
+
+- join game -confirmation dialog
+- title on page somewhere
+- game state on page somewhere, at least until it's started
+- owner has start option when players >= 2, confirmation dialog
+- owner has delete option, confirmation dialog
+- before game has started, players can leave, confimation dialog
+- don't include current player in playerview players
+- tile numbers on tiles
+- what will a played tile look like?
+- how will we show hotels?
+
+1. get state/start working-- just mock gamestate with enough players for now
+2. might as well make sure the initial draw/player order works
+3. mock up other game states with stocks
+4. possible to log in as other players to play turns
+
 ## Misc
 
+- root deno.json should have a task to run the client in dev mode, too
+- better info on game card, player names, in session or not. Allow people to see game w/o being a player? Maybe a "observer" view for that.
+- better game ids, something like they do for docker instances on desktop
+- prompts on create/join game?
+- when the start game post method returns, it's in error but client still navigates game/null
+- the client needs to check response codes and for game engine errors. Probably need a central handler (note the auth service does this)
+- test request failures-- does client display an error?
+- why do we need a player name when we create a game? Isn't it already in the auth cookie?
+- same with start game action? Weren't we going to always pull the player from the cookie?
+- GameState type in DashboardView should come from the shared types!
+- pre-commit hook? Is that even possible?
+- add at least a debug view where the api server logs requests and responses
+- local dev hot reload doesn't seem to be working
 - end game
 - ttl/culling of old games
+
+## Eventual blog post
+
+- the workspace thing lets me inherit fmt and stuff, which is awesome
+- had trouble with tw and deno bundling. What?
+- some decorators don't work with deno bundling-- `@state` in particular. How did I test/verify that? Also `@property` requires manual updating
+- DOM testing was a total fail from `deno-dom` to `happy-dom` to `puppeteer` and even `@open-wc/web-test-runner`. Lit just isn't compatible running through deno. Stand along node testing would be required
+- pulling in picocss via typescript file is a bit weird, but it works. Also had to add the css files for pico and toastify to the repo because deno bundle doesn't do remote imports
 
 ## Actions
 

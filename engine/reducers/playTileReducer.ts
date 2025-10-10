@@ -8,10 +8,10 @@ import {
   type HOTEL_NAME,
   type PlayTileAction,
   type Tile,
-} from '@/types/index.ts';
+} from '../types/index.ts';
 import { boardTiles, getTile, updateTiles } from '../domain/index.ts';
 import { handleMerger } from '../state/gameStateUpdater.ts';
-import { getAdjacentPositions } from '@/utils/index.ts';
+import { getAdjacentPositions } from '../utils/index.ts';
 
 const validatePlayTileAction = (gameState: GameState, action: PlayTileAction): BoardTile => {
   const { player, tile } = action.payload;

@@ -1,5 +1,4 @@
-import { assertEquals, assertThrows } from 'jsr:@std/assert';
-import { expect } from 'jsr:@std/expect';
+import { assertEquals, assertThrows } from '@std/assert';
 import {
   boardTiles,
   deadTile,
@@ -8,19 +7,22 @@ import {
   getPlayerTiles,
   getTile,
   initializeTiles,
-  tileLabel,
   updateTiles,
 } from '../../domain/tileOperations.ts';
+import { getTileLabel } from '../../utils/getTileLabel.ts';
+
 import {
   type BoardTile,
+  COLS,
   GameError,
   GameErrorCodes,
   type Hotel,
   type HOTEL_NAME,
   type HOTEL_TYPE,
+  ROWS,
+  SAFE_HOTEL_SIZE,
   type Tile,
-} from '@/types/index.ts';
-import { CHARACTER_CODE_A, COLS, ROWS, SAFE_HOTEL_SIZE } from '../../../shared/types/gameConfig.ts';
+} from '../../types/index.ts';
 
 // Helper function to create a tile
 function createTile(
@@ -51,7 +53,6 @@ function createHotel(
 
   return {
     name,
-    type,
     shares,
   };
 }
@@ -100,16 +101,16 @@ Deno.test('initializeTiles', async (t) => {
 
 Deno.test('tileLabel', async (t) => {
   await t.step('generates correct labels for various positions', () => {
-    assertEquals(tileLabel(createTile(0, 0)), '1A');
-    assertEquals(tileLabel(createTile(0, 1)), '1B');
-    assertEquals(tileLabel(createTile(1, 0)), '2A');
-    assertEquals(tileLabel(createTile(11, 8)), '12I');
-    assertEquals(tileLabel(createTile(5, 3)), '6D');
+    assertEquals(getTileLabel(createTile(0, 0)), '1A');
+    assertEquals(getTileLabel(createTile(0, 1)), '1B');
+    assertEquals(getTileLabel(createTile(1, 0)), '2A');
+    assertEquals(getTileLabel(createTile(11, 8)), '12I');
+    assertEquals(getTileLabel(createTile(5, 3)), '6D');
   });
 
   await t.step('handles edge positions correctly', () => {
-    assertEquals(tileLabel(createTile(0, 8)), '1I');
-    assertEquals(tileLabel(createTile(11, 0)), '12A');
+    assertEquals(getTileLabel(createTile(0, 8)), '1I');
+    assertEquals(getTileLabel(createTile(11, 0)), '12A');
   });
 });
 

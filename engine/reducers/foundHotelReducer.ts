@@ -1,5 +1,10 @@
-import { GameError, GameErrorCodes, GamePhase, type GameState } from '@/types/index.ts';
-import type { FoundHotelAction } from '@/types/actionsTypes.ts';
+import {
+  type FoundHotelAction,
+  GameError,
+  GameErrorCodes,
+  GamePhase,
+  type GameState,
+} from '../types/index.ts';
 import { boardTiles, getBoardTile, hotelTiles, updateTiles } from '../domain/index.ts';
 
 export const foundHotelReducer = (
