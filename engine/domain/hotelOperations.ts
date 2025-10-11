@@ -10,6 +10,7 @@ import {
   type Share,
   SharePrices,
 } from '../types/index.ts';
+import { getHotelPrice } from '../utils/getHotelPrice.ts';
 
 const initializeShares = (): Share[] => Array.from({ length: 25 }, () => ({ location: 'bank' }));
 
@@ -50,17 +51,16 @@ export const hotelTiles = (hotel: HOTEL_NAME, tiles: BoardTile[]) =>
 
 const findCurrentHotelPrice = (hotel: Hotel, tiles: BoardTile[]) => {
   const size = hotelTiles(hotel.name, tiles).length;
-  const prices = SharePrices[HOTEL_CONFIG[hotel.name]];
-  for (const [bracket, price] of Object.entries(prices)) {
-    if (size <= Number(bracket)) {
-      return price;
-    }
+  const price = getHotelPrice(hotel.name, size);
+  if (price === 0) {
+    throw new GameError(
+      'No price bracket found - check SharePrices configuration',
+      GameErrorCodes.GAME_PROCESSING_ERROR,
+    );
   }
-  throw new GameError(
-    'No price bracket found - check SharePrices configuration',
-    GameErrorCodes.GAME_PROCESSING_ERROR,
-  );
+  return price;
 };
+
 export const sharePrice = (hotel: Hotel, tiles: BoardTile[]): number =>
   findCurrentHotelPrice(hotel, tiles).price;
 

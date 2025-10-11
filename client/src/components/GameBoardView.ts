@@ -285,6 +285,14 @@ export class GameBoardView extends StyledComponent {
     }
   }
 
+  private handleCellClick(position: string) {
+    console.log(position);
+  }
+
+  private handleTileClick(tile: { row: number; col: number }) {
+    console.log(tile);
+  }
+
   private renderBoard() {
     const cells: TemplateResult<1>[] = [];
 
