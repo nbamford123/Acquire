@@ -1,7 +1,7 @@
 import type { Context, Hono } from 'hono';
 import { setCookie } from 'hono/cookie';
 import { initializeGame, processAction } from '@acquire/engine/core';
-import { getPlayerView } from '@acquire/engine/utils';
+import { filterDefined, getPlayerView } from '@acquire/engine/utils';
 import type { GameAction, GameInfo, GameState } from '@acquire/engine/types';
 
 import { createToken, validateUser } from './auth.ts';
@@ -10,6 +10,17 @@ import type { ServiceEnv } from './types.ts';
 
 // Simple in-memory store for demo - you'll want to use KV or external DB
 const gameStates = new Map<string, GameState>();
+
+// Load test games
+const decoder = new TextDecoder('utf-8');
+const testDataDir = 'service/__test-data__';
+for (const file of Deno.readDirSync(testDataDir)) {
+  if (file.isFile && file.name.endsWith('.json')) {
+    const gameFile = Deno.readFileSync(`${testDataDir}/${file.name}`);
+    const game = JSON.parse(decoder.decode(gameFile));
+    gameStates.set(game.gameId, game);
+  }
+}
 
 // Only force https when in production
 const isProduction = Deno.env.get('ENV') === 'production';
@@ -84,7 +95,6 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
   app.get('/api/games/:id', requireAuth, (ctx) => {
     const gameId = ctx.req.param('id') || '';
     const game = gameStates.get(gameId);
-
     if (!game) {
       return ctx.json({ error: 'Game not found' }, 404);
     }

@@ -117,10 +117,10 @@ export class DashboardView extends StyledComponent {
   }
 
   private getPrimaryButton() {
-    const isOwner = this.game.owner === this.user;
     const curPlayer = this.game.players.find((u) => u === this.user);
     const isFull = this.game.players.length >= MAX_PLAYERS;
     const canJoin = !curPlayer && !isFull && this.game.phase === GamePhase.WAITING_FOR_PLAYERS;
+    
     if (canJoin) {
       return html`
         <button @click="${() =>
@@ -147,9 +147,6 @@ export class DashboardView extends StyledComponent {
 
   public override render() {
     const isOwner = this.game.owner === this.user;
-    const curPlayer = this.game.players.find((u) => u === this.user);
-    const isFull = this.game.players.length >= MAX_PLAYERS;
-    const canJoin = !curPlayer && !isFull && this.game.phase === GamePhase.WAITING_FOR_PLAYERS;
 
     return html`
       <article

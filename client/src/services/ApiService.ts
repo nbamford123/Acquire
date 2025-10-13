@@ -1,4 +1,5 @@
 import { dispatchAppError, dispatchAuthError } from './EventBus.ts';
+import type { GameAction } from '@acquire/engine/types';
 
 const checkResult = async (res: Response) => {
   if (!res.ok) {
@@ -27,7 +28,7 @@ export const getApi = async (path: string) => {
   return null;
 };
 
-export const postApi = async (path: string, body?: Record<string, unknown>) => {
+export const postApi = async (path: string, body?: { action: GameAction }) => {
   const postResponse = await fetch(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -37,4 +38,11 @@ export const postApi = async (path: string, body?: Record<string, unknown>) => {
     return await postResponse.json();
   }
   return null;
+};
+
+export const deleteApi = async (path: string) => {
+  const deleteResponse = await fetch(path, {
+    method: 'DELETE',
+  });
+  await checkResult(deleteResponse);
 };
