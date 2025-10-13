@@ -3,7 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 
 import { StyledComponent } from './StyledComponent.ts';
 import { deleteApi, getApi, postApi } from '../services/ApiService.ts';
-import { ActionTypes, AddPlayerAction, GameInfo } from '@acquire/engine/types';
+import { ActionTypes, AddPlayerAction, GameInfo, StartGameAction } from '@acquire/engine/types';
 
 import './GameCard.ts';
 
@@ -113,9 +113,17 @@ export class DashboardView extends StyledComponent {
     }
   };
 
-  private handleGameStart = (event: CustomEvent<string>) => {
-    console.log('Game start requested:', event.detail);
-    // TODO(@nbamford123): Call API to start game; navigate to game view for now
+  private handleGameStart = async (event: CustomEvent<string>) => {
+    const action: StartGameAction = {
+      type: ActionTypes.START_GAME,
+      payload: { player: this.user || '' },
+    };
+    const response = await postApi(`/api/games/${event.detail}`, {
+      action,
+    });
+    if (response) { // a null here means the join failed and hopefully error handling showed a toast error
+      this.handleGameSelect(event.detail);
+    }
   };
 
   private handleGameDelete = async (event: CustomEvent<string>) => {

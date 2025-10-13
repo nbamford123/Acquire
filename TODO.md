@@ -27,6 +27,14 @@
 
 ## Misc
 
+- it's dumb I say an action is the proper type, but then I have to set type in the action. I should be able to do something like
+
+```typescript
+function createAction<T extends string, P>(type: T, payload: P): { type: T; payload: P } {
+  return { type, payload };
+}
+```
+- many of the actions have "player" as the payload, but the server could get that from the auth cookie. Is there really a need to send it? Maybe the service can add it? Of course then I can't really use the action type in the client, since it will be missing the proper payload... 
 - root deno.json should have a task to run the client in dev mode, too
 - better game ids, something like they do for docker instances on desktop
 - prompts on create/join game?
