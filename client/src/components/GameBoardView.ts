@@ -297,7 +297,7 @@ export class GameBoardView extends StyledComponent {
     const cells: TemplateResult<1>[] = [];
 
     for (let row = 0; row < ROWS; row++) {
-      for (let col = 1; col <= COLS; col++) {
+      for (let col = 0; col < COLS; col++) {
         const position = getTileLabel({ row, col });
         const placedTile = this.playerView?.board.find((tile) =>
           tile.row === row && tile.col === col

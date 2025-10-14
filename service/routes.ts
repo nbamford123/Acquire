@@ -16,8 +16,8 @@ const decoder = new TextDecoder('utf-8');
 const testDataDir = 'service/__test-data__';
 for (const file of Deno.readDirSync(testDataDir)) {
   if (file.isFile && file.name.endsWith('.json')) {
-    const gameFile = Deno.readFileSync(`${testDataDir}/${file.name}`);
-    const game = JSON.parse(decoder.decode(gameFile));
+    const gameFile = Deno.readTextFileSync(`${testDataDir}/${file.name}`);
+    const game = JSON.parse(gameFile);
     gameStates.set(game.gameId, game);
   }
 }
@@ -71,7 +71,6 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       const gameId = uid();
       const game = initializeGame(gameId, user);
       gameStates.set(gameId, game);
-
       return ctx.json({ gameId: gameId }, 201);
     } catch (error) {
       return ctx.json({

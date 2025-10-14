@@ -109,21 +109,21 @@ Deno.test('getAdjacentPositions - handles top-left corner', () => {
 });
 
 Deno.test('getAdjacentPositions - handles top-right corner', () => {
-  const adjacent = getAdjacentPositions(0, 8);
+  const adjacent = getAdjacentPositions(0, 11);
   assertEquals(adjacent.length, 2);
-  assertEquals(adjacent, [[1, 8], [0, 7]]);
+  assertEquals(adjacent, [[1, 11], [0, 10]]);
 });
 
 Deno.test('getAdjacentPositions - handles bottom-left corner', () => {
-  const adjacent = getAdjacentPositions(11, 0);
+  const adjacent = getAdjacentPositions(8, 0);
   assertEquals(adjacent.length, 2);
-  assertEquals(adjacent, [[10, 0], [11, 1]]);
+  assertEquals(adjacent, [[7, 0], [8, 1]]);
 });
 
 Deno.test('getAdjacentPositions - handles bottom-right corner', () => {
-  const adjacent = getAdjacentPositions(11, 8);
+  const adjacent = getAdjacentPositions(8, 11);
   assertEquals(adjacent.length, 2);
-  assertEquals(adjacent, [[10, 8], [11, 7]]);
+  assertEquals(adjacent, [[7, 11], [8, 10]]);
 });
 
 Deno.test('getAdjacentPositions - handles top edge', () => {
@@ -133,9 +133,9 @@ Deno.test('getAdjacentPositions - handles top edge', () => {
 });
 
 Deno.test('getAdjacentPositions - handles bottom edge', () => {
-  const adjacent = getAdjacentPositions(11, 4);
+  const adjacent = getAdjacentPositions(8, 4);
   assertEquals(adjacent.length, 3);
-  assertEquals(adjacent, [[10, 4], [11, 3], [11, 5]]);
+  assertEquals(adjacent, [[7, 4], [8, 3], [8, 5]]);
 });
 
 Deno.test('getAdjacentPositions - handles left edge', () => {
@@ -145,9 +145,9 @@ Deno.test('getAdjacentPositions - handles left edge', () => {
 });
 
 Deno.test('getAdjacentPositions - handles right edge', () => {
-  const adjacent = getAdjacentPositions(5, 8);
+  const adjacent = getAdjacentPositions(5, 11);
   assertEquals(adjacent.length, 3);
-  assertEquals(adjacent, [[4, 8], [6, 8], [5, 7]]);
+  assertEquals(adjacent, [[4, 11], [6, 11], [5, 10]]);
 });
 
 // shuffleTiles tests

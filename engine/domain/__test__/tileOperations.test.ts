@@ -102,15 +102,15 @@ Deno.test('initializeTiles', async (t) => {
 Deno.test('tileLabel', async (t) => {
   await t.step('generates correct labels for various positions', () => {
     assertEquals(getTileLabel(createTile(0, 0)), '1A');
-    assertEquals(getTileLabel(createTile(0, 1)), '1B');
-    assertEquals(getTileLabel(createTile(1, 0)), '2A');
-    assertEquals(getTileLabel(createTile(11, 8)), '12I');
-    assertEquals(getTileLabel(createTile(5, 3)), '6D');
+    assertEquals(getTileLabel(createTile(0, 1)), '2A');
+    assertEquals(getTileLabel(createTile(1, 0)), '1B');
+    assertEquals(getTileLabel(createTile(8, 11)), '12I');
+    assertEquals(getTileLabel(createTile(5, 3)), '4F');
   });
 
   await t.step('handles edge positions correctly', () => {
-    assertEquals(getTileLabel(createTile(0, 8)), '1I');
-    assertEquals(getTileLabel(createTile(11, 0)), '12A');
+    assertEquals(getTileLabel(createTile(0, 11)), '12A');
+    assertEquals(getTileLabel(createTile(8, 0)), '1I');
   });
 });
 

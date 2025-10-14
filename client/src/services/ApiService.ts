@@ -28,7 +28,7 @@ export const getApi = async (path: string) => {
   return null;
 };
 
-export const postApi = async (path: string, body?: { action: GameAction }) => {
+export const postApi = async (path: string, body?: Record<string, unknown>) => {
   const postResponse = await fetch(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
