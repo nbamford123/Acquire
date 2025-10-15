@@ -12,6 +12,7 @@ import type { ServiceEnv } from './types.ts';
 const gameStates = new Map<string, GameState>();
 
 // Load test games
+// TODO(me): remove before production
 const decoder = new TextDecoder('utf-8');
 const testDataDir = 'service/__test-data__';
 for (const file of Deno.readDirSync(testDataDir)) {
@@ -89,6 +90,19 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
     gameStates.delete(gameId);
     await Promise.resolve(); // Simulate async operation
     return ctx.body(null, 204);
+  });
+  // Save game
+  // TODO(me): temporary - remove before production
+  app.get('/api/save/:id', requireAuth, (ctx) => {
+    const gameId = ctx.req.param('id') || '';
+    const game = gameStates.get(gameId);
+    if (!game) {
+      return ctx.json({ error: 'Game not found' }, 404);
+    }
+    const gameJson = JSON.stringify(game, null, 2);
+    const filename = `acquire-game-${gameId}.json`;
+    Deno.writeTextFileSync(filename, gameJson);
+    return ctx.text('saved ' + filename);
   });
   // Get game
   app.get('/api/games/:id', requireAuth, (ctx) => {

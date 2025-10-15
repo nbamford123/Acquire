@@ -4,6 +4,7 @@
 
 - we need to enforce types on the api calls
 - the specific pico azure background (and azure colors in general) aren't light/darkmode sensitive
+- update to [ky](https://github.com/sindresorhus/ky), cleaner syntax, retries, good interface for polling
 
 ## Dashboard
 
@@ -15,15 +16,10 @@
 
 ## Game Board
 
+- should we put the current user in the user list, just so they know their place in the rotation?
 - layout, board takes more available space
 - give players unique colors?
 - game state on page somewhere, at least until it's started
-- don't include current player in playerview players
-
-1. get state/start working-- just mock gamestate with enough players for now
-2. might as well make sure the initial draw/player order works
-3. mock up other game states with stocks
-4. possible to log in as other players to play turns
 
 ## Misc
 
@@ -34,6 +30,7 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
   return { type, payload };
 }
 ```
+
 - many of the actions have "player" as the payload, but the server could get that from the auth cookie. Is there really a need to send it? Maybe the service can add it? Of course then I can't really use the action type in the client, since it will be missing the proper payload... 
 - root deno.json should have a task to run the client in dev mode, too
 - better game ids, something like they do for docker instances on desktop

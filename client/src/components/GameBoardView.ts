@@ -285,6 +285,11 @@ export class GameBoardView extends StyledComponent {
     }
   }
 
+  private async saveGameState() {
+    const saveResponse = await getApi(`/api/save/${this.gameId}`);
+    console.log(saveResponse);
+  }
+
   private handleCellClick(position: string) {
     console.log(position);
   }
@@ -364,6 +369,7 @@ export class GameBoardView extends StyledComponent {
               </div>
             </div>
           </article>
+          <button @click="${() => this.saveGameState()}">Save Game</button>
         </div>
 
         <div class="bank-section">

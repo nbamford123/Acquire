@@ -1,362 +1,1169 @@
 {
   "gameId": "mgq1q3kufnwg3dy26f",
   "owner": "Test",
-  "currentPhase": "Waiting for players",
-  "currentTurn": 0,
+  "currentPhase": "PLAY_TILE",
+  "currentTurn": 1,
   "currentPlayer": 0,
   "lastUpdated": 1760415145374,
   "players": [
     {
-      "id": -1,
-      "name": "Test",
-      "money": 3000
-    },
-    {
-      "id": -1,
-      "name": "Nate",
-      "money": 3000
-    },
-    {
-      "id": -1,
-      "name": "James",
-      "money": 3000
-    },
-    {
-      "id": -1,
-      "name": "Cannon",
-      "money": 3000
-    },
-    {
-      "id": -1,
+      "id": 0,
       "name": "Reid",
-      "money": 3000
+      "money": 3000,
+      "firstTile": {
+        "row": 7,
+        "col": 0
+      }
     },
     {
-      "id": -1,
+      "id": 1,
+      "name": "James",
+      "money": 3000,
+      "firstTile": {
+        "row": 5,
+        "col": 3
+      }
+    },
+    {
+      "id": 2,
+      "name": "Test",
+      "money": 3000,
+      "firstTile": {
+        "row": 0,
+        "col": 7
+      }
+    },
+    {
+      "id": 3,
+      "name": "Nate",
+      "money": 3000,
+      "firstTile": {
+        "row": 3,
+        "col": 8
+      }
+    },
+    {
+      "id": 4,
       "name": "Jamie",
-      "money": 3000
+      "money": 3000,
+      "firstTile": {
+        "row": 5,
+        "col": 8
+      }
+    },
+    {
+      "id": 5,
+      "name": "Cannon",
+      "money": 3000,
+      "firstTile": {
+        "row": 2,
+        "col": 11
+      }
     }
   ],
   "hotels": [
     {
       "name": "Worldwide",
       "shares": [
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" }
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        }
       ]
     },
     {
       "name": "Sackson",
       "shares": [
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" }
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        }
       ]
     },
     {
       "name": "Festival",
       "shares": [
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" }
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        }
       ]
     },
     {
       "name": "Imperial",
       "shares": [
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" }
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        }
       ]
     },
     {
       "name": "American",
       "shares": [
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" }
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        }
       ]
     },
     {
       "name": "Continental",
       "shares": [
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" }
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        }
       ]
     },
     {
       "name": "Tower",
       "shares": [
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" },
-        { "location": "bank" }
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        },
+        {
+          "location": "bank"
+        }
       ]
     }
   ],
   "tiles": [
-    { "row": 0, "col": 0, "location": "bag" },
-    { "row": 0, "col": 1, "location": "bag" },
-    { "row": 0, "col": 2, "location": "bag" },
-    { "row": 0, "col": 3, "location": "bag" },
-    { "row": 0, "col": 4, "location": "bag" },
-    { "row": 0, "col": 5, "location": "bag" },
-    { "row": 0, "col": 6, "location": "bag" },
-    { "row": 0, "col": 7, "location": "bag" },
-    { "row": 0, "col": 8, "location": "bag" },
-    { "row": 0, "col": 9, "location": "bag" },
-    { "row": 0, "col": 10, "location": "bag" },
-    { "row": 0, "col": 11, "location": "bag" },
-    { "row": 1, "col": 0, "location": "bag" },
-    { "row": 1, "col": 1, "location": "bag" },
-    { "row": 1, "col": 2, "location": "bag" },
-    { "row": 1, "col": 3, "location": "bag" },
-    { "row": 1, "col": 4, "location": "bag" },
-    { "row": 1, "col": 5, "location": "bag" },
-    { "row": 1, "col": 6, "location": "bag" },
-    { "row": 1, "col": 7, "location": "bag" },
-    { "row": 1, "col": 8, "location": "bag" },
-    { "row": 1, "col": 9, "location": "bag" },
-    { "row": 1, "col": 10, "location": "bag" },
-    { "row": 1, "col": 11, "location": "bag" },
-    { "row": 2, "col": 0, "location": "bag" },
-    { "row": 2, "col": 1, "location": "bag" },
-    { "row": 2, "col": 2, "location": "bag" },
-    { "row": 2, "col": 3, "location": "bag" },
-    { "row": 2, "col": 4, "location": "bag" },
-    { "row": 2, "col": 5, "location": "bag" },
-    { "row": 2, "col": 6, "location": "bag" },
-    { "row": 2, "col": 7, "location": "bag" },
-    { "row": 2, "col": 8, "location": "bag" },
-    { "row": 2, "col": 9, "location": "bag" },
-    { "row": 2, "col": 10, "location": "bag" },
-    { "row": 2, "col": 11, "location": "bag" },
-    { "row": 3, "col": 0, "location": "bag" },
-    { "row": 3, "col": 1, "location": "bag" },
-    { "row": 3, "col": 2, "location": "bag" },
-    { "row": 3, "col": 3, "location": "bag" },
-    { "row": 3, "col": 4, "location": "bag" },
-    { "row": 3, "col": 5, "location": "bag" },
-    { "row": 3, "col": 6, "location": "bag" },
-    { "row": 3, "col": 7, "location": "bag" },
-    { "row": 3, "col": 8, "location": "bag" },
-    { "row": 3, "col": 9, "location": "bag" },
-    { "row": 3, "col": 10, "location": "bag" },
-    { "row": 3, "col": 11, "location": "bag" },
-    { "row": 4, "col": 0, "location": "bag" },
-    { "row": 4, "col": 1, "location": "bag" },
-    { "row": 4, "col": 2, "location": "bag" },
-    { "row": 4, "col": 3, "location": "bag" },
-    { "row": 4, "col": 4, "location": "bag" },
-    { "row": 4, "col": 5, "location": "bag" },
-    { "row": 4, "col": 6, "location": "bag" },
-    { "row": 4, "col": 7, "location": "bag" },
-    { "row": 4, "col": 8, "location": "bag" },
-    { "row": 4, "col": 9, "location": "bag" },
-    { "row": 4, "col": 10, "location": "bag" },
-    { "row": 4, "col": 11, "location": "bag" },
-    { "row": 5, "col": 0, "location": "bag" },
-    { "row": 5, "col": 1, "location": "bag" },
-    { "row": 5, "col": 2, "location": "bag" },
-    { "row": 5, "col": 3, "location": "bag" },
-    { "row": 5, "col": 4, "location": "bag" },
-    { "row": 5, "col": 5, "location": "bag" },
-    { "row": 5, "col": 6, "location": "bag" },
-    { "row": 5, "col": 7, "location": "bag" },
-    { "row": 5, "col": 8, "location": "bag" },
-    { "row": 5, "col": 9, "location": "bag" },
-    { "row": 5, "col": 10, "location": "bag" },
-    { "row": 5, "col": 11, "location": "bag" },
-    { "row": 6, "col": 0, "location": "bag" },
-    { "row": 6, "col": 1, "location": "bag" },
-    { "row": 6, "col": 2, "location": "bag" },
-    { "row": 6, "col": 3, "location": "bag" },
-    { "row": 6, "col": 4, "location": "bag" },
-    { "row": 6, "col": 5, "location": "bag" },
-    { "row": 6, "col": 6, "location": "bag" },
-    { "row": 6, "col": 7, "location": "bag" },
-    { "row": 6, "col": 8, "location": "bag" },
-    { "row": 6, "col": 9, "location": "bag" },
-    { "row": 6, "col": 10, "location": "bag" },
-    { "row": 6, "col": 11, "location": "bag" },
-    { "row": 7, "col": 0, "location": "bag" },
-    { "row": 7, "col": 1, "location": "bag" },
-    { "row": 7, "col": 2, "location": "bag" },
-    { "row": 7, "col": 3, "location": "bag" },
-    { "row": 7, "col": 4, "location": "bag" },
-    { "row": 7, "col": 5, "location": "bag" },
-    { "row": 7, "col": 6, "location": "bag" },
-    { "row": 7, "col": 7, "location": "bag" },
-    { "row": 7, "col": 8, "location": "bag" },
-    { "row": 7, "col": 9, "location": "bag" },
-    { "row": 7, "col": 10, "location": "bag" },
-    { "row": 7, "col": 11, "location": "bag" },
-    { "row": 8, "col": 0, "location": "bag" },
-    { "row": 8, "col": 1, "location": "bag" },
-    { "row": 8, "col": 2, "location": "bag" },
-    { "row": 8, "col": 3, "location": "bag" },
-    { "row": 8, "col": 4, "location": "bag" },
-    { "row": 8, "col": 5, "location": "bag" },
-    { "row": 8, "col": 6, "location": "bag" },
-    { "row": 8, "col": 7, "location": "bag" },
-    { "row": 8, "col": 8, "location": "bag" },
-    { "row": 8, "col": 9, "location": "bag" },
-    { "row": 8, "col": 10, "location": "bag" },
-    { "row": 8, "col": 11, "location": "bag" }
-  ]
+    {
+      "row": 0,
+      "col": 0,
+      "location": 0
+    },
+    {
+      "row": 0,
+      "col": 1,
+      "location": 3
+    },
+    {
+      "row": 0,
+      "col": 2,
+      "location": 3
+    },
+    {
+      "row": 0,
+      "col": 3,
+      "location": 2
+    },
+    {
+      "row": 0,
+      "col": 4,
+      "location": "bag"
+    },
+    {
+      "row": 0,
+      "col": 5,
+      "location": 5
+    },
+    {
+      "row": 0,
+      "col": 6,
+      "location": "bag"
+    },
+    {
+      "row": 0,
+      "col": 7,
+      "location": "board"
+    },
+    {
+      "row": 0,
+      "col": 8,
+      "location": 1
+    },
+    {
+      "row": 0,
+      "col": 9,
+      "location": "bag"
+    },
+    {
+      "row": 0,
+      "col": 10,
+      "location": "bag"
+    },
+    {
+      "row": 0,
+      "col": 11,
+      "location": "bag"
+    },
+    {
+      "row": 1,
+      "col": 0,
+      "location": "bag"
+    },
+    {
+      "row": 1,
+      "col": 1,
+      "location": 4
+    },
+    {
+      "row": 1,
+      "col": 2,
+      "location": "bag"
+    },
+    {
+      "row": 1,
+      "col": 3,
+      "location": 2
+    },
+    {
+      "row": 1,
+      "col": 4,
+      "location": "bag"
+    },
+    {
+      "row": 1,
+      "col": 5,
+      "location": 1
+    },
+    {
+      "row": 1,
+      "col": 6,
+      "location": "bag"
+    },
+    {
+      "row": 1,
+      "col": 7,
+      "location": 1
+    },
+    {
+      "row": 1,
+      "col": 8,
+      "location": "bag"
+    },
+    {
+      "row": 1,
+      "col": 9,
+      "location": "bag"
+    },
+    {
+      "row": 1,
+      "col": 10,
+      "location": "bag"
+    },
+    {
+      "row": 1,
+      "col": 11,
+      "location": 2
+    },
+    {
+      "row": 2,
+      "col": 0,
+      "location": 4
+    },
+    {
+      "row": 2,
+      "col": 1,
+      "location": "bag"
+    },
+    {
+      "row": 2,
+      "col": 2,
+      "location": 5
+    },
+    {
+      "row": 2,
+      "col": 3,
+      "location": "bag"
+    },
+    {
+      "row": 2,
+      "col": 4,
+      "location": "bag"
+    },
+    {
+      "row": 2,
+      "col": 5,
+      "location": 3
+    },
+    {
+      "row": 2,
+      "col": 6,
+      "location": "bag"
+    },
+    {
+      "row": 2,
+      "col": 7,
+      "location": 2
+    },
+    {
+      "row": 2,
+      "col": 8,
+      "location": 0
+    },
+    {
+      "row": 2,
+      "col": 9,
+      "location": "bag"
+    },
+    {
+      "row": 2,
+      "col": 10,
+      "location": 1
+    },
+    {
+      "row": 2,
+      "col": 11,
+      "location": "board"
+    },
+    {
+      "row": 3,
+      "col": 0,
+      "location": "bag"
+    },
+    {
+      "row": 3,
+      "col": 1,
+      "location": "bag"
+    },
+    {
+      "row": 3,
+      "col": 2,
+      "location": 5
+    },
+    {
+      "row": 3,
+      "col": 3,
+      "location": "bag"
+    },
+    {
+      "row": 3,
+      "col": 4,
+      "location": "bag"
+    },
+    {
+      "row": 3,
+      "col": 5,
+      "location": "bag"
+    },
+    {
+      "row": 3,
+      "col": 6,
+      "location": "bag"
+    },
+    {
+      "row": 3,
+      "col": 7,
+      "location": "bag"
+    },
+    {
+      "row": 3,
+      "col": 8,
+      "location": "board"
+    },
+    {
+      "row": 3,
+      "col": 9,
+      "location": "bag"
+    },
+    {
+      "row": 3,
+      "col": 10,
+      "location": "bag"
+    },
+    {
+      "row": 3,
+      "col": 11,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 0,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 1,
+      "location": 5
+    },
+    {
+      "row": 4,
+      "col": 2,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 3,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 4,
+      "location": 0
+    },
+    {
+      "row": 4,
+      "col": 5,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 6,
+      "location": 4
+    },
+    {
+      "row": 4,
+      "col": 7,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 8,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 9,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 10,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 11,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 0,
+      "location": 5
+    },
+    {
+      "row": 5,
+      "col": 1,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 2,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 3,
+      "location": "board"
+    },
+    {
+      "row": 5,
+      "col": 4,
+      "location": 4
+    },
+    {
+      "row": 5,
+      "col": 5,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 6,
+      "location": 4
+    },
+    {
+      "row": 5,
+      "col": 7,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 8,
+      "location": "board"
+    },
+    {
+      "row": 5,
+      "col": 9,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 10,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 11,
+      "location": "bag"
+    },
+    {
+      "row": 6,
+      "col": 0,
+      "location": "bag"
+    },
+    {
+      "row": 6,
+      "col": 1,
+      "location": "bag"
+    },
+    {
+      "row": 6,
+      "col": 2,
+      "location": 2
+    },
+    {
+      "row": 6,
+      "col": 3,
+      "location": "bag"
+    },
+    {
+      "row": 6,
+      "col": 4,
+      "location": 0
+    },
+    {
+      "row": 6,
+      "col": 5,
+      "location": 2
+    },
+    {
+      "row": 6,
+      "col": 6,
+      "location": "bag"
+    },
+    {
+      "row": 6,
+      "col": 7,
+      "location": 1
+    },
+    {
+      "row": 6,
+      "col": 8,
+      "location": "bag"
+    },
+    {
+      "row": 6,
+      "col": 9,
+      "location": "bag"
+    },
+    {
+      "row": 6,
+      "col": 10,
+      "location": 3
+    },
+    {
+      "row": 6,
+      "col": 11,
+      "location": 0
+    },
+    {
+      "row": 7,
+      "col": 0,
+      "location": "board"
+    },
+    {
+      "row": 7,
+      "col": 1,
+      "location": "bag"
+    },
+    {
+      "row": 7,
+      "col": 2,
+      "location": "bag"
+    },
+    {
+      "row": 7,
+      "col": 3,
+      "location": "bag"
+    },
+    {
+      "row": 7,
+      "col": 4,
+      "location": 3
+    },
+    {
+      "row": 7,
+      "col": 5,
+      "location": "bag"
+    },
+    {
+      "row": 7,
+      "col": 6,
+      "location": "bag"
+    },
+    {
+      "row": 7,
+      "col": 7,
+      "location": 5
+    },
+    {
+      "row": 7,
+      "col": 8,
+      "location": "bag"
+    },
+    {
+      "row": 7,
+      "col": 9,
+      "location": "bag"
+    },
+    {
+      "row": 7,
+      "col": 10,
+      "location": 4
+    },
+    {
+      "row": 7,
+      "col": 11,
+      "location": "bag"
+    },
+    {
+      "row": 8,
+      "col": 0,
+      "location": "bag"
+    },
+    {
+      "row": 8,
+      "col": 1,
+      "location": 1
+    },
+    {
+      "row": 8,
+      "col": 2,
+      "location": "bag"
+    },
+    {
+      "row": 8,
+      "col": 3,
+      "location": "bag"
+    },
+    {
+      "row": 8,
+      "col": 4,
+      "location": "bag"
+    },
+    {
+      "row": 8,
+      "col": 5,
+      "location": "bag"
+    },
+    {
+      "row": 8,
+      "col": 6,
+      "location": 0
+    },
+    {
+      "row": 8,
+      "col": 7,
+      "location": "bag"
+    },
+    {
+      "row": 8,
+      "col": 8,
+      "location": 3
+    },
+    {
+      "row": 8,
+      "col": 9,
+      "location": "bag"
+    },
+    {
+      "row": 8,
+      "col": 10,
+      "location": "bag"
+    },
+    {
+      "row": 8,
+      "col": 11,
+      "location": "bag"
+    }
+  ],
+  "error": null
 }
