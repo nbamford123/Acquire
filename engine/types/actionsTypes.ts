@@ -32,7 +32,6 @@ export interface PlayTileAction extends Action {
   payload: {
     player: string;
     tile: { row: number; col: number };
-    resolvedTies?: [string, string][];
   };
 }
 export interface BuySharesAction extends Action {

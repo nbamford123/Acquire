@@ -11,6 +11,7 @@ import {
 } from '../types/index.ts';
 import { boardTiles, getTile, updateTiles } from '../domain/index.ts';
 import { handleMerger } from '../state/gameStateUpdater.ts';
+import { sharePrice } from '../domain/hotelOperations.ts';
 import { getAdjacentPositions } from '../utils/index.ts';
 
 const validatePlayTileAction = (gameState: GameState, action: PlayTileAction): BoardTile => {
@@ -93,7 +94,23 @@ const handleHotelFounding = (
   };
 };
 
-const handleSimplePlacement = (tiles: Tile[], tile: BoardTile): Partial<GameState> => {
+const handleSimplePlacement = (
+  tiles: Tile[],
+  tile: BoardTile,
+  activeHotels: Hotel[],
+  playerMoney: number,
+  gameBoard: BoardTile[],
+): Partial<GameState> => {
+  // Make sure buying shares is possible
+  // We really just need the lowest available share price
+  // Make a utility function to return hotels names => currentSharePrice?
+  const availableHotels = activeHotels.filter((hotel) =>
+    hotel.shares.some((share) => share.location === 'bank')
+  );
+  const lowestSharePrice = Math.min(
+    ...availableHotels.map((hotel) => sharePrice(hotel, gameBoard)),
+  );
+  // Going to need to move the logic to advance turn (draw tile, check for dead tiles) to someplace outside of buySharesReducer
   return {
     currentPhase: GamePhase.BUY_SHARES,
     tiles: updateTiles(tiles, [tile]),
@@ -148,7 +165,12 @@ export const playTileReducer = (
       break;
     case 'SIMPLE_PLACEMENT':
     default:
-      businessLogicChanges = handleSimplePlacement(gameState.tiles, tile);
+      businessLogicChanges = handleSimplePlacement(
+        gameState.tiles,
+        tile,
+        gameState.hotels,
+        gameBoard,
+      );
       break;
   }
 
