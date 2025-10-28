@@ -1,3 +1,4 @@
+import { boardTiles, remainingShares, sharePrice } from '../domain/index.ts';
 import {
   type BuySharesAction,
   GameError,
@@ -5,17 +6,9 @@ import {
   GamePhase,
   type GameState,
 } from '../types/index.ts';
-import {
-  boardTiles,
-  deadTile,
-  drawTiles,
-  getPlayerTiles,
-  remainingShares,
-  sharePrice,
-  updateTiles,
-} from '../domain/index.ts';
-import { filterDefined } from '../utils/filterDefined.ts';
+import { advancePlayerUseCase } from '../usecases/advanceTurnUseCase.ts';
 
+// TODO(me): this is a lot of validation, could pull it out
 export const buySharesReducer = (
   gameState: GameState,
   action: BuySharesAction,
@@ -71,38 +64,8 @@ export const buySharesReducer = (
     );
   }
 
-  // Draw a tile for this player
-  const availableTiles = gameState.tiles.filter((tile) => tile.location === 'bag');
-  // Should we somehow determine they have 5? Or maybe less, if the bag is empty, but then draw is going to return 0 anyway
-  if (getPlayerTiles(playerId, gameState.tiles).length >= 6) {
-    throw new GameError(
-      `Player ${playerId} has invalid number of tiles`,
-      GameErrorCodes.GAME_PROCESSING_ERROR,
-    );
-  }
-  const playerTiles = drawTiles(availableTiles, playerId, gameBoard, 1);
-  // Check for next player dead tiles and draw replacements-- it's possible not enough
-  // will be left to replace all dead tiles, so filter undefined out
-  let { remainingTiles, deadTiles } = playerTiles;
-  const nextPlayerId = (gameState.currentPlayer + 1) % gameState.players.length;
-  const nextPlayerTiles = filterDefined(
-    getPlayerTiles(nextPlayerId, gameState.tiles).map((tile) => {
-      if (deadTile(tile, gameBoard)) {
-        // This might fail because there are no more tiles to draw
-        const tiles = drawTiles(remainingTiles, nextPlayerId, gameBoard, 1);
-        remainingTiles = tiles.remainingTiles;
-        deadTiles.concat(tiles.deadTiles);
-        return tiles.drawnTiles.length ? tiles.drawnTiles[0] : undefined;
-      }
-      return tile;
-    }),
-  );
-
   return {
     ...gameState,
-    currentPhase: GamePhase.PLAY_TILE,
-    currentPlayer: nextPlayerId,
-    currentTurn: nextPlayerId === 0 ? gameState.currentTurn + 1 : gameState.currentTurn,
     hotels: gameState.hotels.map((hotel) => {
       const numShares = shares[hotel.name];
       if (!numShares) return hotel;
@@ -122,12 +85,7 @@ export const buySharesReducer = (
     players: gameState.players.map((player) =>
       player.id === playerId ? { ...player, money: player.money - totalCost } : player
     ),
-    // Of course nextplayer tiles may be unaltered, but no harm in just updating them anyway
-    tiles: updateTiles(gameState.tiles, [
-      ...playerTiles.drawnTiles,
-      ...deadTiles,
-      ...nextPlayerTiles,
-    ]),
+    ...advancePlayerUseCase(gameState),
     mergeContext: undefined,
     mergerTieContext: undefined,
   };

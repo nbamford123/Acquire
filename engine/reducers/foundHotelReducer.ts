@@ -68,6 +68,7 @@ export const foundHotelReducer = (
   const awardedShare = newHotel.shares.findIndex((share) => share.location === 'bank');
   return {
     ...gameState,
+    // TODO(me): domain function canBuyShares, or advance turn useCase
     currentPhase: GamePhase.BUY_SHARES,
     hotels: [
       ...gameState.hotels.map((hotel) =>

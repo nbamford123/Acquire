@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from '@std/assert';
-import { handleMerger } from '../gameStateUpdater.ts';
+import { resolveMergerUseCase } from '../../reducers/prepareMergerReducer.ts';
 import { initializeTiles } from '../../domain/tileOperations.ts';
 import { initializeHotels } from '../../domain/hotelOperations.ts';
 import {
@@ -121,7 +121,7 @@ Deno.test('handleMerger basic functionality tests', async (t) => {
       ],
     };
 
-    const result = handleMerger(players, tiles, hotels, mergeContext);
+    const result = resolveMergerUseCase({ players, tiles, hotels, mergeContext });
 
     // Should transition to RESOLVE_MERGER phase
     assertEquals(result.currentPhase, GamePhase.RESOLVE_MERGER);
@@ -166,7 +166,7 @@ Deno.test('handleMerger basic functionality tests', async (t) => {
       ],
     };
 
-    const result = handleMerger(players, tiles, hotels, mergeContext);
+    const result = resolveMergerUseCase({ players, tiles, hotels, mergeContext });
 
     // Should transition to BREAK_MERGER_TIE phase
     assertEquals(result.currentPhase, GamePhase.BREAK_MERGER_TIE);
@@ -206,7 +206,7 @@ Deno.test('handleMerger basic functionality tests', async (t) => {
       merged: 'Sackson',
     };
 
-    const result = handleMerger(players, tiles, hotels, mergeContext, resolvedTie);
+    const result = resolveMergerUseCase({ players, tiles, hotels, mergeContext }, resolvedTie);
 
     // Should transition to RESOLVE_MERGER phase
     assertEquals(result.currentPhase, GamePhase.RESOLVE_MERGER);
@@ -244,7 +244,7 @@ Deno.test('handleMerger edge cases and error conditions', async (t) => {
     };
 
     const error = assertThrows(
-      () => handleMerger(players, tiles, hotels, mergeContext),
+      () => resolveMergerUseCase({ players, tiles, hotels, mergeContext }),
       GameError,
       'Unable to find hotel NonExistentHotel',
     );
@@ -276,7 +276,7 @@ Deno.test('handleMerger edge cases and error conditions', async (t) => {
     };
 
     const error = assertThrows(
-      () => handleMerger(players, tiles, hotels, mergeContext),
+      () => resolveMergerUseCase({ players, tiles, hotels, mergeContext }),
       GameError,
       'Invalid merger state',
     );
@@ -302,7 +302,7 @@ Deno.test('handleMerger edge cases and error conditions', async (t) => {
 
     const mergeContext = createBasicMergeContext();
 
-    const result = handleMerger(players, tiles, hotels, mergeContext);
+    const result = resolveMergerUseCase({ players, tiles, hotels, mergeContext });
 
     // Should transition to RESOLVE_MERGER phase
     assertEquals(result.currentPhase, GamePhase.RESOLVE_MERGER);
@@ -337,7 +337,7 @@ Deno.test('handleMerger edge cases and error conditions', async (t) => {
 
     const mergeContext = createBasicMergeContext();
 
-    const result = handleMerger(players, tiles, hotels, mergeContext);
+    const result = resolveMergerUseCase({ players, tiles, hotels, mergeContext });
 
     // Should transition to RESOLVE_MERGER phase
     assertEquals(result.currentPhase, GamePhase.RESOLVE_MERGER);
@@ -371,7 +371,7 @@ Deno.test('handleMerger edge cases and error conditions', async (t) => {
 
     const mergeContext = createBasicMergeContext();
 
-    const result = handleMerger(players, tiles, hotels, mergeContext);
+    const result = resolveMergerUseCase({ players, tiles, hotels, mergeContext });
 
     // Should transition to RESOLVE_MERGER phase
     assertEquals(result.currentPhase, GamePhase.RESOLVE_MERGER);
@@ -421,7 +421,7 @@ Deno.test('handleMerger tile and context management', async (t) => {
       ],
     };
 
-    const result = handleMerger(players, tiles, hotels, mergeContext);
+    const result = resolveMergerUseCase({ players, tiles, hotels, mergeContext });
 
     // Check that tiles were updated
     assertEquals(result.tiles !== undefined, true);
@@ -462,7 +462,7 @@ Deno.test('handleMerger tile and context management', async (t) => {
       ],
     };
 
-    const result = handleMerger(players, tiles, hotels, mergeContext);
+    const result = resolveMergerUseCase({ players, tiles, hotels, mergeContext });
 
     // Should have correct merge context
     assertEquals(result.mergeContext?.survivingHotel, 'Worldwide');
@@ -491,7 +491,7 @@ Deno.test('handleMerger tile and context management', async (t) => {
 
     const mergeContext = createBasicMergeContext();
 
-    const result = handleMerger(players, tiles, hotels, mergeContext);
+    const result = resolveMergerUseCase({ players, tiles, hotels, mergeContext });
 
     // Should clear merger tie context
     assertEquals(result.mergerTieContext, undefined);
@@ -531,7 +531,7 @@ Deno.test('handleMerger bonus calculation tests', async (t) => {
       additionalTiles: [],
     };
 
-    const result = handleMerger(players, tiles, hotels, mergeContext);
+    const result = resolveMergerUseCase({ players, tiles, hotels, mergeContext });
 
     // Tower is a luxury hotel, so bonuses should be higher
     // With 5 tiles: majority = 7000, minority = 3500
@@ -562,7 +562,7 @@ Deno.test('handleMerger bonus calculation tests', async (t) => {
       additionalTiles: [],
     };
 
-    const result = handleMerger(players, tiles, hotels, mergeContext);
+    const result = resolveMergerUseCase({ players, tiles, hotels, mergeContext });
 
     // With only 1 tile, bonuses should be minimal
     assertEquals(result.players![0].money >= INITIAL_PLAYER_MONEY, true);

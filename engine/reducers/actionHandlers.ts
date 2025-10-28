@@ -14,14 +14,12 @@ import {
 } from '../types/index.ts';
 import {
   addPlayerReducer,
-  breakMergerTieReducer,
   buySharesReducer,
   foundHotelReducer,
-  playTileReducer,
   removePlayerReducer,
-  resolveMergerReducer,
   startGameReducer,
 } from '../reducers/index.ts';
+import { breakMergerTieUseCase, playTileUseCase, resolveMergerUseCase } from '../usecases/index.ts';
 
 function createActionHandler<T extends GameAction>(
   handler: (state: GameState, action: T) => GameState,
@@ -39,9 +37,9 @@ export const actionHandlers: Record<
   [ActionTypes.ADD_PLAYER]: createActionHandler<AddPlayerAction>(addPlayerReducer),
   [ActionTypes.REMOVE_PLAYER]: createActionHandler<RemovePlayerAction>(removePlayerReducer),
   [ActionTypes.START_GAME]: createActionHandler<StartGameAction>(startGameReducer),
-  [ActionTypes.PLAY_TILE]: createActionHandler<PlayTileAction>(playTileReducer),
+  [ActionTypes.PLAY_TILE]: createActionHandler<PlayTileAction>(playTileUseCase),
   [ActionTypes.BUY_SHARES]: createActionHandler<BuySharesAction>(buySharesReducer),
   [ActionTypes.FOUND_HOTEL]: createActionHandler<FoundHotelAction>(foundHotelReducer),
-  [ActionTypes.RESOLVE_MERGER]: createActionHandler<ResolveMergerAction>(resolveMergerReducer),
-  [ActionTypes.BREAK_MERGER_TIE]: createActionHandler<BreakMergerTieAction>(breakMergerTieReducer),
+  [ActionTypes.RESOLVE_MERGER]: createActionHandler<ResolveMergerAction>(resolveMergerUseCase),
+  [ActionTypes.BREAK_MERGER_TIE]: createActionHandler<BreakMergerTieAction>(breakMergerTieUseCase),
 };

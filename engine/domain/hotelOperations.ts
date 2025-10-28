@@ -3,12 +3,10 @@ import {
   GameError,
   GameErrorCodes,
   type Hotel,
-  HOTEL_CONFIG,
   type HOTEL_NAME,
   HOTEL_NAMES,
   SAFE_HOTEL_SIZE,
   type Share,
-  SharePrices,
 } from '../types/index.ts';
 import { getHotelPrice } from '../utils/getHotelPrice.ts';
 
@@ -89,3 +87,26 @@ export const getHotelsByNames = (hotels: Hotel[], names: HOTEL_NAME[]) =>
     }
     return hotel;
   });
+
+// Return a map of playerId to number of shares held for the given hotel
+export const getStockHolders = (hotel: Hotel) =>
+  hotel.shares
+    .filter((share) => share.location !== 'bank')
+    .reduce((acc, share) => {
+      const playerId = share.location;
+      acc.set(playerId, (acc.get(playerId) || 0) + 1);
+      return acc;
+    }, new Map());
+
+export const getAvailableHotelNames = (board: BoardTile[]) =>
+  HOTEL_NAMES.filter((hotel) => hotelTiles(hotel, board).length > 0);
+
+export const canBuyShares = (money: number, hotels: Hotel[], board: BoardTile[]) => {
+  const availableHotels = hotels.filter((hotel) =>
+    hotelTiles(hotel.name, board).length > 0 &&
+    hotel.shares.some((share) => share.location === 'bank')
+  );
+  const lowestSharePrice = Math.min(...availableHotels.map((hotel) => sharePrice(hotel, board)));
+  // They can buy at least one share
+  return money >= lowestSharePrice;
+};

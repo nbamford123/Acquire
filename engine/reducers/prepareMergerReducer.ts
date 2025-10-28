@@ -4,64 +4,41 @@ import {
   GamePhase,
   type GameState,
   type Hotel,
-  type MergeContext,
+  type MergeResult,
   type Player,
-  type ResolvedTie,
   type Tile,
 } from '../types/index.ts';
 import {
   boardTiles,
   calculateShareholderPayouts,
   majorityMinorityValue,
-  mergeHotels,
+  updateTiles,
 } from '../domain/index.ts';
-import { updateTiles } from '../domain/tileOperations.ts';
+import { getStockHolders } from '../domain/hotelOperations.ts';
 
-export const handleMerger = (
+// Do stock payouts and update tiles, plus prepare for next stockholder
+export const prepareMergerReducer = (
   players: Player[],
-  gameTiles: Tile[],
-  gameHotels: Hotel[],
-  mergeContext: MergeContext,
-  resolvedTie?: ResolvedTie,
+  tiles: Tile[],
+  hotels: Hotel[],
+  result: Extract<MergeResult, { needsMergeOrder: false }>,
 ): Partial<GameState> => {
-  const gameBoard = boardTiles(gameTiles);
-  const result = mergeHotels(
-    mergeContext,
-    gameBoard,
-    resolvedTie,
-  );
-  // Found a tie, send back to player for resolution
-  if (result.needsMergeOrder) {
-    return {
-      currentPhase: GamePhase.BREAK_MERGER_TIE,
-      mergerTieContext: {
-        tiedHotels: result.tiedHotels,
-      },
-      mergeContext: { ...mergeContext, ...result.mergeContext },
-    };
-  }
-
   // pay the majority and minority shareholders
-  const merged = gameHotels.find((h) => h.name === result.mergedHotel);
+  const merged = hotels.find((h) => h.name === result.mergedHotel);
   if (!merged) {
     throw new GameError(
       `Unable to find hotel ${result.mergedHotel}`,
       GameErrorCodes.GAME_PROCESSING_ERROR,
     );
   }
-  const stockHolders = merged.shares
-    .filter((share) => share.location !== 'bank')
-    .reduce((acc, share) => {
-      const playerId = share.location;
-      acc.set(playerId, (acc.get(playerId) || 0) + 1);
-      return acc;
-    }, new Map());
+  const stockHolders = getStockHolders(merged);
   const sortedStockHolders = Array.from(stockHolders.entries())
     .sort(([, countA], [, countB]) => countB - countA)
     .map(([playerId, stockCount]) => ({ playerId, stockCount }));
 
   // It's not technically possible for a hotel to be merged with no stockholders, but  ¯\_(ツ)_/¯
   if (sortedStockHolders.length) {
+    const gameBoard = boardTiles(tiles);
     const [majority, minority] = majorityMinorityValue(merged, gameBoard);
     const payouts = calculateShareholderPayouts(majority, minority, sortedStockHolders);
     return {
@@ -74,7 +51,7 @@ export const handleMerger = (
           return player;
         }
       }),
-      tiles: updateTiles(gameTiles, result.survivorTiles),
+      tiles: updateTiles(tiles, result.survivorTiles),
       mergeContext: {
         stockholderIds: sortedStockHolders.map(({ playerId }) => playerId),
         survivingHotel: result.survivingHotel,

@@ -8,18 +8,8 @@ export {
   initializeTiles,
   updateTiles,
 } from './tileOperations.ts';
+export { analyzeTilePlacement } from './analyzeTilePlacement.ts';
 export { initializePlayer } from './playerOperations.ts';
-export {
-  assignSharesToPlayer,
-  getHotelsByNames,
-  getTiedHotels,
-  hotelSafe,
-  hotelTiles,
-  initializeHotels,
-  majorityMinorityValue,
-  remainingShares,
-  returnSharesToBank,
-  sharePrice,
-} from './hotelOperations.ts';
+export * from './hotelOperations.ts';
 export { mergeHotels } from './mergeHotelsOperation.ts';
 export { calculateShareholderPayouts } from './calculateShareholderPayoutsOperation.ts';

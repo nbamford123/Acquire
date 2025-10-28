@@ -9,5 +9,8 @@
   },
   "[typescriptreact]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
-  }
+  },
+  "cSpell.words": [
+    "usecases"
+  ]
 }

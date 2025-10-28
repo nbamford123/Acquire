@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from 'jsr:@std/assert';
-import { resolveMergerReducer } from '../resolveMergerReducer.ts';
+import { resolveMergerReducer } from '../completeMergerReducer.ts';
 import { initializeHotels, initializeTiles } from '../../domain/index.ts';
 import {
   ActionTypes,
