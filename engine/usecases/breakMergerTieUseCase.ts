@@ -6,7 +6,7 @@ import {
   type GameState,
 } from '../types/index.ts';
 import { breakMergerTieValidation } from '../domain/breakMergerTieValidation.ts';
-import { processMerger } from '../orchestrators/mergerOrchestrator.ts';
+import { processMergerOrchestrator } from '../orchestrators/processMergerOrchestrator.ts';
 
 export const breakMergerTieUseCase = (
   gameState: GameState,
@@ -40,14 +40,9 @@ export const breakMergerTieUseCase = (
     gameState.hotels,
   );
 
-  return {
-    ...gameState,
-    ...processMerger(
-      gameState.tiles,
-      gameState.mergeContext,
-      gameState.players,
-      gameState.hotels,
-      resolvedTie,
-    ),
-  };
+  return processMergerOrchestrator(
+    gameState,
+    gameState.mergeContext,
+    resolvedTie,
+  );
 };

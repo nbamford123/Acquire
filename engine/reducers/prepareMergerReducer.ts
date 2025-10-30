@@ -15,7 +15,6 @@ import {
   updateTiles,
 } from '../domain/index.ts';
 import { getStockHolders } from '../domain/hotelOperations.ts';
-
 // Do stock payouts and update tiles, plus prepare for next stockholder
 export const prepareMergerReducer = (
   players: Player[],

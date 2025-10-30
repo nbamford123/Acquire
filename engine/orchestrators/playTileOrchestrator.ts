@@ -1,66 +1,51 @@
+import { type BoardTile, GamePhase, type GameState } from '../types/index.ts';
 import {
-  type BoardTile,
-  GamePhase,
-  type GameState,
-  type Hotel,
-  type Player,
-  type Tile,
-} from '../types/index.ts';
-import { getAvailableHotels, updateTiles } from '../domain/index.ts';
-import { processMerger } from './mergerOrchestrator.ts';
-import { analyzeTilePlacement } from '../domain/index.ts';
-import { boardTiles } from '../domain/tileOperations.ts';
+  analyzeTilePlacement,
+  boardTiles,
+  getAvailableHotelNames,
+  updateTiles,
+} from '../domain/index.ts';
+import { growHotelReducer } from '../reducers/index.ts';
+import { processMergerOrchestrator } from './processMergerOrchestrator.ts';
+import { buySharesOrchestrator } from './buySharesOrchestrator.ts';
 
 export const playTileOrchestrator = (
+  gameState: GameState,
   playedTile: { row: number; col: number },
-  tiles: Tile[],
-  players: Player[],
-  hotels: Hotel[],
-): Partial<GameState> => {
+): GameState => {
   // Put the tile on the board
   const tile: BoardTile = { ...playedTile, location: 'board' };
-  const placement = analyzeTilePlacement(tile, tiles);
-  const updatedTiles = updateTiles([tile], tiles);
+  const placement = analyzeTilePlacement(tile, gameState.tiles);
+  const updatedGameState = {
+    ...gameState,
+    tiles: updateTiles([tile], gameState.tiles),
+  };
+
   // Will played tile get a hotel here as part of the merger logic?
   if (placement.triggersMerger) {
-    return {
-      tiles: updatedTiles,
-      ...processMerger(
-        updatedTiles,
-        {
-          originalHotels: placement.adjacentHotels,
-          additionalTiles: [tile, ...placement.additionalTiles],
-        },
-        players,
-        hotels,
-      ),
-    };
+    return processMergerOrchestrator(updatedGameState, {
+      originalHotels: placement.adjacentHotels,
+      additionalTiles: [tile, ...placement.additionalTiles],
+    });
   } else if (placement.foundsHotel) {
     return {
-      tiles: updatedTiles,
+      ...updatedGameState,
       currentPhase: GamePhase.FOUND_HOTEL,
       foundHotelContext: {
-        availableHotels: getAvailableHotels(boardTiles(tiles)),
+        availableHotels: getAvailableHotelNames(boardTiles(gameState.tiles)),
         tiles: [tile, ...placement.adjacentTiles],
       },
     };
   } else if (placement.growsHotel) {
-    return {
-      tiles: updateTiles(updatedTiles, [
-        { ...tile, hotel: placement.adjacentHotels[0] },
-        ...placement.additionalTiles.map((tile) => ({
-          ...tile,
-          hotel: placement.adjacentHotels[0],
-        })),
-      ]),
-      // TODO(me): domain function for canBuyShares, domain function to advance turn? or use case?
-      currentPhase: GamePhase.BUY_SHARES,
-    };
+    return buySharesOrchestrator({
+      ...growHotelReducer(
+        updatedGameState,
+        placement.adjacentHotels[0],
+        tile,
+        placement.additionalTiles,
+      ),
+    });
   }
   // else, simple placement
-  return {
-    tiles: [...updatedTiles],
-    // TODO(me): domain function for canBuyShares, domain function to advance turn? or use case?
-    currentPhase: GamePhase.BUY_SHARES,
-  };
+  return buySharesOrchestrator(updatedGameState);
 };

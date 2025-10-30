@@ -1,5 +1,5 @@
 import { resolveMergerValidation } from '../domain/resolveMergerValidation.ts';
-import { processMerger } from '../orchestrators/mergerOrchestrator.ts';
+import { buySharesOrchestrator, processMergerOrchestrator } from '../orchestrators/index.ts';
 import { completeMergerReducer } from '../reducers/index.ts';
 import {
   GameError,
@@ -32,13 +32,17 @@ export const resolveMergerUseCase = (
   );
 
   // Apply the share trading/selling state changes
-  const updatedState = completeMergerReducer(
-    gameState,
-    playerId,
-    shares!, // validated in validation function
-    survivor,
-    merged,
-  );
+  const updatedState = {
+    ...gameState,
+    // TODO(me): this should be a use case
+    ...completeMergerReducer(
+      gameState,
+      playerId,
+      shares!, // validated in validation function
+      survivor,
+      merged,
+    ),
+  };
 
   const remainingStockholderIds = stockholderIds.slice(1);
   const mergeContext = gameState.mergeContext;
@@ -47,7 +51,6 @@ export const resolveMergerUseCase = (
   if (remainingStockholderIds.length) {
     // More stockholders in this merger
     return {
-      ...gameState,
       ...updatedState,
       mergeContext: {
         ...mergeContext,
@@ -56,24 +59,12 @@ export const resolveMergerUseCase = (
     };
   } else if (mergeContext.originalHotels.length) {
     // More mergers to perform
-    const nextMergerState = processMerger(
-      gameState.tiles,
+    return processMergerOrchestrator(
+      updatedState,
       mergeContext,
-      gameState.players,
-      gameState.hotels,
     );
-    return {
-      ...gameState,
-      ...nextMergerState,
-    };
   } else {
     // All done, move to buy shares
-    return {
-      ...gameState,
-      ...updatedState,
-      // TODO(me): canBuyShares domain function? Else advanceTurn domain function?
-      currentPhase: GamePhase.BUY_SHARES,
-      mergeContext: undefined,
-    };
+    return buySharesOrchestrator(updatedState);
   }
 };

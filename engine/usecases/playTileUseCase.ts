@@ -20,12 +20,10 @@ export const playTileUseCase = (
   if (gameState.currentPhase !== GamePhase.PLAY_TILE) {
     throw new GameError('Invalid action', GameErrorCodes.GAME_INVALID_ACTION);
   }
+  // Domain validation
   const gameTile = getTile(gameState.tiles, tile.row, tile.col);
   if (!gameTile || gameTile.location !== playerId) {
     throw new GameError('Invalid or not player tile', GameErrorCodes.GAME_INVALID_ACTION);
   }
-  return {
-    ...gameState,
-    ...playTileOrchestrator(tile, gameState.tiles, gameState.players, gameState.hotels),
-  };
+  return playTileOrchestrator(gameState, tile);
 };

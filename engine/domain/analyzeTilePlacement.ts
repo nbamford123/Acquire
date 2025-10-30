@@ -1,6 +1,6 @@
-import type { Hotel, HOTEL_NAME, Tile } from '@acquire/engine/types';
+import type { HOTEL_NAME, Tile } from '@acquire/engine/types';
 import { getAdjacentPositions } from '../utils/getAdjacentPositions.ts';
-import { boardTiles, getAvailableHotels, getTile } from './index.ts';
+import { boardTiles, getAvailableHotelNames, getTile } from './index.ts';
 
 export const analyzeTilePlacement = (tile: Tile, tiles: Tile[]) => {
   const adjacentTiles = getAdjacentPositions(tile.row, tile.col).map(([r, c]) =>
@@ -11,7 +11,7 @@ export const analyzeTilePlacement = (tile: Tile, tiles: Tile[]) => {
   );
   const adjacentHotels = adjacentTiles
     .flatMap((tile) => tile.hotel ? [tile.hotel] : []);
-  const availableHotels = getAvailableHotels(boardTiles(tiles));
+  const availableHotels = getAvailableHotelNames(boardTiles(tiles));
 
   const triggersMerger = adjacentHotels.length >= 2;
   const foundsHotel = adjacentHotels.length === 0 && adjacentTiles.length >= 1 &&

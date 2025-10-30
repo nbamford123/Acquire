@@ -6,7 +6,7 @@ import {
   GamePhase,
   type GameState,
 } from '../types/index.ts';
-import { advancePlayerUseCase } from '../usecases/advanceTurnUseCase.ts';
+import { advancePlayerUseCase } from '../orchestrators/advanceTurnOrchestrator.ts';
 
 // TODO(me): this is a lot of validation, could pull it out
 export const buySharesReducer = (

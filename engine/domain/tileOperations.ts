@@ -57,25 +57,24 @@ export const getPlayerTiles = (playerId: number, tiles: Tile[]) =>
 
 // Will only return the number of tiles left in the bag at most
 export const drawTiles = (
-  availableTiles: Tile[],
+  tiles: Tile[],
   playerId: number,
   boardTiles: BoardTile[],
   count: number,
-): { drawnTiles: Tile[]; deadTiles: Tile[]; remainingTiles: Tile[] } => {
-  const shuffled = shuffleTiles([...availableTiles]);
+): Tile[] => {
+  const shuffled = shuffleTiles(tiles.filter((tile) => tile.location === 'bag'));
   const drawn: Tile[] = [];
   const dead: Tile[] = [];
-  const remaining = [...shuffled];
+  let index = 0;
 
-  while (drawn.length < count && remaining.length > 0) {
-    const tile = remaining.shift()!;
-
+  while (drawn.length < count && index < shuffled.length) {
+    const tile = shuffled[index++];
     if (deadTile(tile, boardTiles)) {
       dead.push({ ...tile, location: 'dead' });
     } else {
       drawn.push({ ...tile, location: playerId });
     }
   }
-
-  return { drawnTiles: drawn, deadTiles: dead, remainingTiles: remaining };
+  const remaining = shuffled.slice(index);
+  return [...drawn, ...dead, ...remaining];
 };
