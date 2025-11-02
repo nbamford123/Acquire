@@ -3,7 +3,6 @@ import {
   boardTiles,
   deadTile,
   drawTiles,
-  getBoardTile,
   getPlayerTiles,
   getTile,
   initializeTiles,
@@ -310,7 +309,7 @@ Deno.test('updateTiles', async (t) => {
   });
 });
 
-Deno.test('getBoardTile', async (t) => {
+Deno.test('getBoardTile (via getTile)', async (t) => {
   await t.step('finds tile at specified position', () => {
     const tiles: BoardTile[] = [
       createBoardTile(0, 0),
@@ -318,7 +317,7 @@ Deno.test('getBoardTile', async (t) => {
       createBoardTile(1, 0),
     ];
 
-    const result = getBoardTile(tiles, 0, 1);
+    const result = getTile(tiles, 0, 1);
     assertEquals(result, tiles[1]);
   });
 
@@ -328,12 +327,12 @@ Deno.test('getBoardTile', async (t) => {
       createBoardTile(0, 1),
     ];
 
-    const result = getBoardTile(tiles, 5, 5);
+    const result = getTile(tiles, 5, 5);
     assertEquals(result, undefined);
   });
 
   await t.step('handles empty array', () => {
-    const result = getBoardTile([], 0, 0);
+    const result = getTile([], 0, 0);
     assertEquals(result, undefined);
   });
 });
@@ -413,13 +412,16 @@ Deno.test('drawTiles', async (t) => {
     const count = 3;
 
     const result = drawTiles(availableTiles, playerId, boardTiles, count);
+    const drawn = result.filter((t) => t.location === playerId);
+    const deadTiles = result.filter((t) => t.location === 'dead');
+    const remaining = result.filter((t) => t.location === 'bag');
 
-    assertEquals(result.drawnTiles.length, 3);
-    assertEquals(result.deadTiles.length, 0);
-    assertEquals(result.remainingTiles.length, 1);
+    assertEquals(drawn.length, 3);
+    assertEquals(deadTiles.length, 0);
+    assertEquals(remaining.length, 1);
 
     // Check that drawn tiles have correct player location
-    result.drawnTiles.forEach((tile) => {
+    drawn.forEach((tile) => {
       assertEquals(tile.location, playerId);
     });
   });
@@ -445,12 +447,14 @@ Deno.test('drawTiles', async (t) => {
     const count = 3;
 
     const result = drawTiles(availableTiles, playerId, boardTiles, count);
+    const drawn = result.filter((t) => t.location === playerId);
+    const deadTiles = result.filter((t) => t.location === 'dead');
 
-    assertEquals(result.drawnTiles.length, 2);
-    assertEquals(result.deadTiles.length, 1);
-    assertEquals(result.deadTiles[0].location, 'dead');
-    assertEquals(result.deadTiles[0].row, 5);
-    assertEquals(result.deadTiles[0].col, 5);
+    assertEquals(drawn.length, 2);
+    assertEquals(deadTiles.length, 1);
+    assertEquals(deadTiles[0].location, 'dead');
+    assertEquals(deadTiles[0].row, 5);
+    assertEquals(deadTiles[0].col, 5);
   });
 
   await t.step('stops when no more tiles available', () => {
@@ -463,10 +467,13 @@ Deno.test('drawTiles', async (t) => {
     const count = 5; // More than available
 
     const result = drawTiles(availableTiles, playerId, boardTiles, count);
+    const drawn = result.filter((t) => t.location === playerId);
+    const deadTiles = result.filter((t) => t.location === 'dead');
+    const remaining = result.filter((t) => t.location === 'bag');
 
-    assertEquals(result.drawnTiles.length, 2);
-    assertEquals(result.deadTiles.length, 0);
-    assertEquals(result.remainingTiles.length, 0);
+    assertEquals(drawn.length, 2);
+    assertEquals(deadTiles.length, 0);
+    assertEquals(remaining.length, 0);
   });
 
   await t.step('continues drawing when encountering dead tiles', () => {
@@ -494,18 +501,21 @@ Deno.test('drawTiles', async (t) => {
     const count = 5;
 
     const result = drawTiles(availableTiles, playerId, boardTiles, count);
+    const drawn = result.filter((t) => t.location === playerId);
+    const deadTiles = result.filter((t) => t.location === 'dead');
+    const remaining = result.filter((t) => t.location === 'bag');
 
-    assertEquals(result.drawnTiles.length, 3);
-    assertEquals(result.deadTiles.length, 2);
-    assertEquals(result.remainingTiles.length, 0);
+    assertEquals(drawn.length, 3);
+    assertEquals(deadTiles.length, 2);
+    assertEquals(remaining.length, 0);
 
     // Check that all drawn tiles belong to player
-    result.drawnTiles.forEach((tile) => {
+    drawn.forEach((tile) => {
       assertEquals(tile.location, playerId);
     });
 
     // Check that dead tiles are marked as dead
-    result.deadTiles.forEach((tile) => {
+    deadTiles.forEach((tile) => {
       assertEquals(tile.location, 'dead');
     });
   });
@@ -531,10 +541,13 @@ Deno.test('drawTiles', async (t) => {
     const playerId = 1;
     const count = 3;
     const result = drawTiles(availableTiles, playerId, boardTiles, count);
+    const drawn = result.filter((t) => t.location === playerId);
+    const deadTiles = result.filter((t) => t.location === 'dead');
+    const remaining = result.filter((t) => t.location === 'bag');
 
-    assertEquals(result.drawnTiles.length, 0);
-    assertEquals(result.deadTiles.length, 2);
-    assertEquals(result.remainingTiles.length, 0);
+    assertEquals(drawn.length, 0);
+    assertEquals(deadTiles.length, 2);
+    assertEquals(remaining.length, 0);
   });
 
   await t.step('does not mutate original available tiles array', () => {
@@ -554,9 +567,12 @@ Deno.test('drawTiles', async (t) => {
 
   await t.step('handles empty available tiles', () => {
     const result = drawTiles([], 1, [], 3);
+    const drawn = result.filter((t) => t.location === 1);
+    const deadTiles = result.filter((t) => t.location === 'dead');
+    const remaining = result.filter((t) => t.location === 'bag');
 
-    assertEquals(result.drawnTiles.length, 0);
-    assertEquals(result.deadTiles.length, 0);
-    assertEquals(result.remainingTiles.length, 0);
+    assertEquals(drawn.length, 0);
+    assertEquals(deadTiles.length, 0);
+    assertEquals(remaining.length, 0);
   });
 });

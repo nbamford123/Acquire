@@ -1,19 +1,14 @@
+import { boardTiles, getBoardTile, getHotelsByNames, getMergeContext } from '../domain/index.ts';
 import {
   type BreakMergerTieAction,
   GameError,
   GameErrorCodes,
-  type Hotel,
-  MergeContext,
-  type Tile
+  type GameState,
 } from '../types/index.ts';
-import { getHotelsByNames } from '../domain/index.ts';
-import { boardTiles, getBoardTile } from '../domain/tileOperations.ts';
 
 export const breakMergerTieValidation = (
   action: BreakMergerTieAction,
-  mergeContext: MergeContext,
-  tiles: Tile[],
-  hotels: Hotel[],
+  gameState: GameState,
 ): void => {
   if (!action.payload.resolvedTie.survivor || !action.payload.resolvedTie.merged) {
     throw new GameError(
@@ -21,14 +16,14 @@ export const breakMergerTieValidation = (
       GameErrorCodes.GAME_INVALID_ACTION,
     );
   }
-
-  const gameBoard = boardTiles(tiles);
+  const mergeContext = getMergeContext(gameState);
+  const gameBoard = boardTiles(gameState.tiles);
   const { survivingHotel, originalHotels, additionalTiles } = mergeContext;
-  const survivor = hotels.find((hotel) => hotel.name === survivingHotel);
-  const otherHotels = getHotelsByNames(hotels, originalHotels || []);
+  const survivor = gameState.hotels.find((hotel) => hotel.name === survivingHotel);
+  const otherHotels = getHotelsByNames(gameState.hotels, originalHotels || []);
   const otherTiles = (additionalTiles || []).map((
     tile,
-  ) => getBoardTile(gameBoard, tile.row, tile.col)!);
+  ) => getBoardTile(gameBoard, tile.row, tile.col));
 
   if (!survivor || !otherHotels.length || otherTiles.some((tile) => tile === undefined)) {
     throw new GameError(

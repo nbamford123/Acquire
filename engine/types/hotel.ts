@@ -15,6 +15,11 @@ export type HOTEL_NAME = typeof HOTEL_NAMES[number];
 export const HOTEL_TYPES = ['economy', 'standard', 'luxury'] as const;
 export type HOTEL_TYPE = typeof HOTEL_TYPES[number];
 
+export type FoundHotelContext = {
+  availableHotels: HOTEL_NAME[];
+  tiles: { row: number; col: number }[];
+};
+
 // The mapping object
 export const HOTEL_CONFIG = {
   Worldwide: 'economy',

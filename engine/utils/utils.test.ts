@@ -8,7 +8,11 @@ import {
   cmpTiles,
   filterDefined,
   getAdjacentPositions,
+  getHotelPrice,
   getPlayerView,
+  getStockholderMap,
+  getTileLabel,
+  roundUpToNearestHundred,
   shuffleTiles,
   sortTiles,
 } from './index.ts';
@@ -22,6 +26,107 @@ const createTile = (
   row,
   col,
   location,
+});
+
+// getHotelPrice tests (use real hotel config from types)
+Deno.test('getHotelPrice - returns correct price object for bracket', () => {
+  // Using an actual hotel name from HOTEL_NAMES (Worldwide -> economy)
+  const result2 = getHotelPrice('Worldwide', 2);
+  // result should be the price object for bracket 2
+  assertEquals(result2, { price: 200, majority: 2000, minority: 1000 });
+
+  const result4 = getHotelPrice('Worldwide', 4);
+  assertEquals(result4, { price: 400, majority: 4000, minority: 2000 });
+
+  const resultLarge = getHotelPrice('Worldwide', Number.MAX_SAFE_INTEGER);
+  // largest bracket returns the last defined entry
+  assertEquals(resultLarge, { price: 1000, majority: 10000, minority: 5000 });
+});
+
+Deno.test('getHotelPrice - handles standard and luxury hotel types', () => {
+  // Festival is standard
+  const fest2 = getHotelPrice('Festival', 2);
+  assertEquals(fest2, { price: 300, majority: 3000, minority: 1500 });
+
+  const fest5 = getHotelPrice('Festival', 5);
+  assertEquals(fest5, { price: 600, majority: 6000, minority: 3000 });
+
+  const festMax = getHotelPrice('Festival', Number.MAX_SAFE_INTEGER);
+  assertEquals(festMax, { price: 1100, majority: 11000, minority: 5500 });
+
+  // Continental is luxury
+  const cont2 = getHotelPrice('Continental', 2);
+  assertEquals(cont2, { price: 400, majority: 4000, minority: 2000 });
+
+  const cont40 = getHotelPrice('Continental', 40);
+  assertEquals(cont40, { price: 1100, majority: 11000, minority: 5500 });
+
+  const contMax = getHotelPrice('Continental', Number.MAX_SAFE_INTEGER);
+  assertEquals(contMax, { price: 1200, majority: 12000, minority: 6000 });
+});
+
+Deno.test('getHotelPrice - returns 0 when provided prices map has no matching brackets', () => {
+  // Pass an empty prices map to exercise the fallback branch
+  const result = getHotelPrice('Worldwide', 2, {} as any);
+  assertEquals(result, 0);
+});
+
+Deno.test('getHotelPrice - works with Map input and respects numeric ordering', () => {
+  const prices = new Map<number, { price: number; majority: number; minority: number }>([
+    [5, { price: 500, majority: 5000, minority: 2500 }],
+    [2, { price: 200, majority: 2000, minority: 1000 }],
+  ]);
+
+  // size=3 should not match bracket 2, but should match bracket 5
+  const result = getHotelPrice('Worldwide', 3, prices);
+  assertEquals(result, { price: 500, majority: 5000, minority: 2500 });
+});
+
+Deno.test('getHotelPrice - works with Map input when size is small', () => {
+  const prices = new Map<number, { price: number; majority: number; minority: number }>([
+    [3, { price: 300, majority: 3000, minority: 1500 }],
+    [10, { price: 600, majority: 6000, minority: 3000 }],
+  ]);
+
+  // size=2 should match first bracket (3)
+  const result = getHotelPrice('Festival', 2, prices);
+  assertEquals(result, { price: 300, majority: 3000, minority: 1500 });
+});
+
+Deno.test('getHotelPrice - returns 0 for empty Map input', () => {
+  const prices = new Map<number, { price: number; majority: number; minority: number }>();
+  const result = getHotelPrice('Continental', 1, prices);
+  assertEquals(result, 0);
+});
+
+// getStockholderMap tests
+Deno.test('getStockholderMap - sorts and maps stockholder map', () => {
+  const map = new Map<number, number>([[2, 5], [1, 10], [3, 7]]);
+  const result = getStockholderMap(map);
+  assertEquals(result, [
+    { playerId: 1, stockCount: 10 },
+    { playerId: 3, stockCount: 7 },
+    { playerId: 2, stockCount: 5 },
+  ]);
+});
+
+// getTileLabel tests
+Deno.test('getTileLabel - returns correct label for tile', () => {
+  // Mock CHARACTER_CODE_A
+  // @ts-ignore: Injecting CHARACTER_CODE_A for test
+  globalThis.CHARACTER_CODE_A = 65;
+  // @ts-ignore: Using injected CHARACTER_CODE_A for test
+  assertEquals(getTileLabel({ row: 0, col: 0 }), '1A');
+  // @ts-ignore: Using injected CHARACTER_CODE_A for test
+  assertEquals(getTileLabel({ row: 2, col: 3 }), '4C');
+});
+
+// roundUpToNearestHundred tests
+Deno.test('roundUpToNearestHundred - rounds up correctly', () => {
+  assertEquals(roundUpToNearestHundred(50), 100);
+  assertEquals(roundUpToNearestHundred(100), 100);
+  assertEquals(roundUpToNearestHundred(101), 200);
+  assertEquals(roundUpToNearestHundred(0), 0);
 });
 
 // cmpTiles tests
@@ -387,11 +492,9 @@ Deno.test('getPlayerView - returns correct hotel shares available in bank', () =
   const gameState = createGameState();
   const playerView = getPlayerView('player1', gameState);
 
-  // Note: There's a bug in the original code - it uses = instead of ===
-  // This causes it to count ALL shares instead of just bank shares
-  // The bug makes it return the total number of shares for each hotel
-  assertEquals(playerView.hotels['Worldwide'].shares, 3); // Total shares due to bug
-  assertEquals(playerView.hotels['Sackson'].shares, 4); // Total shares due to bug
+  // The hotels mapping counts only bank shares
+  assertEquals(playerView.hotels['Worldwide'].shares, 2);
+  assertEquals(playerView.hotels['Sackson'].shares, 1);
 });
 
 Deno.test('getPlayerView - includes board tiles', () => {

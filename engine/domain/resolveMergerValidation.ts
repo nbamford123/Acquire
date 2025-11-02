@@ -1,13 +1,13 @@
-import { GameError, GameErrorCodes, type GameState } from '../types/index.ts';
-import { remainingShares } from '../domain/index.ts';
-import { Hotel } from '../types/hotel.ts';
+import { getMergeContext, remainingShares } from './index.ts';
+import { GameError, GameErrorCodes, type GameState, type Hotel } from '../types/index.ts';
 
 export const resolveMergerValidation = (
   gameState: GameState,
   playerId: number,
   shares: { sell: number; trade: number } | undefined,
 ): { merged: Hotel; survivor: Hotel; stockholderIds: number[] } => {
-  const { survivingHotel, mergedHotel, stockholderIds } = gameState.mergeContext || {};
+  const mergeContext = getMergeContext(gameState);
+  const { survivingHotel, mergedHotel, stockholderIds } = mergeContext;
   if (!stockholderIds || !survivingHotel || !mergedHotel || !shares) {
     throw new GameError('Invalid hotel merger context', GameErrorCodes.GAME_PROCESSING_ERROR);
   }

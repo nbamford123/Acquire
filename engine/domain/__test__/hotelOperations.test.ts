@@ -284,7 +284,7 @@ Deno.test('sharePrice', async (t) => {
     const hotel = createHotel('Worldwide', 'economy');
     const tiles = createHotelTiles('Worldwide', 2);
 
-    const price = sharePrice(hotel, tiles);
+    const price = sharePrice(hotel.name, tiles);
     assertEquals(price, 200); // economy hotel, 2 tiles
   });
 
@@ -292,7 +292,7 @@ Deno.test('sharePrice', async (t) => {
     const hotel = createHotel('Festival', 'standard');
     const tiles = createHotelTiles('Festival', 5);
 
-    const price = sharePrice(hotel, tiles);
+    const price = sharePrice(hotel.name, tiles);
     assertEquals(price, 600); // standard hotel, 5 tiles
   });
 
@@ -300,7 +300,7 @@ Deno.test('sharePrice', async (t) => {
     const hotel = createHotel('Continental', 'luxury');
     const tiles = createHotelTiles('Continental', 10);
 
-    const price = sharePrice(hotel, tiles);
+    const price = sharePrice(hotel.name, tiles);
     assertEquals(price, 800); // luxury hotel, 10 tiles
   });
 
@@ -308,7 +308,7 @@ Deno.test('sharePrice', async (t) => {
     const hotel = createHotel('Tower', 'luxury');
     const tiles = createHotelTiles('Tower', 50); // larger than any bracket
 
-    const price = sharePrice(hotel, tiles);
+    const price = sharePrice(hotel.name, tiles);
     assertEquals(price, 1200); // luxury hotel, max price
   });
 
@@ -317,7 +317,7 @@ Deno.test('sharePrice', async (t) => {
     const tiles: BoardTile[] = []; // no tiles for this hotel
 
     // When hotel has 0 tiles, it should use the first price bracket (size 2)
-    const price = sharePrice(hotel, tiles);
+    const price = sharePrice(hotel.name, tiles);
     assertEquals(price, 200); // economy hotel, 0 tiles falls into first bracket (2)
   });
 });

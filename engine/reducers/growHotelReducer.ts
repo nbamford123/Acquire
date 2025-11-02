@@ -1,5 +1,5 @@
-import { type BoardTile, type GameState, type HOTEL_NAME } from '../types/index.ts';
 import { updateTiles } from '../domain/index.ts';
+import type { BoardTile, GameState, HOTEL_NAME } from '../types/index.ts';
 
 export const growHotelReducer = (
   gameState: GameState,

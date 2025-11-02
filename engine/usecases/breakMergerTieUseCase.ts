@@ -1,3 +1,5 @@
+import { breakMergerTieValidation } from '../domain/breakMergerTieValidation.ts';
+import { processMergerOrchestrator } from '../orchestrators/processMergerOrchestrator.ts';
 import {
   type BreakMergerTieAction,
   GameError,
@@ -5,8 +7,6 @@ import {
   GamePhase,
   type GameState,
 } from '../types/index.ts';
-import { breakMergerTieValidation } from '../domain/breakMergerTieValidation.ts';
-import { processMergerOrchestrator } from '../orchestrators/processMergerOrchestrator.ts';
 
 export const breakMergerTieUseCase = (
   gameState: GameState,
@@ -29,20 +29,13 @@ export const breakMergerTieUseCase = (
       GameErrorCodes.GAME_INVALID_ACTION,
     );
   }
-  if (!gameState.mergeContext) {
-    throw new GameError('Missing merge context', GameErrorCodes.GAME_INVALID_ACTION);
-  }
-
   breakMergerTieValidation(
     action,
-    gameState.mergeContext,
-    gameState.tiles,
-    gameState.hotels,
+    gameState
   );
 
   return processMergerOrchestrator(
     gameState,
-    gameState.mergeContext,
     resolvedTie,
   );
 };

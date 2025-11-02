@@ -7,12 +7,15 @@ export const advanceTurnOrchestrator = (
   const { currentPlayer, currentTurn, players, tiles } = gameState;
 
   const nextPlayerId = (currentPlayer + 1) % players.length;
-  // TODO(me): undef out all contexts: merge, foundhotel, etc.
   return {
     ...gameState,
     currentPhase: GamePhase.PLAY_TILE,
     currentPlayer: nextPlayerId,
     currentTurn: nextPlayerId === 0 ? currentTurn + 1 : currentTurn,
     ...drawAndReplaceTilesReducer(currentPlayer, tiles, players),
+    mergeContext: undefined,
+    mergerTieContext: undefined,
+    foundHotelContext: undefined,
+    error: undefined,
   };
 };

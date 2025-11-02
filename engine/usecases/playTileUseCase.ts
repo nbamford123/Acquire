@@ -1,3 +1,5 @@
+import { playTileValidation } from '../domain/index.ts';
+import { playTileOrchestrator } from '../orchestrators/playTileOrchestrator.ts';
 import {
   GameError,
   GameErrorCodes,
@@ -5,8 +7,6 @@ import {
   type GameState,
   type PlayTileAction,
 } from '../types/index.ts';
-import { getTile } from '../domain/index.ts';
-import { playTileOrchestrator } from '../orchestrators/playTileOrchestrator.ts';
 
 export const playTileUseCase = (
   gameState: GameState,
@@ -21,9 +21,7 @@ export const playTileUseCase = (
     throw new GameError('Invalid action', GameErrorCodes.GAME_INVALID_ACTION);
   }
   // Domain validation
-  const gameTile = getTile(gameState.tiles, tile.row, tile.col);
-  if (!gameTile || gameTile.location !== playerId) {
-    throw new GameError('Invalid or not player tile', GameErrorCodes.GAME_INVALID_ACTION);
-  }
+  playTileValidation(playerId, tile, gameState.tiles);
+
   return playTileOrchestrator(gameState, tile);
 };

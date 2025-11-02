@@ -12,10 +12,11 @@ import {
   type ResolveMergerAction,
   type StartGameAction,
 } from '../types/index.ts';
-import { buySharesReducer, foundHotelReducer } from '../reducers/index.ts';
 import {
   addPlayerUseCase,
   breakMergerTieUseCase,
+  buySharesUseCase,
+  foundHotelUseCase,
   playTileUseCase,
   removePlayerUseCase,
   resolveMergerUseCase,
@@ -39,8 +40,8 @@ export const actionHandlers: Record<
   [ActionTypes.REMOVE_PLAYER]: createActionHandler<RemovePlayerAction>(removePlayerUseCase),
   [ActionTypes.START_GAME]: createActionHandler<StartGameAction>(startGameUseCase),
   [ActionTypes.PLAY_TILE]: createActionHandler<PlayTileAction>(playTileUseCase),
-  [ActionTypes.BUY_SHARES]: createActionHandler<BuySharesAction>(buySharesReducer),
-  [ActionTypes.FOUND_HOTEL]: createActionHandler<FoundHotelAction>(foundHotelReducer),
+  [ActionTypes.BUY_SHARES]: createActionHandler<BuySharesAction>(buySharesUseCase),
+  [ActionTypes.FOUND_HOTEL]: createActionHandler<FoundHotelAction>(foundHotelUseCase),
   [ActionTypes.RESOLVE_MERGER]: createActionHandler<ResolveMergerAction>(resolveMergerUseCase),
   [ActionTypes.BREAK_MERGER_TIE]: createActionHandler<BreakMergerTieAction>(breakMergerTieUseCase),
 };

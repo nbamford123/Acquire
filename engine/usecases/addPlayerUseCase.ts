@@ -1,3 +1,4 @@
+import { addPlayerValidation, initializePlayer } from '../domain/index.ts';
 import {
   type AddPlayerAction,
   GameError,
@@ -5,7 +6,6 @@ import {
   GamePhase,
   type GameState,
 } from '../types/index.ts';
-import { addPlayerValidation, initializePlayer } from '../domain/index.ts';
 
 export const addPlayerUseCase = (
   gameState: GameState,

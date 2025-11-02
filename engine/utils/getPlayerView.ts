@@ -67,7 +67,7 @@ export const getPlayerView = (playerName: string, gameState: GameState): PlayerV
       (hotelShares, hotel) => ({
         ...hotelShares,
         [hotel.name]: {
-          shares: hotel.shares.filter((share) => share.location = 'bank').length,
+          shares: hotel.shares.filter((share) => share.location === 'bank').length,
           size: board.filter((tile) => tile.hotel === hotel.name).length,
         },
       }),

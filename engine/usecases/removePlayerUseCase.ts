@@ -5,7 +5,6 @@ import {
   type GameState,
   type RemovePlayerAction,
 } from '../types/index.ts';
-import { addPlayerValidation } from '../domain/index.ts';
 
 export const removePlayerUseCase = (
   gameState: GameState,

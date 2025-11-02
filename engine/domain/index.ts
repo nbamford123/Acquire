@@ -1,8 +1,8 @@
+export * from './assertions.ts';
 export {
   boardTiles,
   deadTile,
   drawTiles,
-  getBoardTile,
   getPlayerTiles,
   getTile,
   initializeTiles,
@@ -10,9 +10,13 @@ export {
 } from './tileOperations.ts';
 export { addPlayerValidation } from './addPlayerValidation.ts';
 export { analyzeTilePlacement } from './analyzeTilePlacement.ts';
+export { buySharesValidation } from './buySharesValidation.ts';
+export { calculateShareholderPayouts } from './calculateShareholderPayoutsOperation.ts';
 export { drawInitialTiles } from './drawInitialTiles.ts';
+export { foundHotelValidation } from './foundHotelValidation.ts';
 export { initializePlayer } from './playerOperations.ts';
 export * from './hotelOperations.ts';
 export { mergeHotels } from './mergeHotelsOperation.ts';
+export { playTileValidation } from './playTileValidation.ts';
+export { resolveMergerValidation } from './resolveMergerValidation.ts';
 export { startGameValidation } from './startGameValidation.ts';
-export { calculateShareholderPayouts } from './calculateShareholderPayoutsOperation.ts';

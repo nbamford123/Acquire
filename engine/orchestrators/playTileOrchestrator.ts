@@ -1,4 +1,3 @@
-import { type BoardTile, GamePhase, type GameState } from '../types/index.ts';
 import {
   analyzeTilePlacement,
   boardTiles,
@@ -7,7 +6,8 @@ import {
 } from '../domain/index.ts';
 import { growHotelReducer } from '../reducers/index.ts';
 import { processMergerOrchestrator } from './processMergerOrchestrator.ts';
-import { buySharesOrchestrator } from './buySharesOrchestrator.ts';
+import { proceedToBuySharesOrchestrator } from './proceedToBuySharesOrchestrator.ts';
+import { type BoardTile, GamePhase, type GameState } from '../types/index.ts';
 
 export const playTileOrchestrator = (
   gameState: GameState,
@@ -15,17 +15,19 @@ export const playTileOrchestrator = (
 ): GameState => {
   // Put the tile on the board
   const tile: BoardTile = { ...playedTile, location: 'board' };
-  const placement = analyzeTilePlacement(tile, gameState.tiles);
   const updatedGameState = {
     ...gameState,
     tiles: updateTiles([tile], gameState.tiles),
   };
 
-  // Will played tile get a hotel here as part of the merger logic?
+  const placement = analyzeTilePlacement(tile, gameState.tiles);
   if (placement.triggersMerger) {
-    return processMergerOrchestrator(updatedGameState, {
-      originalHotels: placement.adjacentHotels,
-      additionalTiles: [tile, ...placement.additionalTiles],
+    return processMergerOrchestrator({
+      ...updatedGameState,
+      mergeContext: {
+        originalHotels: placement.adjacentHotels,
+        additionalTiles: [tile, ...placement.additionalTiles],
+      },
     });
   } else if (placement.foundsHotel) {
     return {
@@ -37,7 +39,7 @@ export const playTileOrchestrator = (
       },
     };
   } else if (placement.growsHotel) {
-    return buySharesOrchestrator({
+    return proceedToBuySharesOrchestrator({
       ...growHotelReducer(
         updatedGameState,
         placement.adjacentHotels[0],
@@ -47,5 +49,5 @@ export const playTileOrchestrator = (
     });
   }
   // else, simple placement
-  return buySharesOrchestrator(updatedGameState);
+  return proceedToBuySharesOrchestrator(updatedGameState);
 };

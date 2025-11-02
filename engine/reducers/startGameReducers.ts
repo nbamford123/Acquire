@@ -1,4 +1,4 @@
-import { drawInitialTiles, drawTiles, startGameValidation, updateTiles } from '../domain/index.ts';
+import { drawInitialTiles, drawTiles } from '../domain/index.ts';
 import { type GameState, type Player, type Tile, TILES_PER_HAND } from '../types/index.ts';
 
 export const startGameReducer = (

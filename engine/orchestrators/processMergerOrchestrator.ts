@@ -1,13 +1,13 @@
-import { GamePhase, type GameState, MergeContext, type ResolvedTie } from '../types/index.ts';
-import { boardTiles, mergeHotels } from '../domain/index.ts';
+import { GamePhase, type GameState, type ResolvedTie } from '../types/index.ts';
+import { boardTiles, getMergeContext, mergeHotels } from '../domain/index.ts';
 import { prepareMergerReducer } from '../reducers/prepareMergerReducer.ts';
 
 export const processMergerOrchestrator = (
   gameState: GameState,
-  mergeContext: MergeContext,
   resolvedTie?: ResolvedTie,
 ): GameState => {
   const gameBoard = boardTiles(gameState.tiles);
+  const mergeContext = getMergeContext(gameState);
   const result = mergeHotels(
     mergeContext,
     gameBoard,
@@ -26,6 +26,7 @@ export const processMergerOrchestrator = (
   }
   return {
     ...gameState,
+    currentPhase: GamePhase.RESOLVE_MERGER,
     ...prepareMergerReducer(
       gameState.players,
       gameState.tiles,

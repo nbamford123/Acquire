@@ -12,9 +12,9 @@ export const drawInitialTiles = (
   const playerMap: Record<string, Tile> = {};
   for (const player of players) {
     const playerTile = shuffledTiles.shift()!;
-    playerMap[player.name] = playerTile;
     playerTile.location = 'board';
     drawnTiles.push(playerTile);
+    playerMap[player.name] = playerTile;
   }
   // Sort the players by first drawn tile and give them an id based on their position
   const sortedPlayers = players.sort((p1, p2) => cmpTiles(playerMap[p1.name], playerMap[p2.name]))

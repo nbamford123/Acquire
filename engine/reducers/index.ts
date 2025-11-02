@@ -1,6 +1,3 @@
-import { growHotelReducer } from './growHotelReducer.ts';
-
-export { addPlayerReducer, removePlayerReducer } from './playerReducers.ts';
 export { foundHotelReducer } from './foundHotelReducer.ts';
 export { growHotelReducer } from './growHotelReducer.ts';
 export { startGameReducer } from './startGameReducers.ts';

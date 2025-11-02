@@ -38,7 +38,7 @@ export interface BuySharesAction extends Action {
   type: typeof ActionTypes.BUY_SHARES;
   payload: {
     player: string;
-    shares: Partial<Record<HOTEL_NAME, number>>;
+    shares: Record<HOTEL_NAME, number>;
   };
 }
 export interface BreakMergerTieAction extends Action {

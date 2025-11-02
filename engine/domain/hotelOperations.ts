@@ -1,3 +1,4 @@
+import { getHotelByName } from './assertions.ts';
 import {
   type BoardTile,
   GameError,
@@ -47,9 +48,9 @@ export const returnSharesToBank = (shares: Share[], playerId: number, count = 1)
 export const hotelTiles = (hotel: HOTEL_NAME, tiles: BoardTile[]) =>
   tiles.filter((tile) => tile.hotel && tile.hotel === hotel);
 
-const findCurrentHotelPrice = (hotel: Hotel, tiles: BoardTile[]) => {
-  const size = hotelTiles(hotel.name, tiles).length;
-  const price = getHotelPrice(hotel.name, size);
+const findCurrentHotelPrice = (hotel: HOTEL_NAME, tiles: BoardTile[]) => {
+  const size = hotelTiles(hotel, tiles).length;
+  const price = getHotelPrice(hotel, size);
   if (price === 0) {
     throw new GameError(
       'No price bracket found - check SharePrices configuration',
@@ -59,11 +60,11 @@ const findCurrentHotelPrice = (hotel: Hotel, tiles: BoardTile[]) => {
   return price;
 };
 
-export const sharePrice = (hotel: Hotel, tiles: BoardTile[]): number =>
+export const sharePrice = (hotel: HOTEL_NAME, tiles: BoardTile[]): number =>
   findCurrentHotelPrice(hotel, tiles).price;
 
 export const majorityMinorityValue = (hotel: Hotel, tiles: BoardTile[]) => {
-  const price = findCurrentHotelPrice(hotel, tiles);
+  const price = findCurrentHotelPrice(hotel.name, tiles);
   return [price.majority, price.minority];
 };
 
@@ -79,17 +80,11 @@ export const getTiedHotels = (
   return hotels.filter((h) => hotelTiles(h, tiles).length === targetSize);
 };
 
-export const getHotelsByNames = (hotels: Hotel[], names: HOTEL_NAME[]) =>
-  names.map((name) => {
-    const hotel = hotels.find((h) => h.name === name);
-    if (!hotel) {
-      throw new GameError(`Hotel not found: ${name}`, GameErrorCodes.GAME_PROCESSING_ERROR);
-    }
-    return hotel;
-  });
+export const getHotelsByNames = (hotels: Hotel[], names: HOTEL_NAME[]): Hotel[] =>
+  names.map((name) => getHotelByName(hotels, name));
 
 // Return a map of playerId to number of shares held for the given hotel
-export const getStockHolders = (hotel: Hotel) =>
+export const getStockHolders = (hotel: Hotel): Map<number, number> =>
   hotel.shares
     .filter((share) => share.location !== 'bank')
     .reduce((acc, share) => {
@@ -109,4 +104,31 @@ export const canBuyShares = (money: number, hotels: Hotel[], board: BoardTile[])
   const lowestSharePrice = Math.min(...availableHotels.map((hotel) => sharePrice(hotel, board)));
   // They can buy at least one share
   return money >= lowestSharePrice;
+};
+
+export const resolveShares = (
+  playerId: number,
+  board: BoardTile[],
+  survivor: Hotel,
+  merged: Hotel,
+  shares: { sell: number; trade: number } | undefined,
+): { survivorShares: Share[]; mergedShares: Share[]; income: number } => {
+  let survivorShares = survivor.shares;
+  let mergedShares = merged.shares;
+
+  // Trade shares
+  if (shares && shares.trade) {
+    const tradedShares = shares.trade / 2;
+    survivorShares = assignSharesToPlayer(survivorShares, playerId, tradedShares);
+    mergedShares = returnSharesToBank(mergedShares, playerId, shares.trade);
+  }
+
+  // Sell shares
+  let income = 0;
+  if (shares && shares.sell) {
+    const shareValue = sharePrice(merged.name, board) * shares.sell;
+    income = shareValue;
+    mergedShares = returnSharesToBank(mergedShares, playerId, shares.sell);
+  }
+  return { survivorShares, mergedShares, income };
 };

@@ -25,6 +25,11 @@ export const deadTile = (tile: Tile, boardTiles: BoardTile[]): boolean => {
       GameErrorCodes.GAME_PROCESSING_ERROR,
     );
   }
+
+  // Helper function that doesn't throw like getBoardTile in assertions
+  const getBoardTile = (tiles: BoardTile[], row: number, col: number) =>
+    tiles.find((tile) => tile.row === row && tile.col === col);
+
   const safeHotels = getAdjacentPositions(tile.row, tile.col)
     .map(([r, c]) => getBoardTile(boardTiles, r, c))
     .filter((tile) => tile && tile.hotel && hotelSafe(tile.hotel, boardTiles));
@@ -45,9 +50,6 @@ export const updateTiles = (currentTiles: Tile[], tilesToUpdate: Tile[]): Tile[]
 
   return newTiles;
 };
-
-export const getBoardTile = (tiles: BoardTile[], row: number, col: number) =>
-  tiles.find((tile) => tile.row === row && tile.col === col);
 
 export const getTile = (tiles: Tile[], row: number, col: number) =>
   tiles.find((tile) => tile.row === row && tile.col === col);
