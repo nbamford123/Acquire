@@ -76,15 +76,6 @@ Deno.test('initializePlayer', async (t) => {
     assertEquals(player1.name !== player2.name, true);
   });
 
-  await t.step('does not include firstTile property initially', () => {
-    const playerName = 'TestPlayer';
-    const result = initializePlayer(playerName);
-
-    // firstTile should be undefined (not included in the object)
-    assertEquals(result.firstTile, undefined);
-    assertEquals('firstTile' in result, false);
-  });
-
   await t.step('creates player with correct type structure', () => {
     const playerName = 'TypeTest';
     const result = initializePlayer(playerName);

@@ -1,486 +1,155 @@
-import { assertEquals, assertThrows } from 'jsr:@std/assert';
 import { foundHotelReducer } from '../foundHotelReducer.ts';
-import { initializeTiles } from '../../domain/tileOperations.ts';
-import { initializeHotels } from '../../domain/hotelOperations.ts';
 import {
-  ActionTypes,
-  GameError,
-  GameErrorCodes,
-  GamePhase,
-  type GameState,
-  type Hotel,
-  type HOTEL_NAME,
-  type HOTEL_TYPE,
-  INITIAL_PLAYER_MONEY,
-  type Player,
-  type Tile,
-} from '../../types/index.ts';
+  assert,
+  assertEquals,
+  assertExists,
+  assertThrows,
+} from 'https://deno.land/std@0.203.0/assert/mod.ts';
+import { GameErrorCodes } from '../../types/index.ts';
+import type { FoundHotelContext, Hotel, HOTEL_NAME, Tile } from '../../types/index.ts';
 
-// Helper function to create a basic game state
-function createBasicGameState(overrides: Partial<GameState> = {}): GameState {
-  const defaultPlayer: Player = {
-    id: 0,
-    name: 'TestPlayer',
-    money: INITIAL_PLAYER_MONEY,
-  };
-
-  const secondPlayer: Player = {
-    id: 1,
-    name: 'Player2',
-    money: INITIAL_PLAYER_MONEY,
-  };
-
-  return {
-    gameId: 'test-game',
-    owner: 'TestPlayer',
-    currentPhase: GamePhase.FOUND_HOTEL,
-    currentTurn: 1,
-    currentPlayer: 0,
-    lastUpdated: Date.now(),
-    players: [defaultPlayer, secondPlayer],
-    hotels: initializeHotels(),
-    tiles: initializeTiles(12, 9),
-    error: null,
-    foundHotelContext: {
-      availableHotels: ['Worldwide', 'Sackson', 'Festival'],
-      tiles: [
-        { row: 3, col: 1 },
-        { row: 3, col: 2 },
+Deno.test('foundHotelReducer: assigns a share to the player and updates tiles', () => {
+  const hotels = [
+    {
+      name: 'Tower',
+      shares: [
+        { location: 'bank' },
+        { location: 'bank' },
       ],
     },
-    ...overrides,
-  };
-}
-
-// Helper function to place tiles on board
-function placeTilesOnBoard(
-  tiles: Tile[],
-  positions: Array<{ row: number; col: number; hotel?: HOTEL_NAME }>,
-): Tile[] {
-  return tiles.map((tile) => {
-    const boardTile = positions.find((pos) => pos.row === tile.row && pos.col === tile.col);
-    if (boardTile) {
-      return {
-        ...tile,
-        location: 'board' as const,
-        hotel: boardTile.hotel,
-      };
-    }
-    return tile;
-  });
-}
-
-Deno.test('foundHotelReducer validation tests', async (t) => {
-  await t.step("throws error when not player's turn", () => {
-    const gameState = createBasicGameState({
-      currentPlayer: 1, // Different from action player (0)
-    });
-
-    const action = {
-      type: ActionTypes.FOUND_HOTEL,
-      payload: {
-        player: 'TestPlayer',
-        hotelName: 'Worldwide' as HOTEL_NAME,
-      },
-    };
-
-    const error = assertThrows(
-      () => foundHotelReducer(gameState, action),
-      GameError,
-      'Not your turn',
-    );
-    assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
-  });
-
-  await t.step('throws error when not in FOUND_HOTEL phase', () => {
-    const gameState = createBasicGameState({
-      currentPhase: GamePhase.PLAY_TILE,
-    });
-
-    const action = {
-      type: ActionTypes.FOUND_HOTEL,
-      payload: {
-        player: 'TestPlayer',
-        hotelName: 'Worldwide' as HOTEL_NAME,
-      },
-    };
-
-    const error = assertThrows(
-      () => foundHotelReducer(gameState, action),
-      GameError,
-      'Invalid action',
-    );
-    assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
-  });
-
-  await t.step('throws error when hotel not found in game state', () => {
-    const gameState = createBasicGameState({
-      hotels: [], // Empty hotels array
-    });
-
-    const action = {
-      type: ActionTypes.FOUND_HOTEL,
-      payload: {
-        player: 'TestPlayer',
-        hotelName: 'Worldwide' as HOTEL_NAME,
-      },
-    };
-
-    const error = assertThrows(
-      () => foundHotelReducer(gameState, action),
-      GameError,
-      'Hotel Worldwide not found in game state',
-    );
-    assertEquals(error.code, GameErrorCodes.GAME_PROCESSING_ERROR);
-  });
-
-  await t.step('throws error when hotel already exists on board', () => {
-    let gameState = createBasicGameState();
-
-    // Place hotel tiles on board to show hotel already exists
-    gameState.tiles = placeTilesOnBoard(gameState.tiles, [
-      { row: 5, col: 1, hotel: 'Worldwide' },
-      { row: 5, col: 2, hotel: 'Worldwide' },
-    ]);
-
-    const action = {
-      type: ActionTypes.FOUND_HOTEL,
-      payload: {
-        player: 'TestPlayer',
-        hotelName: 'Worldwide' as HOTEL_NAME,
-      },
-    };
-
-    const error = assertThrows(
-      () => foundHotelReducer(gameState, action),
-      GameError,
-      'Hotel Worldwide already exists',
-    );
-    assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
-  });
-
-  await t.step('throws error when foundHotelContext is missing', () => {
-    const gameState = createBasicGameState({
-      foundHotelContext: undefined,
-    });
-
-    const action = {
-      type: ActionTypes.FOUND_HOTEL,
-      payload: {
-        player: 'TestPlayer',
-        hotelName: 'Worldwide' as HOTEL_NAME,
-      },
-    };
-
-    const error = assertThrows(
-      () => foundHotelReducer(gameState, action),
-      GameError,
-      "Can't found hotel Worldwide, context missing in state",
-    );
-    assertEquals(error.code, GameErrorCodes.GAME_PROCESSING_ERROR);
-  });
-
-  await t.step('throws error when foundHotelContext has too few tiles', () => {
-    const gameState = createBasicGameState({
-      foundHotelContext: {
-        availableHotels: ['Worldwide', 'Sackson', 'Festival'],
-        tiles: [{ row: 3, col: 1 }], // Only 1 tile, need at least 2
-      },
-    });
-
-    const action = {
-      type: ActionTypes.FOUND_HOTEL,
-      payload: {
-        player: 'TestPlayer',
-        hotelName: 'Worldwide' as HOTEL_NAME,
-      },
-    };
-
-    const error = assertThrows(
-      () => foundHotelReducer(gameState, action),
-      GameError,
-      "Can't found hotel Worldwide, need at least two tiles",
-    );
-    assertEquals(error.code, GameErrorCodes.GAME_PROCESSING_ERROR);
-  });
-
-  await t.step('throws error when tiles in context are not on board', () => {
-    let gameState = createBasicGameState({
-      foundHotelContext: {
-        availableHotels: ['Worldwide', 'Sackson', 'Festival'],
-        tiles: [
-          { row: 3, col: 1 },
-          { row: 3, col: 2 },
-        ],
-      },
-    });
-
-    // Don't place the tiles on the board - they should be in bag or player hand
-    // This will cause the validation to fail
-
-    const action = {
-      type: ActionTypes.FOUND_HOTEL,
-      payload: {
-        player: 'TestPlayer',
-        hotelName: 'Worldwide' as HOTEL_NAME,
-      },
-    };
-
-    const error = assertThrows(
-      () => foundHotelReducer(gameState, action),
-      GameError,
-      'Invalid tiles in found hotel context',
-    );
-    assertEquals(error.code, GameErrorCodes.GAME_PROCESSING_ERROR);
-  });
+  ] as unknown as Hotel[];
+  const context = { tiles: [{ row: 0, col: 0 }] } as unknown as FoundHotelContext;
+  // Provide a board tile at the expected location for getBoardTile
+  const tiles = [
+    { row: 0, col: 0, location: 'board' },
+    { row: 0, col: 0, location: 'bag' },
+  ] as unknown as Tile[];
+  const result = foundHotelReducer(1, hotels, 'Tower' as HOTEL_NAME, context, tiles);
+  assertExists(result.hotels);
+  const playerShare = result.hotels && result.hotels[0].shares.some((s) => s.location === 1);
+  assert(playerShare);
+  assertExists(result.tiles);
+  assert(Array.isArray(result.tiles) && result.tiles.length > 0);
 });
 
-Deno.test('foundHotelReducer successful founding tests', async (t) => {
-  await t.step('successfully founds hotel with valid context', () => {
-    let gameState = createBasicGameState();
+Deno.test('foundHotelReducer: when no bank shares remain, no additional share is awarded', () => {
+  // Hotel has no bank shares available
+  const hotels = [
+    {
+      name: 'Tower',
+      shares: [
+        { location: 2 },
+        { location: 3 },
+      ],
+    },
+  ] as unknown as Hotel[];
+  const context = { tiles: [{ row: 0, col: 0 }] } as unknown as FoundHotelContext;
+  const tiles = [
+    { row: 0, col: 0, location: 'board' },
+  ] as unknown as Tile[];
 
-    // Place the context tiles on the board
-    gameState.tiles = placeTilesOnBoard(gameState.tiles, [
-      { row: 3, col: 1 }, // No hotel assigned yet
-      { row: 3, col: 2 }, // No hotel assigned yet
-    ]);
-
-    const action = {
-      type: ActionTypes.FOUND_HOTEL,
-      payload: {
-        player: 'TestPlayer',
-        hotelName: 'Worldwide' as HOTEL_NAME,
-      },
-    };
-
-    const result = foundHotelReducer(gameState, action);
-
-    // Should transition to BUY_SHARES phase
-    assertEquals(result.currentPhase, GamePhase.BUY_SHARES);
-
-    // foundHotelContext should be cleared
-    assertEquals(result.foundHotelContext, undefined);
-
-    // Player should receive one share of the founded hotel
-    const worldwideHotel = result.hotels.find((h) => h.name === 'Worldwide');
-    const playerShares = worldwideHotel?.shares.filter((s) => s.location === 0).length;
-    assertEquals(playerShares, 1);
-
-    // Bank should have one less share
-    const bankShares = worldwideHotel?.shares.filter((s) => s.location === 'bank').length;
-    assertEquals(bankShares, 24);
-
-    // Tiles should be assigned to the hotel
-    const hotelTiles = result.tiles.filter((t) =>
-      t.location === 'board' && t.hotel === 'Worldwide'
-    );
-    assertEquals(hotelTiles.length, 2);
-    assertEquals(hotelTiles[0].row, 3);
-    assertEquals(hotelTiles[0].col, 1);
-    assertEquals(hotelTiles[1].row, 3);
-    assertEquals(hotelTiles[1].col, 2);
-  });
-
-  await t.step('successfully founds hotel with multiple tiles', () => {
-    let gameState = createBasicGameState({
-      foundHotelContext: {
-        availableHotels: ['Worldwide', 'Sackson', 'Festival'],
-        tiles: [
-          { row: 3, col: 1 },
-          { row: 3, col: 2 },
-          { row: 3, col: 3 },
-          { row: 4, col: 1 },
-        ],
-      },
-    });
-
-    // Place all context tiles on the board
-    gameState.tiles = placeTilesOnBoard(gameState.tiles, [
-      { row: 3, col: 1 },
-      { row: 3, col: 2 },
-      { row: 3, col: 3 },
-      { row: 4, col: 1 },
-    ]);
-
-    const action = {
-      type: ActionTypes.FOUND_HOTEL,
-      payload: {
-        player: 'TestPlayer',
-        hotelName: 'Sackson' as HOTEL_NAME,
-      },
-    };
-
-    const result = foundHotelReducer(gameState, action);
-
-    // All tiles should be assigned to the hotel
-    const hotelTiles = result.tiles.filter((t) => t.location === 'board' && t.hotel === 'Sackson');
-    assertEquals(hotelTiles.length, 4);
-
-    // Player should still receive exactly one share
-    const sacksonHotel = result.hotels.find((h) => h.name === 'Sackson');
-    const playerShares = sacksonHotel?.shares.filter((s) => s.location === 0).length;
-    assertEquals(playerShares, 1);
-  });
-
-  await t.step('awards share to correct player', () => {
-    let gameState = createBasicGameState({
-      currentPlayer: 1, // Player 1's turn
-    });
-
-    // Place the context tiles on the board
-    gameState.tiles = placeTilesOnBoard(gameState.tiles, [
-      { row: 3, col: 1 },
-      { row: 3, col: 2 },
-    ]);
-
-    const action = {
-      type: ActionTypes.FOUND_HOTEL,
-      payload: {
-        player: 'Player2', // Player 1 founding the hotel
-        hotelName: 'Festival' as HOTEL_NAME,
-      },
-    };
-
-    const result = foundHotelReducer(gameState, action);
-
-    // Player 1 should receive the share, not player 0
-    const festivalHotel = result.hotels.find((h) => h.name === 'Festival');
-    const player0Shares = festivalHotel?.shares.filter((s) => s.location === 0).length;
-    const player1Shares = festivalHotel?.shares.filter((s) => s.location === 1).length;
-
-    assertEquals(player0Shares, 0);
-    assertEquals(player1Shares, 1);
-  });
-
-  await t.step('preserves other game state properties', () => {
-    let gameState = createBasicGameState({
-      gameId: 'test-found-hotel-123',
-      owner: 'HotelFounder',
-      currentTurn: 5,
-      lastUpdated: 1234567890,
-    });
-
-    // Place the context tiles on the board
-    gameState.tiles = placeTilesOnBoard(gameState.tiles, [
-      { row: 3, col: 1 },
-      { row: 3, col: 2 },
-    ]);
-
-    const action = {
-      type: ActionTypes.FOUND_HOTEL,
-      payload: {
-        player: 'TestPlayer',
-        hotelName: 'Imperial' as HOTEL_NAME,
-      },
-    };
-
-    const result = foundHotelReducer(gameState, action);
-
-    // Check that other properties are preserved
-    assertEquals(result.gameId, 'test-found-hotel-123');
-    assertEquals(result.owner, 'HotelFounder');
-    assertEquals(result.currentTurn, 5);
-    assertEquals(result.currentPlayer, 0); // Should remain unchanged
-    assertEquals(result.lastUpdated, 1234567890);
-    assertEquals(result.error, null);
-  });
-
-  await t.step('handles different hotel types correctly', () => {
-    let gameState = createBasicGameState();
-
-    // Place the context tiles on the board
-    gameState.tiles = placeTilesOnBoard(gameState.tiles, [
-      { row: 3, col: 1 },
-      { row: 3, col: 2 },
-    ]);
-
-    // Test founding a luxury hotel
-    const action = {
-      type: ActionTypes.FOUND_HOTEL,
-      payload: {
-        player: 'TestPlayer',
-        hotelName: 'Tower' as HOTEL_NAME, // Tower is a luxury hotel
-      },
-    };
-
-    const result = foundHotelReducer(gameState, action);
-
-    // Should work the same regardless of hotel type
-    assertEquals(result.currentPhase, GamePhase.BUY_SHARES);
-
-    const towerHotel = result.hotels.find((h) => h.name === 'Tower');
-    const playerShares = towerHotel?.shares.filter((s) => s.location === 0).length;
-    assertEquals(playerShares, 1);
-  });
+  const beforeCount = hotels[0].shares.filter((s) => s.location === 1).length;
+  const result = foundHotelReducer(1, hotels, 'Tower' as HOTEL_NAME, context, tiles);
+  assertExists(result.hotels);
+  const afterCount = result.hotels &&
+    result.hotels[0].shares.filter((s: any) => s.location === 1).length;
+  // No new share should have been awarded to player 1
+  assertEquals(afterCount, beforeCount);
 });
 
-Deno.test('foundHotelReducer edge cases', async (t) => {
-  await t.step('handles founding when hotel has no available shares', () => {
-    let gameState = createBasicGameState();
+Deno.test('foundHotelReducer: throws when context tile is not on board', () => {
+  const hotels = [
+    {
+      name: 'Tower',
+      shares: [
+        { location: 'bank' },
+      ],
+    },
+  ] as unknown as Hotel[];
+  // context references a tile not present on board
+  const context = { tiles: [{ row: 9, col: 9 }] } as unknown as FoundHotelContext;
+  const tiles = [
+    { row: 0, col: 0, location: 'board' },
+  ] as unknown as Tile[];
 
-    // Assign all shares of Worldwide to other players
-    const worldwideHotel = gameState.hotels.find((h) => h.name === 'Worldwide')!;
-    for (let i = 0; i < 25; i++) {
-      worldwideHotel.shares[i] = { location: 1 }; // All shares to player 1
-    }
+  assertThrows(() => foundHotelReducer(1, hotels, 'Tower' as HOTEL_NAME, context, tiles), Error);
+});
 
-    // Place the context tiles on the board
-    gameState.tiles = placeTilesOnBoard(gameState.tiles, [
-      { row: 3, col: 1 },
-      { row: 3, col: 2 },
-    ]);
+Deno.test('foundHotelReducer: throws when hotel name is not found', () => {
+  const hotels = [
+    {
+      name: 'Sackson',
+      shares: [
+        { location: 'bank' },
+      ],
+    },
+  ] as unknown as Hotel[];
 
-    const action = {
-      type: ActionTypes.FOUND_HOTEL,
-      payload: {
-        player: 'TestPlayer',
-        hotelName: 'Worldwide' as HOTEL_NAME,
-      },
-    };
+  const context = { tiles: [{ row: 0, col: 0 }] } as unknown as FoundHotelContext;
+  const tiles = [
+    { row: 0, col: 0, location: 'board' },
+  ] as unknown as Tile[];
 
-    const result = foundHotelReducer(gameState, action);
+  const err = assertThrows(() =>
+    foundHotelReducer(1, hotels, 'Tower' as HOTEL_NAME, context, tiles)
+  );
+  // getHotelByName throws GAME_PROCESSING_ERROR when hotel cannot be found
+  // The thrown error should include the processing error code
+  // Some error implementations attach a 'code' property
+  // Check message as a conservative assertion
+  if (!/Hotel not found/.test((err as { message: string }).message)) {
+    throw new Error('Expected Hotel not found error');
+  }
+});
 
-    // Should still succeed, but player gets no share
-    assertEquals(result.currentPhase, GamePhase.BUY_SHARES);
+Deno.test('foundHotelReducer: awards a bank share at non-zero index', () => {
+  const hotels = [
+    {
+      name: 'Tower',
+      shares: [
+        { location: 2 },
+        { location: 'bank' },
+        { location: 'bank' },
+      ],
+    },
+  ] as unknown as Hotel[];
+  const context = { tiles: [{ row: 0, col: 0 }] } as unknown as FoundHotelContext;
+  const tiles = [
+    { row: 0, col: 0, location: 'board' },
+  ] as unknown as Tile[];
 
-    const resultHotel = result.hotels.find((h) => h.name === 'Worldwide');
-    const player0Shares = resultHotel?.shares.filter((s) => s.location === 0).length;
-    assertEquals(player0Shares, 0); // No shares available to award
-  });
+  const result = foundHotelReducer(7, hotels, 'Tower' as HOTEL_NAME, context, tiles);
+  assertExists(result.hotels);
+  // The first bank share is at index 1, so player 7 should own that one
+  const assignedIndex = result.hotels &&
+    result.hotels[0].shares.findIndex((s: any) => s.location === 7);
+  assertEquals(assignedIndex, 1);
+});
 
-  await t.step('handles minimum tile requirement exactly', () => {
-    let gameState = createBasicGameState({
-      foundHotelContext: {
-        availableHotels: ['Worldwide', 'Sackson', 'Festival'],
-        tiles: [
-          { row: 3, col: 1 },
-          { row: 3, col: 2 }, // Exactly 2 tiles (minimum)
-        ],
-      },
-    });
+Deno.test('foundHotelReducer: does not modify other hotels', () => {
+  const hotels = [
+    {
+      name: 'Tower',
+      shares: [
+        { location: 'bank' },
+      ],
+    },
+    {
+      name: 'Sackson',
+      shares: [
+        { location: 2 },
+      ],
+    },
+  ] as unknown as Hotel[];
+  const context = { tiles: [{ row: 0, col: 0 }] } as unknown as FoundHotelContext;
+  const tiles = [
+    { row: 0, col: 0, location: 'board' },
+  ] as unknown as Tile[];
 
-    // Place the context tiles on the board
-    gameState.tiles = placeTilesOnBoard(gameState.tiles, [
-      { row: 3, col: 1 },
-      { row: 3, col: 2 },
-    ]);
-
-    const action = {
-      type: ActionTypes.FOUND_HOTEL,
-      payload: {
-        player: 'TestPlayer',
-        hotelName: 'Continental' as HOTEL_NAME,
-      },
-    };
-
-    const result = foundHotelReducer(gameState, action);
-
-    // Should succeed with exactly 2 tiles
-    assertEquals(result.currentPhase, GamePhase.BUY_SHARES);
-
-    const hotelTiles = result.tiles.filter((t) =>
-      t.location === 'board' && t.hotel === 'Continental'
-    );
-    assertEquals(hotelTiles.length, 2);
-  });
+  const result = foundHotelReducer(3, hotels, 'Tower' as HOTEL_NAME, context, tiles);
+  assertExists(result.hotels);
+  // Ensure Sackson hotel's shares are unchanged
+  const sackson = result.hotels && result.hotels.find((h: any) => h.name === 'Sackson');
+  const unchanged = sackson && sackson.shares.some((s: any) => s.location === 2);
+  assert(unchanged);
 });

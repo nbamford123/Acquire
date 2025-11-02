@@ -1,6 +1,5 @@
-import { getAdjacentPositions, shuffleTiles } from '../utils/index.ts';
+import { getAdjacentPositions, getTileLabel, shuffleTiles } from '../utils/index.ts';
 import { type BoardTile, GameError, GameErrorCodes, type Tile } from '../types/index.ts';
-import { getTileLabel } from '../utils/getTileLabel.ts';
 import { hotelSafe } from './index.ts';
 
 export const initializeTiles = (rows: number, cols: number): Tile[] =>
@@ -26,6 +25,11 @@ export const deadTile = (tile: Tile, boardTiles: BoardTile[]): boolean => {
       GameErrorCodes.GAME_PROCESSING_ERROR,
     );
   }
+
+  // Helper function that doesn't throw like getBoardTile in assertions
+  const getBoardTile = (tiles: BoardTile[], row: number, col: number) =>
+    tiles.find((tile) => tile.row === row && tile.col === col);
+
   const safeHotels = getAdjacentPositions(tile.row, tile.col)
     .map(([r, c]) => getBoardTile(boardTiles, r, c))
     .filter((tile) => tile && tile.hotel && hotelSafe(tile.hotel, boardTiles));
@@ -47,36 +51,32 @@ export const updateTiles = (currentTiles: Tile[], tilesToUpdate: Tile[]): Tile[]
   return newTiles;
 };
 
-export const getBoardTile = (tiles: BoardTile[], row: number, col: number) =>
-  tiles.find((tile) => tile.row === row && tile.col === col);
-
 export const getTile = (tiles: Tile[], row: number, col: number) =>
   tiles.find((tile) => tile.row === row && tile.col === col);
 
 export const getPlayerTiles = (playerId: number, tiles: Tile[]) =>
   tiles.filter((tile) => tile.location === playerId);
 
-// Will only return the number of tiles left in the bag at most
+// Will only draw the number of tiles left in the bag at most
 export const drawTiles = (
-  availableTiles: Tile[],
+  tiles: Tile[],
   playerId: number,
   boardTiles: BoardTile[],
   count: number,
-): { drawnTiles: Tile[]; deadTiles: Tile[]; remainingTiles: Tile[] } => {
-  const shuffled = shuffleTiles([...availableTiles]);
+): Tile[] => {
+  const shuffled = shuffleTiles(tiles.filter((tile) => tile.location === 'bag'));
   const drawn: Tile[] = [];
   const dead: Tile[] = [];
-  const remaining = [...shuffled];
+  let index = 0;
 
-  while (drawn.length < count && remaining.length > 0) {
-    const tile = remaining.shift()!;
-
+  while (drawn.length < count && index < shuffled.length) {
+    const tile = shuffled[index++];
     if (deadTile(tile, boardTiles)) {
       dead.push({ ...tile, location: 'dead' });
     } else {
       drawn.push({ ...tile, location: playerId });
     }
   }
-
-  return { drawnTiles: drawn, deadTiles: dead, remainingTiles: remaining };
+  // Return changed tiles
+  return [...drawn, ...dead];
 };

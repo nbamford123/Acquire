@@ -1,6 +1,7 @@
 export { cmpTiles } from './cmpTiles.ts';
 export { filterDefined } from './filterDefined.ts';
 export { getHotelPrice } from './getHotelPrice.ts';
+export { getStockholderMap } from './getStockholderMap.ts';
 export { getTileLabel } from './getTileLabel.ts';
 export { getAdjacentPositions } from './getAdjacentPositions.ts';
 export { getPlayerView } from './getPlayerView.ts';

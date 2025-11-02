@@ -1,7 +1,7 @@
 import type { Context, Hono } from 'hono';
 import { setCookie } from 'hono/cookie';
 import { initializeGame, processAction } from '@acquire/engine/core';
-import { getPlayerView } from '@acquire/engine/utils';
+import { filterDefined, getPlayerView } from '@acquire/engine/utils';
 import type { GameAction, GameInfo, GameState } from '@acquire/engine/types';
 
 import { createToken, validateUser } from './auth.ts';
@@ -10,6 +10,18 @@ import type { ServiceEnv } from './types.ts';
 
 // Simple in-memory store for demo - you'll want to use KV or external DB
 const gameStates = new Map<string, GameState>();
+
+// Load test games
+// TODO(me): remove before production
+const decoder = new TextDecoder('utf-8');
+const testDataDir = 'service/__test-data__';
+for (const file of Deno.readDirSync(testDataDir)) {
+  if (file.isFile && file.name.endsWith('.json')) {
+    const gameFile = Deno.readTextFileSync(`${testDataDir}/${file.name}`);
+    const game = JSON.parse(gameFile);
+    gameStates.set(game.gameId, game);
+  }
+}
 
 // Only force https when in production
 const isProduction = Deno.env.get('ENV') === 'production';
@@ -60,7 +72,6 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       const gameId = uid();
       const game = initializeGame(gameId, user);
       gameStates.set(gameId, game);
-
       return ctx.json({ gameId: gameId }, 201);
     } catch (error) {
       return ctx.json({
@@ -80,11 +91,23 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
     await Promise.resolve(); // Simulate async operation
     return ctx.body(null, 204);
   });
+  // Save game
+  // TODO(me): temporary - remove before production
+  app.get('/api/save/:id', requireAuth, (ctx) => {
+    const gameId = ctx.req.param('id') || '';
+    const game = gameStates.get(gameId);
+    if (!game) {
+      return ctx.json({ error: 'Game not found' }, 404);
+    }
+    const gameJson = JSON.stringify(game, null, 2);
+    const filename = `acquire-game-${gameId}.json`;
+    Deno.writeTextFileSync(filename, gameJson);
+    return ctx.text('saved ' + filename);
+  });
   // Get game
   app.get('/api/games/:id', requireAuth, (ctx) => {
     const gameId = ctx.req.param('id') || '';
     const game = gameStates.get(gameId);
-
     if (!game) {
       return ctx.json({ error: 'Game not found' }, 404);
     }

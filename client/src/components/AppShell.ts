@@ -12,6 +12,12 @@ import './LoginView.ts';
 import './DashboardView.ts';
 import './GameBoardView.ts';
 
+interface ConfirmDialogConfig {
+  title: string;
+  message: string;
+  resolve: (value?: unknown) => void;
+}
+
 @customElement('app-shell')
 export class AppShell extends StyledComponent {
   static override styles = [
@@ -72,6 +78,7 @@ export class AppShell extends StyledComponent {
 
   static override properties = {
     appState: { type: Object, state: true },
+    dialogConfig: { type: Object, state: true },
   };
 
   private appState: AppState = {
@@ -80,6 +87,8 @@ export class AppShell extends StyledComponent {
     selectedGameId: null,
     error: null,
   };
+
+  private dialogConfig?: ConfirmDialogConfig;
 
   private router = RouterService.getInstance();
 
@@ -192,13 +201,49 @@ export class AppShell extends StyledComponent {
     }).showToast();
   };
 
+  public confirm = (title: string, message: string) => {
+    return new Promise((resolve) => {
+      this.dialogConfig = { title, message, resolve };
+      this.requestUpdate();
+      this.shadowRoot?.querySelector<HTMLDialogElement>('.confirm-dialog')?.showModal();
+    });
+  };
+
+  private closeConfirmDialog = () => {
+    console.log('closing dialog');
+    this.shadowRoot?.querySelector<HTMLDialogElement>('.confirm-dialog')?.close();
+  };
+
+  private onDialogCancelDelete = () => {
+    this.dialogConfig?.resolve(false);
+    this.closeConfirmDialog();
+  };
+
   public override render() {
     const loginView = this.appState.currentView === 'login';
     return html`
       <div class="app-root">
         ${loginView ? '' : this.renderHeader()}
-        <main class="${`content${loginView ? ' center' : ''}`}">${this
-          .renderCurrentView()}</main>
+        <main class="${`content${loginView ? ' center' : ''}`}">
+          <dialog class="confirm-dialog" @cancel="${this.onDialogCancelDelete}">
+            <article>
+              <h2>${this.dialogConfig?.title}</h2>
+              <p>
+                ${this.dialogConfig?.message}
+              </p>
+              <footer>
+                <button class="secondary" @click="${this.onDialogCancelDelete}">
+                  Cancel
+                </button>
+                <button @click="${() => {
+                  this.dialogConfig?.resolve(true);
+                  this.closeConfirmDialog();
+                }}">Confirm</button>
+              </footer>
+            </article>
+          </dialog>
+          ${this.renderCurrentView()}
+        </main>
       </div>
     `;
   }
@@ -258,6 +303,7 @@ export class AppShell extends StyledComponent {
           <dashboard-view
             .user="${this.appState.user}"
             @game-select="${this.handleGameSelect}"
+            .showConfirmationDialog="${this.confirm}"
           ></dashboard-view>
         `;
 

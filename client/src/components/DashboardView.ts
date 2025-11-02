@@ -2,8 +2,8 @@ import { css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { StyledComponent } from './StyledComponent.ts';
-import { getApi, postApi } from '../services/ApiService.ts';
-import { ActionTypes, GameInfo, GamePhase, MAX_PLAYERS } from '@acquire/engine/types';
+import { deleteApi, getApi, postApi } from '../services/ApiService.ts';
+import { ActionTypes, AddPlayerAction, GameInfo, StartGameAction } from '@acquire/engine/types';
 
 import './GameCard.ts';
 
@@ -11,6 +11,10 @@ import './GameCard.ts';
 export class DashboardView extends StyledComponent {
   @property({ type: String })
   user: string | null = null;
+
+  @property({ type: Function })
+  showConfirmationDialog?: (title: string, message: string) => Promise<boolean>;
+
   static override properties = {
     games: { type: Object, state: true },
     loading: { type: Boolean, state: true },
@@ -92,27 +96,45 @@ export class DashboardView extends StyledComponent {
   }
 
   private async handleCreateGame() {
-    try {
-      const newGame = await postApi('/api/games');
-      this.handleGameSelect(newGame.gameId);
-    } catch (error) {
-      console.error('Failed to create game:', error);
-    }
+    const newGame = await postApi('/api/games');
+    this.handleGameSelect(newGame.gameId);
   }
 
-  private handleGameJoin = (event: CustomEvent<string>) => {
-    console.log('Game join requested:', event.detail);
-    // For now, treat join like select; actual join flow handled elsewhere
+  private handleGameJoin = async (event: CustomEvent<string>) => {
+    const action: AddPlayerAction = {
+      type: ActionTypes.ADD_PLAYER,
+      payload: { player: this.user || '' },
+    };
+    const response = await postApi(`/api/games/${event.detail}`, {
+      action,
+    });
+    if (response) { // a null here means the join failed and hopefully error handling showed a toast error
+      this.handleGameSelect(event.detail);
+    }
   };
 
-  private handleGameStart = (event: CustomEvent<string>) => {
-    console.log('Game start requested:', event.detail);
-    // TODO(@nbamford123): Call API to start game; navigate to game view for now
+  private handleGameStart = async (event: CustomEvent<string>) => {
+    const action: StartGameAction = {
+      type: ActionTypes.START_GAME,
+      payload: { player: this.user || '' },
+    };
+    const response = await postApi(`/api/games/${event.detail}`, {
+      action,
+    });
+    if (response) { // a null here means the join failed and hopefully error handling showed a toast error
+      this.handleGameSelect(event.detail);
+    }
   };
 
-  private handleGameDelete = (event: CustomEvent<string>) => {
-    console.log('Game delete requested:', event.detail);
-    // TODO(@nbamford123): Call API to delete then refresh dashboard; navigate to list for now
+  private handleGameDelete = async (event: CustomEvent<string>) => {
+    const confirmation = this.showConfirmationDialog && await this.showConfirmationDialog(
+      'Delete Game',
+      `Are you sure you want to delete game ${event.detail}?`,
+    );
+    if (confirmation) {
+      await deleteApi(`/api/games/${event.detail}`);
+      this.loadGames();
+    }
   };
 
   private getGameCard = (game: GameInfo) =>

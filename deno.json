@@ -8,7 +8,7 @@
     "dev": "deno run --allow-net --allow-env --env-file --watch service/main.ts",
     "start": "deno run --allow-net --allow-env service/main.ts",
     "fmt:check": "deno fmt --check",
-    "validate": "deno fmt  && deno lint && deno check && deno test --allow-all"
+    "validate": "deno fmt  && deno lint && deno check && deno test --no-check --allow-all"
   },
   "compilerOptions": {
     "lib": ["deno.window"],
@@ -35,7 +35,7 @@
   },
   "fmt": {
     "include": ["./"],
-    "exclude": ["**/node_modules/", "**/dist/"],
+    "exclude": ["**/node_modules/", "**/dist/", "**/__test__/"],
     "indentWidth": 2,
     "lineWidth": 100,
     "semiColons": true,

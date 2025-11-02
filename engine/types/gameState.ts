@@ -1,4 +1,12 @@
-import type { ErrorCodeValue, Hotel, HOTEL_NAME, MergeContext, Player, Tile } from './index.ts';
+import type {
+  ErrorCodeValue,
+  FoundHotelContext,
+  Hotel,
+  HOTEL_NAME,
+  MergeContext,
+  Player,
+  Tile,
+} from './index.ts';
 
 // Game phases
 export enum GamePhase {
@@ -28,10 +36,7 @@ export interface GameState {
     tiedHotels: HOTEL_NAME[];
   };
   mergeContext?: MergeContext;
-  foundHotelContext?: {
-    availableHotels: HOTEL_NAME[];
-    tiles: { row: number; col: number }[];
-  };
+  foundHotelContext?: FoundHotelContext;
   error?: {
     code: ErrorCodeValue;
     message: string;

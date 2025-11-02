@@ -1,15 +1,15 @@
+import { getHotelByName } from './assertions.ts';
 import {
   type BoardTile,
   GameError,
   GameErrorCodes,
   type Hotel,
-  HOTEL_CONFIG,
   type HOTEL_NAME,
   HOTEL_NAMES,
   SAFE_HOTEL_SIZE,
   type Share,
-  SharePrices,
 } from '../types/index.ts';
+import { getHotelPrice } from '../utils/getHotelPrice.ts';
 
 const initializeShares = (): Share[] => Array.from({ length: 25 }, () => ({ location: 'bank' }));
 
@@ -48,24 +48,23 @@ export const returnSharesToBank = (shares: Share[], playerId: number, count = 1)
 export const hotelTiles = (hotel: HOTEL_NAME, tiles: BoardTile[]) =>
   tiles.filter((tile) => tile.hotel && tile.hotel === hotel);
 
-const findCurrentHotelPrice = (hotel: Hotel, tiles: BoardTile[]) => {
-  const size = hotelTiles(hotel.name, tiles).length;
-  const prices = SharePrices[HOTEL_CONFIG[hotel.name]];
-  for (const [bracket, price] of Object.entries(prices)) {
-    if (size <= Number(bracket)) {
-      return price;
-    }
+const findCurrentHotelBracket = (hotel: HOTEL_NAME, tiles: BoardTile[]) => {
+  const size = hotelTiles(hotel, tiles).length;
+  const result = getHotelPrice(hotel, size);
+  if (result.price === 0) {
+    throw new GameError(
+      'No price bracket found - check SharePrices configuration',
+      GameErrorCodes.GAME_PROCESSING_ERROR,
+    );
   }
-  throw new GameError(
-    'No price bracket found - check SharePrices configuration',
-    GameErrorCodes.GAME_PROCESSING_ERROR,
-  );
+  return result;
 };
-export const sharePrice = (hotel: Hotel, tiles: BoardTile[]): number =>
-  findCurrentHotelPrice(hotel, tiles).price;
+
+export const sharePrice = (hotel: HOTEL_NAME, tiles: BoardTile[]): number =>
+  findCurrentHotelBracket(hotel, tiles).price;
 
 export const majorityMinorityValue = (hotel: Hotel, tiles: BoardTile[]) => {
-  const price = findCurrentHotelPrice(hotel, tiles);
+  const price = findCurrentHotelBracket(hotel.name, tiles);
   return [price.majority, price.minority];
 };
 
@@ -81,11 +80,57 @@ export const getTiedHotels = (
   return hotels.filter((h) => hotelTiles(h, tiles).length === targetSize);
 };
 
-export const getHotelsByNames = (hotels: Hotel[], names: HOTEL_NAME[]) =>
-  names.map((name) => {
-    const hotel = hotels.find((h) => h.name === name);
-    if (!hotel) {
-      throw new GameError(`Hotel not found: ${name}`, GameErrorCodes.GAME_PROCESSING_ERROR);
-    }
-    return hotel;
-  });
+export const getHotelsByNames = (hotels: Hotel[], names: HOTEL_NAME[]): Hotel[] =>
+  names.map((name) => getHotelByName(hotels, name));
+
+// Return a map of playerId to number of shares held for the given hotel
+export const getStockHolders = (hotel: Hotel): Map<number, number> =>
+  hotel.shares
+    .filter((share) => share.location !== 'bank')
+    .reduce((acc, share) => {
+      const playerId = share.location;
+      acc.set(playerId, (acc.get(playerId) || 0) + 1);
+      return acc;
+    }, new Map());
+
+export const getAvailableHotelNames = (board: BoardTile[]) =>
+  HOTEL_NAMES.filter((hotel) => hotelTiles(hotel, board).length > 0);
+
+export const canBuyShares = (money: number, hotels: Hotel[], board: BoardTile[]) => {
+  const availableHotels = hotels.filter((hotel) =>
+    hotelTiles(hotel.name, board).length > 0 &&
+    hotel.shares.some((share) => share.location === 'bank')
+  );
+  const lowestSharePrice = Math.min(
+    ...availableHotels.map((hotel) => sharePrice(hotel.name, board)),
+  );
+  // They can buy at least one share
+  return money >= lowestSharePrice;
+};
+
+export const resolveShares = (
+  playerId: number,
+  board: BoardTile[],
+  survivor: Hotel,
+  merged: Hotel,
+  shares: { sell: number; trade: number } | undefined,
+): { survivorShares: Share[]; mergedShares: Share[]; income: number } => {
+  let survivorShares = survivor.shares;
+  let mergedShares = merged.shares;
+
+  // Trade shares
+  if (shares && shares.trade) {
+    const tradedShares = shares.trade / 2;
+    survivorShares = assignSharesToPlayer(survivorShares, playerId, tradedShares);
+    mergedShares = returnSharesToBank(mergedShares, playerId, shares.trade);
+  }
+
+  // Sell shares
+  let income = 0;
+  if (shares && shares.sell) {
+    const shareValue = sharePrice(merged.name, board) * shares.sell;
+    income = shareValue;
+    mergedShares = returnSharesToBank(mergedShares, playerId, shares.sell);
+  }
+  return { survivorShares, mergedShares, income };
+};
