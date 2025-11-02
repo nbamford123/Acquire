@@ -5,7 +5,7 @@ import {
   type Player,
   type Tile,
 } from '../types/index.ts';
-import { boardTiles, deadTile, drawTiles, getPlayerTiles } from '../domain/index.ts';
+import { boardTiles, deadTile, drawTiles, getPlayerTiles, updateTiles } from '../domain/index.ts';
 
 export const drawAndReplaceTilesReducer = (
   currentPlayerId: number,
@@ -21,23 +21,31 @@ export const drawAndReplaceTilesReducer = (
     );
   }
   // Draw a tile for this player
-  const availableTiles = tiles.filter((tile) => tile.location === 'bag');
   const board = boardTiles(tiles);
-  let updatedTiles = drawTiles(
-    availableTiles,
+  const drawnTiles = drawTiles(
+    tiles,
     currentPlayerId,
     board,
     1,
   );
+  const updatedTiles = updateTiles(tiles, drawnTiles);
   // Check all players for dead tiles and draw replacements
+  const replaceDeadTiles: Tile[] = [];
   for (const player of players) {
     for (const tile of getPlayerTiles(player.id, tiles)) {
       if (deadTile(tile, board)) {
-        updatedTiles = drawTiles(updatedTiles, player.id, board, 1);
+        replaceDeadTiles.concat([
+          { ...tile, location: 'dead' },
+          ...drawTiles(updatedTiles, player.id, board, 1),
+        ]);
       }
     }
   }
+  console.log(
+    'returning tiles',
+    updateTiles(updatedTiles, replaceDeadTiles).filter((tile) => tile.location === 'board'),
+  );
   return {
-    tiles: updatedTiles,
+    tiles: updateTiles(updatedTiles, replaceDeadTiles),
   };
 };

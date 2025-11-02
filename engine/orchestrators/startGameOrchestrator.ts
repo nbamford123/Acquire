@@ -7,9 +7,9 @@ export const startGameOrchestrator = (
   const updatedState = startGameReducer(gameState.tiles, gameState.players);
   return {
     ...gameState,
+    ...updatedState,
     currentPhase: GamePhase.PLAY_TILE,
     currentPlayer: 0,
     currentTurn: 1,
-    ...updatedState,
   };
 };

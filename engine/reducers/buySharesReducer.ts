@@ -5,15 +5,23 @@ export const buySharesReducer = (
   shares: Record<HOTEL_NAME, number>,
 ): Partial<GameState> => {
   const board = boardTiles(gameState.tiles);
-  const totalCost = Object.entries(shares).reduce(
-    (cost, [hotelName, numShares]) => cost + numShares * sharePrice(hotelName as HOTEL_NAME, board),
-    0,
-  );
+  // Compute actual number of shares that can be transferred (limited by bank availability)
+  const actualTransferred = new Map<HOTEL_NAME, number>();
+  const totalCost = gameState.hotels.reduce((cost, hotel) => {
+    const requested = shares[hotel.name] || 0;
+    if (!requested) return cost;
+    const bankCount = hotel.shares.filter((s) => s.location === 'bank').length;
+    const actual = Math.min(requested, bankCount);
+    actualTransferred.set(hotel.name, actual);
+    return cost + actual * sharePrice(hotel.name as HOTEL_NAME, board);
+  }, 0);
+
   return {
     hotels: gameState.hotels.map((hotel) => {
       const numShares = shares[hotel.name];
       if (!numShares) return hotel;
-      let limit = numShares;
+      // Use the actual number we will transfer (may be less than requested)
+      let limit = actualTransferred.get(hotel.name) || 0;
       return {
         ...hotel,
         shares: hotel.shares.map((share) => {

@@ -101,7 +101,9 @@ export const canBuyShares = (money: number, hotels: Hotel[], board: BoardTile[])
     hotelTiles(hotel.name, board).length > 0 &&
     hotel.shares.some((share) => share.location === 'bank')
   );
-  const lowestSharePrice = Math.min(...availableHotels.map((hotel) => sharePrice(hotel, board)));
+  const lowestSharePrice = Math.min(
+    ...availableHotels.map((hotel) => sharePrice(hotel.name, board)),
+  );
   // They can buy at least one share
   return money >= lowestSharePrice;
 };

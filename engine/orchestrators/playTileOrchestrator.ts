@@ -17,9 +17,8 @@ export const playTileOrchestrator = (
   const tile: BoardTile = { ...playedTile, location: 'board' };
   const updatedGameState = {
     ...gameState,
-    tiles: updateTiles([tile], gameState.tiles),
+    tiles: updateTiles(gameState.tiles, [tile]),
   };
-
   const placement = analyzeTilePlacement(tile, gameState.tiles);
   if (placement.triggersMerger) {
     return processMergerOrchestrator({
