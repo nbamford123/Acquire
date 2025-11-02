@@ -16,13 +16,10 @@ Deno.test('drawInitialTiles basic behavior', () => {
     { id: -1, name: 'Carol', money: 0 },
   ];
 
-  const { sortedPlayers, updatedTiles } = drawInitialTiles(tiles, players);
-
-  // We should still have the same number of tiles after drawing
-  assertEquals(updatedTiles.length, tiles.length);
+  const { sortedPlayers, playedTiles } = drawInitialTiles(tiles, players);
 
   // Number of board tiles should be equal to number of players
-  const boardCount = updatedTiles.filter((t) => t.location === 'board').length;
+  const boardCount = playedTiles.filter((t) => t.location === 'board').length;
   assertEquals(boardCount, players.length);
 
   // sortedPlayers should be same length and have ids 0..n-1

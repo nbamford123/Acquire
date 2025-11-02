@@ -414,11 +414,9 @@ Deno.test('drawTiles', async (t) => {
     const result = drawTiles(availableTiles, playerId, boardTiles, count);
     const drawn = result.filter((t) => t.location === playerId);
     const deadTiles = result.filter((t) => t.location === 'dead');
-    const remaining = result.filter((t) => t.location === 'bag');
 
     assertEquals(drawn.length, 3);
     assertEquals(deadTiles.length, 0);
-    assertEquals(remaining.length, 1);
 
     // Check that drawn tiles have correct player location
     drawn.forEach((tile) => {

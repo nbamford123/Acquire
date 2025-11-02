@@ -34,17 +34,13 @@ export const drawAndReplaceTilesReducer = (
   for (const player of players) {
     for (const tile of getPlayerTiles(player.id, tiles)) {
       if (deadTile(tile, board)) {
-        replaceDeadTiles.concat([
+        replaceDeadTiles.push(
           { ...tile, location: 'dead' },
           ...drawTiles(updatedTiles, player.id, board, 1),
-        ]);
+        );
       }
     }
   }
-  console.log(
-    'returning tiles',
-    updateTiles(updatedTiles, replaceDeadTiles).filter((tile) => tile.location === 'board'),
-  );
   return {
     tiles: updateTiles(updatedTiles, replaceDeadTiles),
   };
