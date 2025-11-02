@@ -48,23 +48,23 @@ export const returnSharesToBank = (shares: Share[], playerId: number, count = 1)
 export const hotelTiles = (hotel: HOTEL_NAME, tiles: BoardTile[]) =>
   tiles.filter((tile) => tile.hotel && tile.hotel === hotel);
 
-const findCurrentHotelPrice = (hotel: HOTEL_NAME, tiles: BoardTile[]) => {
+const findCurrentHotelBracket = (hotel: HOTEL_NAME, tiles: BoardTile[]) => {
   const size = hotelTiles(hotel, tiles).length;
-  const price = getHotelPrice(hotel, size);
-  if (price === 0) {
+  const result = getHotelPrice(hotel, size);
+  if (result.price === 0) {
     throw new GameError(
       'No price bracket found - check SharePrices configuration',
       GameErrorCodes.GAME_PROCESSING_ERROR,
     );
   }
-  return price;
+  return result;
 };
 
 export const sharePrice = (hotel: HOTEL_NAME, tiles: BoardTile[]): number =>
-  findCurrentHotelPrice(hotel, tiles).price;
+  findCurrentHotelBracket(hotel, tiles).price;
 
 export const majorityMinorityValue = (hotel: Hotel, tiles: BoardTile[]) => {
-  const price = findCurrentHotelPrice(hotel.name, tiles);
+  const price = findCurrentHotelBracket(hotel.name, tiles);
   return [price.majority, price.minority];
 };
 

@@ -17,7 +17,7 @@ export const getHotelPrice = (
   hotel: HOTEL_NAME,
   size: number,
   prices?: Record<number | string, PriceBracket> | Map<number, PriceBracket>,
-): PriceBracket | number => {
+): PriceBracket => {
   const raw = prices ?? SharePrices[HOTEL_CONFIG[hotel]];
 
   // Normalize to Map<number, PriceBracket>
@@ -33,5 +33,5 @@ export const getHotelPrice = (
   }
 
   // No matching bracket found
-  return 0;
+  return { price: 0, majority: 0, minority: 0 };
 };
