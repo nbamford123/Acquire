@@ -312,8 +312,10 @@ New State
 3. Use cases and orchestrators always take and return a full game state
 4. Domain functions are pure - No GameState, no side effects
 5. Validation splits by concern:
-  - Orchestration checks (phase/turn) → Use case
-  - Business rules → Domain functions
+
+- Orchestration checks (phase/turn) → Use case
+- Business rules → Domain functions
+
 6. Reusable reducers - Multiple actions can share the same reducer
 
 #### Benefits
@@ -380,33 +382,33 @@ If you were writing this up, I'd suggest:
 ## Your Revised Architecture
 
 ┌─────────────────────────────────────┐
-│  Action Dispatcher                  │
-│  - Routes ALL actions to use cases  │
+│ Action Dispatcher │
+│ - Routes ALL actions to use cases │
 └──────────────┬──────────────────────┘
-               │
-               ▼
+│
+▼
 ┌─────────────────────────────────────┐
-│  Use Cases (Entry Points)           │
-│  - ALWAYS validate orchestration    │
-│  - Decide: inline, reducer, or      │
-│    orchestrator?                    │
+│ Use Cases (Entry Points) │
+│ - ALWAYS validate orchestration │
+│ - Decide: inline, reducer, or │
+│ orchestrator? │
 └──────────────┬──────────────────────┘
-               │
-               ├─ Simple? Inline update
-               ├─ Medium? Call reducer
-               └─ Complex? Call orchestrator
-                    ↓
-          ┌─────────────────────┐
-          │  Orchestrators      │
-          │  - Multi-step flows │
-          │  - Call reducers    │
-          └──────────┬──────────┘
-                     │
-                     ▼
-          ┌─────────────────────┐
-          │  Reducers           │
-          │  - State transform  │
-          └─────────────────────┘
+│
+├─ Simple? Inline update
+├─ Medium? Call reducer
+└─ Complex? Call orchestrator
+↓
+┌─────────────────────┐
+│ Orchestrators │
+│ - Multi-step flows │
+│ - Call reducers │
+└──────────┬──────────┘
+│
+▼
+┌─────────────────────┐
+│ Reducers │
+│ - State transform │
+└─────────────────────┘
 
 ### Summary Table
 
@@ -432,21 +434,21 @@ If you were writing this up, I'd suggest:
 ## Your Architecture Refined
 
 Action Dispatcher
-  ↓
+↓
 Use Case (Entry Point)
-  ├─ Validate: Is this allowed RIGHT NOW?
-  └─ Delegate to ONE of:
-      │
-      ├─ Orchestrator (complex multi-step flow)
-      │   ├─ Makes flow decisions
-      │   ├─ Calls reducers
-      │   └─ Calls other orchestrators
-      │
-      ├─ Reducer (state transformation)
-      │   └─ Pure state update
-      │
-      └─ Inline (trivial update)
-          └─ return { ...gameState, flag: true }
+├─ Validate: Is this allowed RIGHT NOW?
+└─ Delegate to ONE of:
+│
+├─ Orchestrator (complex multi-step flow)
+│ ├─ Makes flow decisions
+│ ├─ Calls reducers
+│ └─ Calls other orchestrators
+│
+├─ Reducer (state transformation)
+│ └─ Pure state update
+│
+└─ Inline (trivial update)
+└─ return { ...gameState, flag: true }
 
 ## The Rule of Thumb
 
@@ -471,6 +473,7 @@ If it's longer, ask:
 3. Orchestrators manage multi-step flows - Can call reducers and other orchestrators
 4. Reducers transform state - Pure state updates, can call domain functions
 5. Domain functions are pure - No GameState, no side effects
-6. Validation splits by concern: 
-  - Orchestration checks (phase/turn) → Use case (inline)
-  - Business rules → Domain functions (extracted)
+6. Validation splits by concern:
+
+- Orchestration checks (phase/turn) → Use case (inline)
+- Business rules → Domain functions (extracted)

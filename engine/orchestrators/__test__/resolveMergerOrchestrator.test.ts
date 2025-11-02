@@ -78,7 +78,7 @@ Deno.test('resolveMergerOrchestrator proceeds to BUY_SHARES when done', () => {
     // In a constrained test environment some deeper domain helpers may throw
     // configuration errors (price brackets) or processing errors (insufficient
     // hotels to merge). Consider these acceptable for this high-level test.
-    const msg = (err && err.message) || String(err);
+    const msg = (err && (err as { message: string }).message) as string || String(err);
     if (msg.includes('No price bracket found') || msg.includes('Need at least 2 hotels to merge')) {
       return;
     }

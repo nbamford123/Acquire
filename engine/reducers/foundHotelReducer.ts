@@ -1,4 +1,4 @@
-import { getHotelByName, getBoardTile, updateTiles, boardTiles } from '../domain/index.ts';
+import { boardTiles, getBoardTile, getHotelByName, updateTiles } from '../domain/index.ts';
 import type {
   BoardTile,
   FoundHotelContext,

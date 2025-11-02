@@ -31,7 +31,7 @@ export const breakMergerTieUseCase = (
   }
   breakMergerTieValidation(
     action,
-    gameState
+    gameState,
   );
 
   return processMergerOrchestrator(

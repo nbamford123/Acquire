@@ -97,7 +97,7 @@ Deno.test('foundHotelReducer: throws when hotel name is not found', () => {
   // The thrown error should include the processing error code
   // Some error implementations attach a 'code' property
   // Check message as a conservative assertion
-  if (!/Hotel not found/.test(err.message)) {
+  if (!/Hotel not found/.test((err as { message: string }).message)) {
     throw new Error('Expected Hotel not found error');
   }
 });

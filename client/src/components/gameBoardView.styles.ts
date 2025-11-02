@@ -93,7 +93,7 @@ export const styles = css`
     background: var(--pico-secondary-hover);
     transform: translateY(-2px);
   }
-  
+
   .tile.selected {
     transform: translateY(-10px);
   }

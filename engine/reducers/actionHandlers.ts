@@ -11,7 +11,7 @@ import {
   type RemovePlayerAction,
   type ResolveMergerAction,
   type StartGameAction,
-} from "../types/index.ts";
+} from '../types/index.ts';
 import {
   addPlayerUseCase,
   breakMergerTieUseCase,
@@ -21,10 +21,10 @@ import {
   removePlayerUseCase,
   resolveMergerUseCase,
   startGameUseCase,
-} from "../usecases/index.ts";
+} from '../usecases/index.ts';
 
 function createActionHandler<T extends GameAction>(
-  handler: (state: GameState, action: T) => GameState
+  handler: (state: GameState, action: T) => GameState,
 ): (state: GameState, action: GameAction) => GameState {
   return (state: GameState, action: GameAction): GameState => {
     return handler(state, action as T);
@@ -36,20 +36,14 @@ export const actionHandlers: Record<
   ActionType,
   (state: GameState, action: GameAction) => GameState
 > = {
-  [ActionTypes.ADD_PLAYER]:
-    createActionHandler<AddPlayerAction>(addPlayerUseCase),
-  [ActionTypes.REMOVE_PLAYER]:
-    createActionHandler<RemovePlayerAction>(removePlayerUseCase),
-  [ActionTypes.START_GAME]:
-    createActionHandler<StartGameAction>(startGameUseCase),
+  [ActionTypes.ADD_PLAYER]: createActionHandler<AddPlayerAction>(addPlayerUseCase),
+  [ActionTypes.REMOVE_PLAYER]: createActionHandler<RemovePlayerAction>(removePlayerUseCase),
+  [ActionTypes.START_GAME]: createActionHandler<StartGameAction>(startGameUseCase),
   [ActionTypes.PLAY_TILE]: createActionHandler<PlayTileAction>(playTileUseCase),
-  [ActionTypes.BUY_SHARES]:
-    createActionHandler<BuySharesAction>(buySharesUseCase),
-  [ActionTypes.FOUND_HOTEL]:
-    createActionHandler<FoundHotelAction>(foundHotelUseCase),
-  [ActionTypes.RESOLVE_MERGER]:
-    createActionHandler<ResolveMergerAction>(resolveMergerUseCase),
+  [ActionTypes.BUY_SHARES]: createActionHandler<BuySharesAction>(buySharesUseCase),
+  [ActionTypes.FOUND_HOTEL]: createActionHandler<FoundHotelAction>(foundHotelUseCase),
+  [ActionTypes.RESOLVE_MERGER]: createActionHandler<ResolveMergerAction>(resolveMergerUseCase),
   [ActionTypes.BREAK_MERGER_TIE]: createActionHandler<BreakMergerTieAction>(
-    breakMergerTieUseCase
+    breakMergerTieUseCase,
   ),
 };
