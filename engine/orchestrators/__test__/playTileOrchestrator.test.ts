@@ -87,7 +87,7 @@ Deno.test('playTileOrchestrator: triggers merger branch returns merger flow', ()
   try {
     const result = playTileOrchestrator(gameState, { row: 0, col: 1 });
     // The resulting phase should be either BUY_SHARES or PLAY_TILE (advance)
-    const ok = result.currentPhase === GamePhase.BUY_SHARES ||
+    const ok = result.currentPhase === GamePhase. ||
       result.currentPhase === GamePhase.PLAY_TILE;
     if (!ok) throw new Error(`Unexpected phase: ${String(result.currentPhase)}`);
   } catch (err: any) {

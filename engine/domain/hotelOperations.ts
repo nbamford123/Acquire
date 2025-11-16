@@ -94,7 +94,7 @@ export const getStockHolders = (hotel: Hotel): Map<number, number> =>
     }, new Map());
 
 export const getAvailableHotelNames = (board: BoardTile[]) =>
-  HOTEL_NAMES.filter((hotel) => hotelTiles(hotel, board).length > 0);
+  HOTEL_NAMES.filter((hotel) => hotelTiles(hotel, board).length === 0);
 
 export const canBuyShares = (money: number, hotels: Hotel[], board: BoardTile[]) => {
   const availableHotels = hotels.filter((hotel) =>

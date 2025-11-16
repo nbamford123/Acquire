@@ -13,6 +13,7 @@ import {
 } from '@acquire/engine/types';
 import { getHotelPrice, getTileLabel } from '@acquire/engine/utils';
 import { StyledComponent } from './StyledComponent.ts';
+import './ActionCard.ts';
 
 import { styles } from './gameBoardView.styles.ts';
 import { GamePhase } from '../../../engine/types/gameState.ts';
@@ -30,7 +31,7 @@ export class GameBoardView extends StyledComponent {
     loading: { type: Boolean, state: true },
     pendingAction: { type: Object, state: true },
   };
-  private playerView: PlayerView | null = null;
+  declare playerView: PlayerView | null;
   private loading = false;
 
   private pendingAction?: { action: GameAction; description: string };
@@ -39,6 +40,11 @@ export class GameBoardView extends StyledComponent {
     styles,
   ];
 
+  public constructor() {
+    super();
+    this.playerView = null;
+  }
+  
   public override connectedCallback() {
     super.connectedCallback();
     this.loadGameState();
@@ -82,9 +88,19 @@ export class GameBoardView extends StyledComponent {
         },
         description: `Play tile ${getTileLabel(tile)}`,
       };
-      console.log('setting action', this.pendingAction);
       this.requestUpdate();
     }
+  }
+
+  private handleSetAction(e: CustomEvent) {
+    console.log('handlign action', e.detail);
+    const action = e.detail as GameAction;
+    const desc = action.type === ActionTypes.FOUND_HOTEL
+      ? `Found hotel ${(action.payload as any).hotelName}`
+      : `${action.type}`;
+
+    this.pendingAction = { action, description: desc };
+    this.requestUpdate();
   }
 
   private renderBoard() {
@@ -168,6 +184,11 @@ export class GameBoardView extends StyledComponent {
                   `
                 )}
               </div>
+              <action-card
+                .playerView="${this.playerView}"
+                .user="${this.user}"
+                @set-action="${(e: CustomEvent) => this.handleSetAction(e)}"
+              ></action-card>
             </div>
             <footer>
               <div role="group">
@@ -186,7 +207,7 @@ export class GameBoardView extends StyledComponent {
         <div class="bank-section">
           <article class="bank-card">
             <h4>Hotel Chains</h4>
-            ${Object.entries(this.playerView.hotels).map(([name, { size, shares }]) =>
+            ${Object.entries(this.playerView.hotels).map(([name, {size, shares}]) =>
               html`
                 <div class="hotel-chain ${name}">
                   <div class="hotel-header">

@@ -16,6 +16,7 @@
 
 ## Game Board
 
+- Have the pending action title featured as the header or something like that in the action card, e.g. "Found Hotel"
 - should we put the current user in the user list, just so they know their place in the rotation?
 - layout, board takes more available space
 - give players unique colors?
@@ -23,6 +24,8 @@
 
 ## Misc
 
+- is it really worth it to have playerview hotels as a map? It seems like all I do on the client is convert it to an array for manipulation/display
+- the unit tests for hoteloperations somehow missed the getAvailableHotelNames logic being backwards-- fixing it didn't make anything fail either.
 - it's dumb I say an action is the proper type, but then I have to set type in the action. I should be able to do something like
 
 ```typescript

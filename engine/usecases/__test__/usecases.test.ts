@@ -130,7 +130,7 @@ Deno.test('foundHotelUseCase: throws when not player turn', () => {
   assertThrows(() =>
     foundHotelUseCase(
       state,
-      { type: 'FOUND_HOTEL', payload: { player: 'Bob', hotelName: 'Tower' } } as any,
+      { type: 'FFound Hotel', payload: { player: 'Bob', hotelName: 'Tower' } } as any,
     )
   );
 });

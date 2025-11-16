@@ -2,10 +2,8 @@ import type {
   BoardTile,
   ErrorCodeValue,
   GamePhase,
-  Hotel,
   HOTEL_NAME,
   MergeContext,
-  Player,
 } from './index.ts';
 
 export type OrcCount = '0' | '1' | '2' | 'many';
