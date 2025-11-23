@@ -51,7 +51,6 @@ export class AppShell extends StyledComponent {
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         box-sizing: border-box;
-        padding: 16px;
       }
       .content.center {
         justify-content: center;

@@ -286,12 +286,15 @@ export class BuyStocksPanel extends StyledComponent {
   handlePurchase() {
     const totalCost = this.getTotalCost();
     if (totalCost > 0 && totalCost <= (this.playerMoney || 0)) {
+      const action: GameAction = {
+        type: ActionTypes.BUY_SHARES,
+        payload: { player: this.user || '',shares: this.selectedStocks},
+      };
       this.dispatchEvent(
-        new CustomEvent('purchase', {
-          detail: {
-            stocks: this.selectedStocks,
-            totalCost: totalCost,
-          },
+        new CustomEvent('set-action', {
+          detail: action,
+          bubbles: true,
+          composed: true,
         }),
       );
     }

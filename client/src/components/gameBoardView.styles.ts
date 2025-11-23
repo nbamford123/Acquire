@@ -8,9 +8,9 @@ export const styles = css`
 
   .game-container {
     display: grid;
-    grid-template-columns: 1fr auto 280px;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
     gap: 1rem;
-    max-width: 1600px;
     margin: 0 auto;
   }
 
@@ -18,6 +18,9 @@ export const styles = css`
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    width: 100%;
+    grid-row: 1 / 3;
+    grid-column: 1;
   }
 
   .game-board {
@@ -29,7 +32,10 @@ export const styles = css`
     padding: 1rem;
     border-radius: 8px;
     aspect-ratio: 12/9;
+    width: 100%;
+    min-width: 700px;
     max-width: 900px;
+    margin: 0 auto;
   }
 
   .board-cell {
@@ -103,6 +109,8 @@ export const styles = css`
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    grid-row: 1;
+    grid-column: 2;
   }
 
   .bank-card {
@@ -191,10 +199,12 @@ export const styles = css`
   }
 
   .players-sidebar {
-    width: 280px;
+    width: 300px;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    grid-row: 2;
+    grid-column: 2;
   }
 
   .player-card {
@@ -235,16 +245,133 @@ export const styles = css`
     margin-top: 0.5rem;
   }
 
-  @media (max-width: 1400px) {
-    .game-container {
-      grid-template-columns: 1fr;
+  /* Laptop: 1200-1400px - Board minimum 600px */
+  @media (max-width: 1400px) and (min-width: 1200px) {
+    .game-board {
+      min-width: 600px;
+      max-width: 900px;
+    }
+  }
+
+  /* Tablet: <1200px - Board spans full width above, bank and players side-by-side below */
+  @media (max-width: 1200px) {
+    :host {
+      padding: 1rem;
+      width: 100%;
     }
 
-    .bank-section,
+    .game-container {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      max-width: 100%;
+      width: 100%;
+    }
+
+    .board-section {
+      width: 100%;
+      grid-row: 1;
+      grid-column: 1 / 3;
+    }
+
+    .game-board {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      margin: 0;
+    }
+
+    .bank-section {
+      width: 100%;
+      grid-row: 2;
+      grid-column: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
     .players-sidebar {
       width: 100%;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-row: 2;
+      grid-column: 2;
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  /* Mobile: <768px - Everything stacks in single column */
+  @media (max-width: 768px) {
+    :host {
+      padding: 0.5rem;
+    }
+
+    .game-container {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 0.75rem;
+    }
+
+    .board-section {
+      width: 100%;
+      grid-row: 1;
+      grid-column: 1;
+      gap: 0.75rem;
+    }
+
+    .game-board {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      padding: 0.75rem;
+      gap: 2px;
+      aspect-ratio: 12/9;
+      margin: 0;
+    }
+
+    .bank-section {
+      width: 100%;
+      grid-row: 2;
+      grid-column: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .bank-card {
+      padding: 0.75rem;
+    }
+
+    .bank-card h4 {
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .players-sidebar {
+      width: 100%;
+      grid-row: 3;
+      grid-column: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .player-card {
+      padding: 0.75rem;
+    }
+
+    .player-header {
+      margin-bottom: 0.25rem;
+    }
+
+    .current-player-view {
+      padding: 0.75rem;
+    }
+
+    .tile-hand {
+      gap: 0.25rem;
+    }
+
+    .tile {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.7rem;
     }
   }
 `;
