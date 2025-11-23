@@ -46,7 +46,7 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
 - add at least a debug view where the api server logs requests and responses
 - local dev hot reload doesn't seem to be working
 - end game
-- pass (have money but don't want to buy stocks)
+- pass or no stocks in buy stocks phase (have money but don't want to buy stocks)
 - ttl/culling of old games
 
 ## Eventual blog post
@@ -151,14 +151,17 @@ type GameState = {
 For your turn-based state storage, consider:
 
 1. **Error exclusion in persistence**: When persisting state between turns, you might want to strip out transient errors:
-   typescript```
+
+```typescript
    function persistGameState(state: GameState): PersistedGameState {
    const { currentError, ...restState } = state;
    return restState; // Don't persist the current error
    }
 
-````
+```
+
 2. **Replay safety**: Ensure your state can be replayed without errors affecting the replay:
+
 ```typescript
 function replayTurn(persistedState: PersistedGameState): GameState {
   return {
@@ -166,7 +169,7 @@ function replayTurn(persistedState: PersistedGameState): GameState {
     currentError: null, // Ensure replays start without errors
   };
 }
-````
+```
 
 3. **Turn boundaries**: Define clear points where error states are guaranteed to be clean:
 
@@ -326,9 +329,13 @@ New State
 #### Benefits
 
 ✅ Testability: Each layer can be tested in isolation
+
 ✅ Reusability: Domain functions and reducers are building blocks
+
 ✅ Clarity: Clear separation of "what's legal" vs "when it's legal"
+
 ✅ Flexibility: Easy to compose complex flows from simple pieces
+
 ✅ Type Safety: TypeScript enforces contracts between layers
 
 #### When to Use What
