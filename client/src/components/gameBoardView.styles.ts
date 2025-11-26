@@ -65,22 +65,26 @@ export const styles = css`
   }
 
   .current-player-view {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tile-hand {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
     padding: 1rem;
     background: var(--pico-card-background-color);
     border-radius: 8px;
     border: 2px solid var(--pico-primary);
   }
 
-  .current-player-view h3 {
-    margin-top: 0;
-    color: var(--pico-primary);
-  }
-
-  .tile-hand {
+  .tiles-list {
     display: flex;
-    gap: 0.5rem;
     flex-wrap: wrap;
     margin-top: 0.5rem;
+    gap: 0.5rem;
   }
 
   .tile {
@@ -363,15 +367,6 @@ export const styles = css`
 
     .current-player-view {
       padding: 0.75rem;
-    }
-
-    .tile-hand {
-      gap: 0.25rem;
-    }
-
-    .tile {
-      padding: 0.4rem 0.6rem;
-      font-size: 0.7rem;
     }
   }
 `;

@@ -1,4 +1,4 @@
-import { html } from 'lit';
+import { css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { GamePhase, type PlayerView } from '@acquire/engine/types';
@@ -15,6 +15,26 @@ export class ActionCard extends StyledComponent {
   };
   declare playerView: PlayerView | null;
   declare user: string | null;
+
+  static override styles = [
+    super.styles,
+    css`
+      .action-card {
+        display: flex;
+        font-size: 1rem;
+        padding: 1rem;
+        background: var(--pico-card-background-color);
+        border-radius: 8px;
+        border: 2px solid var(--pico-primary);
+        justify-content: space-between;
+      }
+      .current-action {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+    `,
+  ];
 
   public constructor() {
     super();
@@ -51,10 +71,12 @@ export class ActionCard extends StyledComponent {
   }
 
   public override render() {
-    console.log('rendering action card!');
     return html`
-      <article>
-        <header>${this.playerView?.currentPhase}</header>
+      <article class="action-card">
+        <div class="current-action">
+          <span style="font-size: .75rem"><strong>ACTION</strong></span> ${this.playerView
+            ?.currentPhase}
+        </div>
         ${this.getActionTemplate()}
       </article>
     `;

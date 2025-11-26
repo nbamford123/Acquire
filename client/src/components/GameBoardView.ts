@@ -44,7 +44,7 @@ export class GameBoardView extends StyledComponent {
     super();
     this.playerView = null;
   }
-  
+
   public override connectedCallback() {
     super.connectedCallback();
     this.loadGameState();
@@ -93,7 +93,7 @@ export class GameBoardView extends StyledComponent {
   }
 
   private handleSetAction(e: CustomEvent) {
-    console.log('handlign action', e.detail);
+    console.log('handling action', e.detail);
     const action = e.detail as GameAction;
     const desc = action.type === ActionTypes.FOUND_HOTEL
       ? `Found hotel ${(action.payload as any).hotelName}`
@@ -162,18 +162,10 @@ export class GameBoardView extends StyledComponent {
             ${this.renderBoard()}
           </div>
 
-          <article class="current-player-view">
-            <h3>Your Turn</h3>
-            <div class="player-header">
-              <span class="player-name">${this.user}</span>
-              <span class="player-cash">$${this.playerView.money.toLocaleString()}</span>
-            </div>
-            <div class="player-stocks">
-              Stocks: ${this.formatStocks(this.playerView.stocks)}
-            </div>
-            <div style="margin-top: 1rem;">
-              <strong>Your Tiles:</strong>
-              <div class="tile-hand">
+          <div class="current-player-view">
+            <article class="tile-hand">
+              <strong>YOUR TILES</strong>
+              <div class="tiles-list">
                 ${this.playerView.tiles.map((tile) =>
                   html`
                     <button class="${`tile ${
@@ -184,13 +176,14 @@ export class GameBoardView extends StyledComponent {
                   `
                 )}
               </div>
-              <action-card
-                .playerView="${this.playerView}"
-                .user="${this.user}"
-                @set-action="${(e: CustomEvent) => this.handleSetAction(e)}"
-              ></action-card>
-            </div>
-            <footer>
+            </article>
+            <action-card
+              .playerView="${this.playerView}"
+              .user="${this.user}"
+              @set-action="${(e: CustomEvent) => this.handleSetAction(e)}"
+            ></action-card>
+            <button @click="${() => this.submitAction()}">Submit</button>
+            <!-- <footer>
               <div role="group">
                 ${this.pendingAction
                   ? html`
@@ -200,14 +193,14 @@ export class GameBoardView extends StyledComponent {
                 <button @click="${() => this.saveGameState()}">Save Game</button>
               </div>
               <span>${this.pendingAction && this.pendingAction.description}</span>
-            </footer>
-          </article>
+            </footer> -->
+          </div>
         </div>
 
         <div class="bank-section">
           <article class="bank-card">
             <h4>Hotel Chains</h4>
-            ${Object.entries(this.playerView.hotels).map(([name, {size, shares}]) =>
+            ${Object.entries(this.playerView.hotels).map(([name, { size, shares }]) =>
               html`
                 <div class="hotel-chain ${name}">
                   <div class="hotel-header">
@@ -217,7 +210,7 @@ export class GameBoardView extends StyledComponent {
                   <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span class="hotel-stock">Available: ${shares}</span>
                     <span class="hotel-price">${size > 0
-                      ? `$${getHotelPrice(name as HOTEL_NAME, size)}`
+                      ? `Share price: $${getHotelPrice(name as HOTEL_NAME, size).price}`
                       : '—'}</span>
                   </div>
                 </div>
