@@ -1,10 +1,10 @@
 import { css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { GamePhase, type PlayerView } from '@acquire/engine/types';
+import { GamePhase, type HOTEL_NAME, type PlayerView } from '@acquire/engine/types';
 import { StyledComponent } from './StyledComponent.ts';
 import { foundHotelTemplate } from './foundHotelTemplate.ts';
-import './BuyStocksPanel.ts';
+import { buyStocksTemplate } from './buyStocksTemplate.ts';
 
 @customElement('action-card')
 export class ActionCard extends StyledComponent {
@@ -53,14 +53,9 @@ export class ActionCard extends StyledComponent {
         const hotels = Object.entries(this.playerView.hotels).reduce(
           (hotels, [name, { shares, size }]) =>
             size > 0 ? hotels.concat([{ name, shares, size }]) : hotels,
-          [] as { name: string; shares: number; size: number }[],
+          [] as { name: HOTEL_NAME; shares: number; size: number }[],
         );
-        // TODO(me): will current player always be right here? What about when we rotate around to someone who isn't the current player?
-        return html`
-          <buystocks-panel .hotels="${hotels}" user="${this
-            .user}" playerMoney="${this.playerView.money}">
-          </buystocks-panel>
-        `;
+        return buyStocksTemplate(hotels, this.user || '', this);
       }
       case GamePhase.PLAY_TILE:
       case GamePhase.RESOLVE_MERGER:
