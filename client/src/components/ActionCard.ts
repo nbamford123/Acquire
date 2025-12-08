@@ -12,9 +12,11 @@ export class ActionCard extends StyledComponent {
     playerView: { type: Object },
     user: { type: String },
     gameTurn: { type: Number },
+    selectedShares: { state: true },
   };
   declare playerView: PlayerView | null;
   declare user: string | null;
+  private selectedShares: Partial<Record<HOTEL_NAME, number>> = {};
 
   static override styles = [
     super.styles,
@@ -26,12 +28,11 @@ export class ActionCard extends StyledComponent {
         background: var(--pico-card-background-color);
         border-radius: 8px;
         border: 2px solid var(--pico-primary);
-        justify-content: space-between;
+        gap: 8px;
       }
       .current-action {
         display: flex;
         flex-direction: column;
-        flex: 1;
       }
     `,
   ];
@@ -52,10 +53,12 @@ export class ActionCard extends StyledComponent {
       case GamePhase.BUY_SHARES: {
         const hotels = Object.entries(this.playerView.hotels).reduce(
           (hotels, [name, { shares, size }]) =>
-            size > 0 ? hotels.concat([{ name, shares, size }]) : hotels,
+            (size > 0 && shares > 0)
+              ? hotels.concat([{ name: name as HOTEL_NAME, shares, size }])
+              : hotels,
           [] as { name: HOTEL_NAME; shares: number; size: number }[],
         );
-        return buyStocksTemplate(hotels, this.user || '', this);
+        return buyStocksTemplate(hotels, this.user || '', this, this.selectedShares);
       }
       case GamePhase.PLAY_TILE:
       case GamePhase.RESOLVE_MERGER:

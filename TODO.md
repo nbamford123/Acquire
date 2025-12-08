@@ -6,6 +6,10 @@
 - the specific pico azure background (and azure colors in general) aren't light/darkmode sensitive
 - update to [ky](https://github.com/sindresorhus/ky), cleaner syntax, retries, good interface for polling
 
+## Action Card
+
+- export css parameterized strings from the template files rather than the inline styles
+
 ## Dashboard
 
 - make the time calculation work right, and add "updated" or "created".

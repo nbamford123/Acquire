@@ -47,23 +47,22 @@ const handleQuantityChange = (
 };
 
 export const buyStocksTemplate = (
-  hotels: Hotel[],
+  hotels: { name: HOTEL_NAME; shares: number; size: number }[],
   user: string,
   parent: LitElement,
   initialShares: Partial<Record<HOTEL_NAME, number>> = {},
 ) => {
-  const currentShares: Partial<Record<HOTEL_NAME, number>> = { ...initialShares };
+  // Use the passed `initialShares` object directly so mutations persist
+  const currentShares: Partial<Record<HOTEL_NAME, number>> = initialShares || {};
   const totalLimit = 3;
   const currentTotal = Object.values(currentShares).reduce((a, b) => a + b, 0);
-
   return html`
     <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
       ${hotels.map((hotel) => {
         const quantity = currentShares[hotel.name] || 0;
-        const availableStocks = hotel.shares.length;
+        const availableStocks = hotel.shares;
         const canIncrease = quantity < availableStocks && currentTotal < totalLimit;
         const canDecrease = quantity > 0;
-
         return html`
           <div
             style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border: 1px solid #ccc; padding: 1rem; border-radius: 4px;"
@@ -72,7 +71,7 @@ export const buyStocksTemplate = (
             <div style="font-size: 0.875rem; color: #666;">
               Available: ${availableStocks}
             </div>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div role="group" style="height: 1.5rem; border 1px solid #ccc; border-radius: 4px;">
               <button
                 @click="${() => {
                   const updated = handleQuantityChange(
@@ -84,36 +83,14 @@ export const buyStocksTemplate = (
                   Object.assign(currentShares, updated);
                   parent.requestUpdate?.();
                 }}"
+                style="max-width: 1.5rem; padding: 0 4px;"
                 ?disabled="${!canDecrease}"
               >
                 −
               </button>
-              <input
-                type="number"
-                value="${quantity}"
-                min="0"
-                max="${Math.min(availableStocks, totalLimit)}"
-                @change="${(evt: Event) => {
-                  const input = evt.target as HTMLInputElement;
-                  const newValue = Math.max(
-                    0,
-                    Math.min(
-                      parseInt(input.value) || 0,
-                      Math.min(availableStocks, totalLimit),
-                    ),
-                  );
-                  const updated = handleQuantityChange(
-                    hotel.name,
-                    newValue,
-                    currentShares,
-                    totalLimit,
-                  );
-                  Object.assign(currentShares, updated);
-                  parent.requestUpdate?.();
-                }}"
-                style="width: 3rem; text-align: center;"
-                readonly
-              />
+              <span style="font-size: 1rem; width: 3rem; display: inline-block; text-align: center;">
+                ${quantity}
+              </span>
               <button
                 @click="${() => {
                   const updated = handleQuantityChange(
@@ -125,6 +102,7 @@ export const buyStocksTemplate = (
                   Object.assign(currentShares, updated);
                   parent.requestUpdate?.();
                 }}"
+                style="max-width: 1.5rem; padding: 0 4px;"
                 ?disabled="${!canIncrease}"
               >
                 +
