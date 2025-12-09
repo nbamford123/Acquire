@@ -31,7 +31,7 @@ Deno.test('analyzeTilePlacement various outcomes', async (t) => {
     const tile = { row: 4, col: 4, location: 'bag' } as Tile;
     const tiles: Tile[] = [
       boardTile(4, 5, 'Worldwide'),
-      boardTile(5, 4, 'Sackson'),
+      boardTile(5, 4, 'Luxor'),
     ];
     const result = analyzeTilePlacement(tile, tiles);
     assertEquals(result.triggersMerger, true);

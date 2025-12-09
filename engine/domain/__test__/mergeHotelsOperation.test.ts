@@ -63,16 +63,16 @@ Deno.test('mergeHotels - Basic functionality', async (t) => {
   await t.step('merges two hotels with clear size difference', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', 5), // larger hotel
-      ...createHotelTiles('Sackson', 3, 1, 0), // smaller hotel
+      ...createHotelTiles('Luxor', 3, 1, 0), // smaller hotel
     ];
 
-    const mergeContext = createMergeContext(['Worldwide', 'Sackson']);
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor']);
     const result = mergeHotels(mergeContext, gameBoard);
 
     assertEquals(result.needsMergeOrder, false);
     if (!result.needsMergeOrder) {
       assertEquals(result.survivingHotel, 'Worldwide');
-      assertEquals(result.mergedHotel, 'Sackson');
+      assertEquals(result.mergedHotel, 'Luxor');
       assertEquals(result.remainingHotels, []);
       assertEquals(result.survivorTiles.length, 8); // 5 + 3 tiles
 
@@ -89,7 +89,7 @@ Deno.test('mergeHotels - Basic functionality', async (t) => {
   await t.step('includes additional tiles in survivor tiles', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', 4),
-      ...createHotelTiles('Sackson', 2, 1, 0),
+      ...createHotelTiles('Luxor', 2, 1, 0),
     ];
 
     const additionalTiles: BoardTile[] = [
@@ -97,7 +97,7 @@ Deno.test('mergeHotels - Basic functionality', async (t) => {
       createBoardTile(6, 6),
     ];
 
-    const mergeContext = createMergeContext(['Worldwide', 'Sackson'], additionalTiles);
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor'], additionalTiles);
     const result = mergeHotels(mergeContext, gameBoard);
 
     assertEquals(result.needsMergeOrder, false);
@@ -111,12 +111,12 @@ Deno.test('mergeHotels - Tie scenarios requiring user input', async (t) => {
   await t.step('all 4 hotels are the same size (maximum tie scenario)', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', 5),
-      ...createHotelTiles('Sackson', 5, 1, 0),
+      ...createHotelTiles('Luxor', 5, 1, 0),
       ...createHotelTiles('Festival', 5, 2, 0),
       ...createHotelTiles('Imperial', 5, 3, 0),
     ];
 
-    const mergeContext = createMergeContext(['Worldwide', 'Sackson', 'Festival', 'Imperial']);
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor', 'Festival', 'Imperial']);
     const result = mergeHotels(mergeContext, gameBoard);
 
     // Should detect tie and require user input
@@ -124,7 +124,7 @@ Deno.test('mergeHotels - Tie scenarios requiring user input', async (t) => {
     if (!result.needsMergeOrder) {
       // The first hotel in sorted order becomes survivor
       assertEquals(result.survivingHotel, 'Worldwide');
-      assertEquals(result.mergedHotel, 'Sackson');
+      assertEquals(result.mergedHotel, 'Luxor');
       assertEquals(result.remainingHotels, ['Festival', 'Imperial']);
     }
   });
@@ -132,18 +132,18 @@ Deno.test('mergeHotels - Tie scenarios requiring user input', async (t) => {
   await t.step('one largest hotel, other 3 are the same size', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', 7), // largest
-      ...createHotelTiles('Sackson', 4, 1, 0), // tied for second
+      ...createHotelTiles('Luxor', 4, 1, 0), // tied for second
       ...createHotelTiles('Festival', 4, 2, 0), // tied for second
       ...createHotelTiles('Imperial', 4, 3, 0), // tied for second
     ];
 
-    const mergeContext = createMergeContext(['Worldwide', 'Sackson', 'Festival', 'Imperial']);
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor', 'Festival', 'Imperial']);
     const result = mergeHotels(mergeContext, gameBoard);
 
     // Should detect tie among the second-place hotels and require user input
     assertEquals(result.needsMergeOrder, true);
     if (result.needsMergeOrder) {
-      assertEquals(result.tiedHotels, ['Sackson', 'Festival', 'Imperial']);
+      assertEquals(result.tiedHotels, ['Luxor', 'Festival', 'Imperial']);
       assertEquals(result.mergeContext.survivingHotel, 'Worldwide');
     }
   });
@@ -151,31 +151,31 @@ Deno.test('mergeHotels - Tie scenarios requiring user input', async (t) => {
   await t.step('two largest hotels tied, two smaller hotels different sizes', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', 6), // tied for largest
-      ...createHotelTiles('Sackson', 6, 1, 0), // tied for largest
+      ...createHotelTiles('Luxor', 6, 1, 0), // tied for largest
       ...createHotelTiles('Festival', 3, 2, 0), // smaller
       ...createHotelTiles('Imperial', 2, 3, 0), // smallest
     ];
 
-    const mergeContext = createMergeContext(['Worldwide', 'Sackson', 'Festival', 'Imperial']);
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor', 'Festival', 'Imperial']);
     const result = mergeHotels(mergeContext, gameBoard);
 
     // Should detect tie between the two largest hotels and require user input
     assertEquals(result.needsMergeOrder, true);
     if (result.needsMergeOrder) {
-      assertEquals(result.tiedHotels, ['Worldwide', 'Sackson']);
+      assertEquals(result.tiedHotels, ['Worldwide', 'Luxor']);
     }
   });
 
   await t.step('survivor already picked, next two hotels are same size', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', 8), // survivor (already determined)
-      ...createHotelTiles('Sackson', 4, 1, 0), // tied for merge
+      ...createHotelTiles('Luxor', 4, 1, 0), // tied for merge
       ...createHotelTiles('Festival', 4, 2, 0), // tied for merge
       ...createHotelTiles('Imperial', 2, 3, 0), // smallest
     ];
 
     const mergeContext = createMergeContext(
-      ['Sackson', 'Festival', 'Imperial'], // original hotels (survivor already removed)
+      ['Luxor', 'Festival', 'Imperial'], // original hotels (survivor already removed)
       [],
       'Worldwide', // survivor already determined
     );
@@ -184,7 +184,7 @@ Deno.test('mergeHotels - Tie scenarios requiring user input', async (t) => {
     // Should detect tie among the hotels to be merged and require user input
     assertEquals(result.needsMergeOrder, true);
     if (result.needsMergeOrder) {
-      assertEquals(result.tiedHotels, ['Sackson', 'Festival']);
+      assertEquals(result.tiedHotels, ['Luxor', 'Festival']);
       assertEquals(result.mergeContext.survivingHotel, 'Worldwide');
     }
   });
@@ -194,14 +194,14 @@ Deno.test('mergeHotels - Tie resolution with user input', async (t) => {
   await t.step('resolves tie when no survivor was previously picked', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', 5),
-      ...createHotelTiles('Sackson', 5, 1, 0),
+      ...createHotelTiles('Luxor', 5, 1, 0),
       ...createHotelTiles('Festival', 3, 2, 0),
     ];
 
-    const mergeContext = createMergeContext(['Worldwide', 'Sackson', 'Festival']);
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor', 'Festival']);
     const tieResolution: ResolvedTie = {
       survivor: 'Worldwide',
-      merged: 'Sackson',
+      merged: 'Luxor',
     };
 
     const result = mergeHotels(mergeContext, gameBoard, tieResolution);
@@ -209,7 +209,7 @@ Deno.test('mergeHotels - Tie resolution with user input', async (t) => {
     assertEquals(result.needsMergeOrder, false);
     if (!result.needsMergeOrder) {
       assertEquals(result.survivingHotel, 'Worldwide');
-      assertEquals(result.mergedHotel, 'Sackson');
+      assertEquals(result.mergedHotel, 'Luxor');
       // The remaining hotels array contains the sorted remaining hotels after removing survivor and merged
       assertEquals(result.remainingHotels, ['Festival']);
     }
@@ -218,17 +218,17 @@ Deno.test('mergeHotels - Tie resolution with user input', async (t) => {
   await t.step('resolves tie when survivor was already picked', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', 8), // survivor
-      ...createHotelTiles('Sackson', 4, 1, 0), // tied for merge
+      ...createHotelTiles('Luxor', 4, 1, 0), // tied for merge
       ...createHotelTiles('Festival', 4, 2, 0), // tied for merge
     ];
 
     const mergeContext = createMergeContext(
-      ['Sackson', 'Festival'],
+      ['Luxor', 'Festival'],
       [],
       'Worldwide',
     );
     const tieResolution: ResolvedTie = {
-      survivor: 'Sackson', // this becomes the merged hotel
+      survivor: 'Luxor', // this becomes the merged hotel
       merged: 'Festival', // this parameter is ignored when survivor already picked
     };
 
@@ -237,8 +237,8 @@ Deno.test('mergeHotels - Tie resolution with user input', async (t) => {
     assertEquals(result.needsMergeOrder, false);
     if (!result.needsMergeOrder) {
       assertEquals(result.survivingHotel, 'Worldwide');
-      assertEquals(result.mergedHotel, 'Sackson');
-      // After merging Sackson, Festival remains
+      assertEquals(result.mergedHotel, 'Luxor');
+      // After merging Luxor, Festival remains
       assertEquals(result.remainingHotels, ['Festival']);
     }
   });
@@ -246,13 +246,13 @@ Deno.test('mergeHotels - Tie resolution with user input', async (t) => {
   await t.step('throws error when tie resolution contains invalid hotels', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', 5),
-      ...createHotelTiles('Sackson', 5, 1, 0),
+      ...createHotelTiles('Luxor', 5, 1, 0),
     ];
 
-    const mergeContext = createMergeContext(['Worldwide', 'Sackson']);
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor']);
     const tieResolution: ResolvedTie = {
       survivor: 'Festival', // not in original hotels
-      merged: 'Sackson',
+      merged: 'Luxor',
     };
 
     const error = assertThrows(
@@ -268,17 +268,17 @@ Deno.test('mergeHotels - Safe hotel validation', async (t) => {
   await t.step('throws error when trying to merge a safe hotel', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', 8), // not safe
-      ...createHotelTiles('Sackson', SAFE_HOTEL_SIZE, 1, 0), // safe hotel
+      ...createHotelTiles('Luxor', SAFE_HOTEL_SIZE, 1, 0), // safe hotel
     ];
 
-    const mergeContext = createMergeContext(['Worldwide', 'Sackson']);
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor']);
 
     // The safe hotel check only happens after determining survivor and merged
-    // Since Sackson is larger, it becomes the survivor, not the merged hotel
+    // Since Luxor is larger, it becomes the survivor, not the merged hotel
     const result = mergeHotels(mergeContext, gameBoard);
     assertEquals(result.needsMergeOrder, false);
     if (!result.needsMergeOrder) {
-      assertEquals(result.survivingHotel, 'Sackson'); // Safe hotel survives
+      assertEquals(result.survivingHotel, 'Luxor'); // Safe hotel survives
       assertEquals(result.mergedHotel, 'Worldwide'); // Smaller hotel gets merged
     }
   });
@@ -286,16 +286,16 @@ Deno.test('mergeHotels - Safe hotel validation', async (t) => {
   await t.step('allows merging when safe hotel is the survivor', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', SAFE_HOTEL_SIZE), // safe hotel (survivor)
-      ...createHotelTiles('Sackson', 5, 2, 0), // smaller hotel (will be merged)
+      ...createHotelTiles('Luxor', 5, 2, 0), // smaller hotel (will be merged)
     ];
 
-    const mergeContext = createMergeContext(['Worldwide', 'Sackson']);
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor']);
     const result = mergeHotels(mergeContext, gameBoard);
 
     assertEquals(result.needsMergeOrder, false);
     if (!result.needsMergeOrder) {
       assertEquals(result.survivingHotel, 'Worldwide');
-      assertEquals(result.mergedHotel, 'Sackson');
+      assertEquals(result.mergedHotel, 'Luxor');
     }
   });
 });
@@ -304,18 +304,18 @@ Deno.test('mergeHotels - Complex multi-hotel scenarios', async (t) => {
   await t.step('handles 4-hotel merge with clear hierarchy', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', 10), // largest
-      ...createHotelTiles('Sackson', 7, 2, 0), // second largest
+      ...createHotelTiles('Luxor', 7, 2, 0), // second largest
       ...createHotelTiles('Festival', 4, 4, 0), // third largest
       ...createHotelTiles('Imperial', 2, 6, 0), // smallest
     ];
 
-    const mergeContext = createMergeContext(['Worldwide', 'Sackson', 'Festival', 'Imperial']);
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor', 'Festival', 'Imperial']);
     const result = mergeHotels(mergeContext, gameBoard);
 
     assertEquals(result.needsMergeOrder, false);
     if (!result.needsMergeOrder) {
       assertEquals(result.survivingHotel, 'Worldwide');
-      assertEquals(result.mergedHotel, 'Sackson');
+      assertEquals(result.mergedHotel, 'Luxor');
       assertEquals(result.remainingHotels, ['Festival', 'Imperial']);
       assertEquals(result.survivorTiles.length, 17); // 10 + 7 tiles
     }
@@ -324,16 +324,16 @@ Deno.test('mergeHotels - Complex multi-hotel scenarios', async (t) => {
   await t.step('handles hotels with zero tiles', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', 5),
-      // Sackson has no tiles on board
+      // Luxor has no tiles on board
     ];
 
-    const mergeContext = createMergeContext(['Worldwide', 'Sackson']);
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor']);
     const result = mergeHotels(mergeContext, gameBoard);
 
     assertEquals(result.needsMergeOrder, false);
     if (!result.needsMergeOrder) {
       assertEquals(result.survivingHotel, 'Worldwide');
-      assertEquals(result.mergedHotel, 'Sackson');
+      assertEquals(result.mergedHotel, 'Luxor');
       assertEquals(result.survivorTiles.length, 5); // only Worldwide's tiles
     }
   });
@@ -343,13 +343,13 @@ Deno.test('mergeHotels - Complex multi-hotel scenarios', async (t) => {
       // No hotel tiles on board
     ];
 
-    const mergeContext = createMergeContext(['Worldwide', 'Sackson']);
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor']);
     const result = mergeHotels(mergeContext, gameBoard);
 
     // Should detect tie between zero-sized hotels and require user input
     assertEquals(result.needsMergeOrder, true);
     if (result.needsMergeOrder) {
-      assertEquals(result.tiedHotels, ['Worldwide', 'Sackson']);
+      assertEquals(result.tiedHotels, ['Worldwide', 'Luxor']);
     }
   });
 });
@@ -358,16 +358,16 @@ Deno.test('mergeHotels - Edge cases and error conditions', async (t) => {
   await t.step('handles single tile hotels', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', 1),
-      ...createHotelTiles('Sackson', 1, 1, 0),
+      ...createHotelTiles('Luxor', 1, 1, 0),
     ];
 
-    const mergeContext = createMergeContext(['Worldwide', 'Sackson']);
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor']);
     const result = mergeHotels(mergeContext, gameBoard);
 
     // Should detect tie between single-tile hotels and require user input
     assertEquals(result.needsMergeOrder, true);
     if (result.needsMergeOrder) {
-      assertEquals(result.tiedHotels, ['Worldwide', 'Sackson']);
+      assertEquals(result.tiedHotels, ['Worldwide', 'Luxor']);
     }
   });
 
@@ -375,10 +375,10 @@ Deno.test('mergeHotels - Edge cases and error conditions', async (t) => {
     const gameBoard: BoardTile[] = [
       createBoardTile(0, 0, 'Worldwide'),
       createBoardTile(0, 1, 'Worldwide'),
-      createBoardTile(1, 0, 'Sackson'),
+      createBoardTile(1, 0, 'Luxor'),
     ];
 
-    const mergeContext = createMergeContext(['Worldwide', 'Sackson']);
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor']);
     const result = mergeHotels(mergeContext, gameBoard);
 
     assertEquals(result.needsMergeOrder, false);
@@ -405,7 +405,7 @@ Deno.test('mergeHotels - Edge cases and error conditions', async (t) => {
   await t.step('handles merge context with additional tiles correctly', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', 3),
-      ...createHotelTiles('Sackson', 2, 1, 0),
+      ...createHotelTiles('Luxor', 2, 1, 0),
     ];
 
     const additionalTiles: BoardTile[] = [
@@ -413,7 +413,7 @@ Deno.test('mergeHotels - Edge cases and error conditions', async (t) => {
       createBoardTile(5, 6), // another connecting tile
     ];
 
-    const mergeContext = createMergeContext(['Worldwide', 'Sackson'], additionalTiles);
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor'], additionalTiles);
     const result = mergeHotels(mergeContext, gameBoard);
 
     assertEquals(result.needsMergeOrder, false);
@@ -435,12 +435,12 @@ Deno.test('mergeHotels - Edge cases and error conditions', async (t) => {
 Deno.test('mergeHotels - Sorting and ordering', async (t) => {
   await t.step('correctly sorts hotels by size in descending order', () => {
     const gameBoard: BoardTile[] = [
-      ...createHotelTiles('Sackson', 3, 0, 0), // smallest first in input
+      ...createHotelTiles('Luxor', 3, 0, 0), // smallest first in input
       ...createHotelTiles('Worldwide', 8, 1, 0), // largest
       ...createHotelTiles('Festival', 5, 2, 0), // middle
     ];
 
-    const mergeContext = createMergeContext(['Sackson', 'Worldwide', 'Festival']);
+    const mergeContext = createMergeContext(['Luxor', 'Worldwide', 'Festival']);
     const result = mergeHotels(mergeContext, gameBoard);
 
     assertEquals(result.needsMergeOrder, false);
@@ -448,14 +448,14 @@ Deno.test('mergeHotels - Sorting and ordering', async (t) => {
       // Largest should be survivor regardless of input order
       assertEquals(result.survivingHotel, 'Worldwide');
       assertEquals(result.mergedHotel, 'Festival'); // second largest
-      assertEquals(result.remainingHotels, ['Sackson']); // smallest remains
+      assertEquals(result.remainingHotels, ['Luxor']); // smallest remains
     }
   });
 
   await t.step('maintains remaining hotels in size order', () => {
     const gameBoard: BoardTile[] = [
       ...createHotelTiles('Worldwide', 10), // largest (survivor)
-      ...createHotelTiles('Sackson', 7, 1, 0), // second (merged)
+      ...createHotelTiles('Luxor', 7, 1, 0), // second (merged)
       ...createHotelTiles('Festival', 5, 2, 0), // third (remaining)
       ...createHotelTiles('Imperial', 3, 3, 0), // fourth (remaining)
       ...createHotelTiles('American', 1, 4, 0), // fifth (remaining)
@@ -463,7 +463,7 @@ Deno.test('mergeHotels - Sorting and ordering', async (t) => {
 
     const mergeContext = createMergeContext([
       'Worldwide',
-      'Sackson',
+      'Luxor',
       'Festival',
       'Imperial',
       'American',
@@ -473,7 +473,7 @@ Deno.test('mergeHotels - Sorting and ordering', async (t) => {
     assertEquals(result.needsMergeOrder, false);
     if (!result.needsMergeOrder) {
       assertEquals(result.survivingHotel, 'Worldwide');
-      assertEquals(result.mergedHotel, 'Sackson');
+      assertEquals(result.mergedHotel, 'Luxor');
       assertEquals(result.remainingHotels, ['Festival', 'Imperial', 'American']);
 
       // Verify remaining hotels are in descending size order

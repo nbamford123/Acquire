@@ -12,7 +12,7 @@ Deno.test('processMergerOrchestrator returns BREAK_MERGER_TIE when tie detected'
   const tiles = [
     // Board tiles for two hotels with equal size
     { row: 0, col: 0, location: 'board', hotel: 'Worldwide' },
-    { row: 0, col: 1, location: 'board', hotel: 'Sackson' },
+    { row: 0, col: 1, location: 'board', hotel: 'Luxor' },
   ] as unknown as any[];
 
   const gameState = {
@@ -23,10 +23,10 @@ Deno.test('processMergerOrchestrator returns BREAK_MERGER_TIE when tie detected'
     currentPlayer: 0,
     lastUpdated: Date.now(),
     players: [{ id: 0, name: 'P0' }],
-    hotels: [makeHotel('Worldwide'), makeHotel('Sackson')],
+    hotels: [makeHotel('Worldwide'), makeHotel('Luxor')],
     tiles,
     mergeContext: {
-      originalHotels: ['Worldwide', 'Sackson'],
+      originalHotels: ['Worldwide', 'Luxor'],
       additionalTiles: [],
     },
   } as unknown as any;
@@ -39,10 +39,10 @@ Deno.test('processMergerOrchestrator returns BREAK_MERGER_TIE when tie detected'
 
 Deno.test('processMergerOrchestrator proceeds to RESOLVE_MERGER when sizes differ', () => {
   const tiles = [
-    // Worldwide has 2 tiles, Sackson has 1
+    // Worldwide has 2 tiles, Luxor has 1
     { row: 0, col: 0, location: 'board', hotel: 'Worldwide' },
     { row: 0, col: 1, location: 'board', hotel: 'Worldwide' },
-    { row: 0, col: 2, location: 'board', hotel: 'Sackson' },
+    { row: 0, col: 2, location: 'board', hotel: 'Luxor' },
   ] as unknown as any[];
 
   const gameState = {
@@ -54,12 +54,12 @@ Deno.test('processMergerOrchestrator proceeds to RESOLVE_MERGER when sizes diffe
     lastUpdated: Date.now(),
     players: [{ id: 0, name: 'P0', money: 0 }],
     hotels: [makeHotel('Worldwide'), {
-      ...makeHotel('Sackson'),
+      ...makeHotel('Luxor'),
       shares: [{ location: 0 }, ...Array.from({ length: 24 }, () => ({ location: 'bank' }))],
     }],
     tiles,
     mergeContext: {
-      originalHotels: ['Worldwide', 'Sackson'],
+      originalHotels: ['Worldwide', 'Luxor'],
       additionalTiles: [],
     },
   } as unknown as any;

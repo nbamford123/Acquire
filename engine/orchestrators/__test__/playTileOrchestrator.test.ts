@@ -68,7 +68,7 @@ Deno.test('playTileOrchestrator: grows hotel branch proceeds to buying or next a
 Deno.test('playTileOrchestrator: triggers merger branch returns merger flow', () => {
   const tiles = [
     { row: 1, col: 0, location: 'board', hotel: 'Worldwide' },
-    { row: 1, col: 2, location: 'board', hotel: 'Sackson' },
+    { row: 1, col: 2, location: 'board', hotel: 'Luxor' },
   ] as unknown as any[];
 
   const gameState = {
@@ -79,7 +79,7 @@ Deno.test('playTileOrchestrator: triggers merger branch returns merger flow', ()
     currentPlayer: 0,
     lastUpdated: Date.now(),
     players: [{ id: 0, name: 'P0', money: 0 }],
-    hotels: [makeHotel('Worldwide'), makeHotel('Sackson')],
+    hotels: [makeHotel('Worldwide'), makeHotel('Luxor')],
     tiles,
   } as unknown as any;
 
@@ -87,7 +87,7 @@ Deno.test('playTileOrchestrator: triggers merger branch returns merger flow', ()
   try {
     const result = playTileOrchestrator(gameState, { row: 0, col: 1 });
     // The resulting phase should be either BUY_SHARES or PLAY_TILE (advance)
-    const ok = result.currentPhase === GamePhase. ||
+    const ok = result.currentPhase === GamePhase.BUY_SHARES ||
       result.currentPhase === GamePhase.PLAY_TILE;
     if (!ok) throw new Error(`Unexpected phase: ${String(result.currentPhase)}`);
   } catch (err: any) {

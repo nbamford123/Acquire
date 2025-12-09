@@ -78,7 +78,7 @@ Deno.test('foundHotelReducer: throws when context tile is not on board', () => {
 Deno.test('foundHotelReducer: throws when hotel name is not found', () => {
   const hotels = [
     {
-      name: 'Sackson',
+      name: 'Luxor',
       shares: [
         { location: 'bank' },
       ],
@@ -135,7 +135,7 @@ Deno.test('foundHotelReducer: does not modify other hotels', () => {
       ],
     },
     {
-      name: 'Sackson',
+      name: 'Luxor',
       shares: [
         { location: 2 },
       ],
@@ -148,8 +148,8 @@ Deno.test('foundHotelReducer: does not modify other hotels', () => {
 
   const result = foundHotelReducer(3, hotels, 'Tower' as HOTEL_NAME, context, tiles);
   assertExists(result.hotels);
-  // Ensure Sackson hotel's shares are unchanged
-  const sackson = result.hotels && result.hotels.find((h: any) => h.name === 'Sackson');
-  const unchanged = sackson && sackson.shares.some((s: any) => s.location === 2);
+  // Ensure Luxor hotel's shares are unchanged
+  const Luxor = result.hotels && result.hotels.find((h: any) => h.name === 'Luxor');
+  const unchanged = Luxor && Luxor.shares.some((s: any) => s.location === 2);
   assert(unchanged);
 });

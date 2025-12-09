@@ -1,13 +1,13 @@
 import type { Share, Tile } from './index.ts';
 
 export const HOTEL_NAMES = [
+  'Tower',
+  'Luxor',
   'Worldwide',
-  'Sackson',
+  'American',
   'Festival',
   'Imperial',
-  'American',
   'Continental',
-  'Tower',
 ] as const;
 
 export type HOTEL_NAME = typeof HOTEL_NAMES[number];
@@ -22,13 +22,13 @@ export type FoundHotelContext = {
 
 // The mapping object
 export const HOTEL_CONFIG = {
-  Worldwide: 'economy',
-  Sackson: 'economy',
-  Festival: 'standard',
-  Imperial: 'standard',
+  Tower: 'economy',
+  Luxor: 'economy',
+  Worldwide: 'standard',
   American: 'standard',
+  Festival: 'standard',
+  Imperial: 'luxury',
   Continental: 'luxury',
-  Tower: 'luxury',
 } as const satisfies Record<HOTEL_NAME, HOTEL_TYPE>;
 
 export type Hotel = {

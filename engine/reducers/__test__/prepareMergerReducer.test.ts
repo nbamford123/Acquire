@@ -14,7 +14,7 @@ Deno.test('prepareMergerReducer: updates players and tiles after merger', () => 
       ],
     },
     {
-      name: 'Sackson',
+      name: 'Luxor',
       shares: [
         { location: 1 },
         { location: 'bank' },
@@ -30,8 +30,8 @@ Deno.test('prepareMergerReducer: updates players and tiles after merger', () => 
     needsMergeOrder: false,
     mergedHotel: 'Tower',
     survivorTiles: [],
-    survivingHotel: 'Sackson',
-    remainingHotels: ['Sackson'],
+    survivingHotel: 'Luxor',
+    remainingHotels: ['Luxor'],
   };
   // @ts-expect-error: partial mock for test
   const state = prepareMergerReducer(players, tiles, hotels, result);
@@ -60,8 +60,8 @@ Deno.test('prepareMergerReducer: splits payout equally when all tied', () => {
     needsMergeOrder: false,
     mergedHotel: 'Tower',
     survivorTiles: [],
-    survivingHotel: 'Sackson',
-    remainingHotels: ['Sackson'],
+    survivingHotel: 'Luxor',
+    remainingHotels: ['Luxor'],
   } as unknown as Extract<MergeResult, { needsMergeOrder: false }>;
 
   const state = prepareMergerReducer(players, tiles, hotels, result);
@@ -96,8 +96,8 @@ Deno.test('prepareMergerReducer: tie for majority pays only tied players', () =>
     needsMergeOrder: false,
     mergedHotel: 'Tower',
     survivorTiles: [],
-    survivingHotel: 'Sackson',
-    remainingHotels: ['Sackson'],
+    survivingHotel: 'Luxor',
+    remainingHotels: ['Luxor'],
   } as unknown as Extract<MergeResult, { needsMergeOrder: false }>;
 
   const state = prepareMergerReducer(players, tiles, hotels, result);
@@ -131,8 +131,8 @@ Deno.test('prepareMergerReducer: single majority and single minority payout', ()
     needsMergeOrder: false,
     mergedHotel: 'Tower',
     survivorTiles: [],
-    survivingHotel: 'Sackson',
-    remainingHotels: ['Sackson'],
+    survivingHotel: 'Luxor',
+    remainingHotels: ['Luxor'],
   } as unknown as Extract<MergeResult, { needsMergeOrder: false }>;
 
   const state = prepareMergerReducer(players, tiles, hotels, result);

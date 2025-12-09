@@ -14,7 +14,7 @@ export const analyzeTilePlacement = (tile: Tile, tiles: Tile[]) => {
   const availableHotels = getAvailableHotelNames(boardTiles(tiles));
 
   const triggersMerger = adjacentHotels.length >= 2;
-  console.log({adjacentHotels, adjacentTiles, availableHotels})
+  console.log({ adjacentHotels, adjacentTiles, availableHotels });
   const foundsHotel = adjacentHotels.length === 0 && adjacentTiles.length >= 1 &&
     availableHotels.length;
   const growsHotel = adjacentHotels.length === 1;

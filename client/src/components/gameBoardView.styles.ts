@@ -1,5 +1,15 @@
 import { css } from 'lit';
 
+export const hotelIcons: Record<string, string> = {
+  'Tower': ' ♜',
+  'Luxor': ' 🏛️',
+  'Worldwide': '🌍',
+  'American': '🦅',
+  'Festival': '🎪',
+  'Imperial': '👑',
+  'Continental': '🎪',
+};
+
 export const styles = css`
   :host {
     display: block;
@@ -50,6 +60,10 @@ export const styles = css`
     cursor: pointer;
     transition: all 0.2s;
     min-height: 40px;
+  }
+
+  .board-cell.placed.tower {
+    background: var(--pico-color-yellow-200);
   }
 
   .board-cell:hover {
@@ -146,8 +160,8 @@ export const styles = css`
   }
 
   .hotel-chain.tower {
-    border-color: #e74c3c;
-    background: rgba(231, 76, 60, 0.1);
+    border-color: var(--pico-color-yellow-100);
+    background: var(--pico-color-yellow-800);
   }
   .hotel-chain.luxor {
     border-color: #f39c12;

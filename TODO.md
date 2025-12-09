@@ -29,6 +29,7 @@
 
 ## Misc
 
+- ignoring a couple of tests because test games are throwing them off
 - pass turn? Is that allowed if you can play?
 - is it really worth it to have playerview hotels as a map? It seems like all I do on the client is convert it to an array for manipulation/display
 - the unit tests for hoteloperations somehow missed the getAvailableHotelNames logic being backwards-- fixing it didn't make anything fail either.
@@ -157,11 +158,10 @@ For your turn-based state storage, consider:
 1. **Error exclusion in persistence**: When persisting state between turns, you might want to strip out transient errors:
 
 ```typescript
-   function persistGameState(state: GameState): PersistedGameState {
-   const { currentError, ...restState } = state;
-   return restState; // Don't persist the current error
-   }
-
+function persistGameState(state: GameState): PersistedGameState {
+  const { currentError, ...restState } = state;
+  return restState; // Don't persist the current error
+}
 ```
 
 2. **Replay safety**: Ensure your state can be replayed without errors affecting the replay:

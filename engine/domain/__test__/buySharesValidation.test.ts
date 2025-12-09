@@ -25,7 +25,7 @@ Deno.test('buySharesValidation basic checks', async (t) => {
     const hotels = [makeHotel('Worldwide')];
     const board = boardFor('Worldwide', 2);
 
-    const shares = { Worldwide: 2, Sackson: 2 } as unknown as Record<string, number>;
+    const shares = { Worldwide: 2, Luxor: 2 } as unknown as Record<string, number>;
 
     const err = assertThrows(
       () => buySharesValidation(player, shares as any, board as any, hotels),

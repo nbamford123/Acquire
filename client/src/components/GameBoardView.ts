@@ -15,7 +15,7 @@ import { getHotelPrice, getTileLabel } from '@acquire/engine/utils';
 import { StyledComponent } from './StyledComponent.ts';
 import './ActionCard.ts';
 
-import { styles } from './gameBoardView.styles.ts';
+import { hotelIcons, styles } from './gameBoardView.styles.ts';
 import { GamePhase } from '../../../engine/types/gameState.ts';
 
 @customElement('game-board-view')
@@ -96,7 +96,7 @@ export class GameBoardView extends StyledComponent {
     console.log('handling action', e.detail);
     const action = e.detail as GameAction;
     const desc = action.type === ActionTypes.FOUND_HOTEL
-      ? `Found hotel ${(action.payload as any).hotelName}`
+      ? `Found hotel ${action.payload.hotelName}`
       : `${action.type}`;
 
     this.pendingAction = { action, description: desc };
@@ -114,7 +114,9 @@ export class GameBoardView extends StyledComponent {
         );
         cells.push(html`
           <div
-            class="board-cell ${placedTile ? 'placed' : ''} ${placedTile?.hotel || ''}"
+            class="board-cell ${placedTile
+              ? 'placed'
+              : ''} ${placedTile?.hotel?.toLocaleLowerCase() || ''}"
             @click="${() => this.handleCellClick(position)}"
           >
             ${position}
@@ -183,17 +185,6 @@ export class GameBoardView extends StyledComponent {
               @set-action="${(e: CustomEvent) => this.handleSetAction(e)}"
             ></action-card>
             <button @click="${() => this.submitAction()}">Submit</button>
-            <!-- <footer>
-              <div role="group">
-                ${this.pendingAction
-                  ? html`
-                    <button @click="${() => this.submitAction()}">Submit</button>
-                  `
-                  : ''}
-                <button @click="${() => this.saveGameState()}">Save Game</button>
-              </div>
-              <span>${this.pendingAction && this.pendingAction.description}</span>
-            </footer> -->
           </div>
         </div>
 
@@ -202,9 +193,9 @@ export class GameBoardView extends StyledComponent {
             <h4>Hotel Chains</h4>
             ${Object.entries(this.playerView.hotels).map(([name, { size, shares }]) =>
               html`
-                <div class="hotel-chain ${name}">
+                <div class="hotel-chain ${name.toLocaleLowerCase()}">
                   <div class="hotel-header">
-                    <span class="hotel-name">${name}</span>
+                    <span class="hotel-name ${name}">${hotelIcons[name]} ${name}</span>
                     <span class="hotel-size">${size > 0 ? `Size: ${size}` : 'Inactive'}</span>
                   </div>
                   <div style="display: flex; justify-content: space-between; align-items: center;">

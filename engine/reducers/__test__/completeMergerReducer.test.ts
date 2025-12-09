@@ -11,12 +11,12 @@ Deno.test('completeMergerReducer: updates player money and hotel shares after me
     ],
     hotels: [
       { name: 'Tower', shares: [{ location: 1 }, { location: 'bank' }] },
-      { name: 'Sackson', shares: [{ location: 2 }, { location: 'bank' }] },
+      { name: 'Luxor', shares: [{ location: 2 }, { location: 'bank' }] },
     ],
     tiles: [],
   } as unknown as GameState;
   const survivor = { name: 'Tower', shares: [{ location: 1 }, { location: 'bank' }] } as Hotel;
-  const merged = { name: 'Sackson', shares: [{ location: 2 }, { location: 'bank' }] } as Hotel;
+  const merged = { name: 'Luxor', shares: [{ location: 2 }, { location: 'bank' }] } as Hotel;
   // shares param is undefined for this test
   const result = completeMergerReducer(gameState, 1, undefined, survivor, merged);
   assertExists(result.players);

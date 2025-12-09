@@ -21,8 +21,8 @@ Deno.test('resolveShares trade and sell behavior', () => {
   const playerId = 1;
   const survivor = makeHotel('Worldwide', 0);
   // merged hotel has 3 shares owned by player
-  const merged = makeHotel('Sackson', 3);
-  const board = boardFor('Sackson', 3);
+  const merged = makeHotel('Luxor', 3);
+  const board = boardFor('Luxor', 3);
 
   const result = resolveShares(playerId, board as any, survivor, merged, { sell: 2, trade: 2 });
 

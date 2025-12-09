@@ -21,13 +21,13 @@ Deno.test('resolveMergerOrchestrator reduces stockholderIds when multiple remain
     currentPlayer: 0,
     lastUpdated: Date.now(),
     players: [{ id: 0, name: 'P0', money: 0 }, { id: 1, name: 'P1', money: 0 }],
-    hotels: [makeHotel('Worldwide'), makeHotel('Sackson')],
+    hotels: [makeHotel('Worldwide'), makeHotel('Luxor')],
     tiles,
     mergeContext: {
       stockholderIds: [1, 0],
       survivingHotel: 'Worldwide',
-      mergedHotel: 'Sackson',
-      originalHotels: ['Worldwide', 'Sackson'],
+      mergedHotel: 'Luxor',
+      originalHotels: ['Worldwide', 'Luxor'],
       additionalTiles: [],
     },
   } as unknown as any;
@@ -51,12 +51,12 @@ Deno.test('resolveMergerOrchestrator proceeds to BUY_SHARES when done', () => {
     currentPlayer: 0,
     lastUpdated: Date.now(),
     players: [{ id: 0, name: 'P0', money: 100000 }],
-    hotels: [makeHotel('Worldwide'), makeHotel('Sackson')],
+    hotels: [makeHotel('Worldwide'), makeHotel('Luxor')],
     tiles,
     mergeContext: {
       stockholderIds: [0],
       survivingHotel: 'Worldwide',
-      mergedHotel: 'Sackson',
+      mergedHotel: 'Luxor',
       originalHotels: ['Worldwide'],
       additionalTiles: [],
     },
@@ -90,7 +90,7 @@ Deno.test('resolveMergerOrchestrator triggers processMergerOrchestrator when mor
   const tiles = [
     { row: 0, col: 0, location: 'board', hotel: 'Worldwide' },
     { row: 0, col: 1, location: 'board', hotel: 'Worldwide' },
-    { row: 0, col: 2, location: 'board', hotel: 'Sackson' },
+    { row: 0, col: 2, location: 'board', hotel: 'Luxor' },
   ] as unknown as any[];
 
   const gameState = {
@@ -104,7 +104,7 @@ Deno.test('resolveMergerOrchestrator triggers processMergerOrchestrator when mor
     hotels: [
       { ...makeHotel('Worldwide') },
       {
-        ...makeHotel('Sackson'),
+        ...makeHotel('Luxor'),
         shares: [{ location: 0 }, ...Array.from({ length: 24 }, () => ({ location: 'bank' }))],
       },
     ],
@@ -112,8 +112,8 @@ Deno.test('resolveMergerOrchestrator triggers processMergerOrchestrator when mor
     mergeContext: {
       stockholderIds: [],
       survivingHotel: 'Worldwide',
-      mergedHotel: 'Sackson',
-      originalHotels: ['Worldwide', 'Sackson'],
+      mergedHotel: 'Luxor',
+      originalHotels: ['Worldwide', 'Luxor'],
       additionalTiles: [],
     },
   } as unknown as any;
@@ -148,12 +148,12 @@ Deno.test('resolveMergerOrchestrator proceeds to proceedToBuyShares when no more
     currentPlayer: 0,
     lastUpdated: Date.now(),
     players: [{ id: 0, name: 'P0', money: 100000 }],
-    hotels: [makeHotel('Worldwide'), makeHotel('Sackson')],
+    hotels: [makeHotel('Worldwide'), makeHotel('Luxor')],
     tiles,
     mergeContext: {
       stockholderIds: [],
       survivingHotel: 'Worldwide',
-      mergedHotel: 'Sackson',
+      mergedHotel: 'Luxor',
       originalHotels: [],
       additionalTiles: [],
     },
@@ -173,15 +173,15 @@ Deno.test('resolveMergerOrchestrator proceeds to proceedToBuyShares when no more
 Deno.test('resolveMergerOrchestrator applies sell and trade shares for stockholder', () => {
   const tiles = [
     { row: 0, col: 0, location: 'board', hotel: 'Worldwide' },
-    { row: 0, col: 1, location: 'board', hotel: 'Sackson' },
+    { row: 0, col: 1, location: 'board', hotel: 'Luxor' },
   ] as unknown as any[];
 
   const makeHotelWithOwnership = (name: any) => ({
     name,
-    // give Sackson a couple shares owned by player 0 to be sold/traded
+    // give Luxor a couple shares owned by player 0 to be sold/traded
     shares: Array.from(
       { length: 25 },
-      (_, i) => ({ location: i < 2 && name === 'Sackson' ? 0 : 'bank' }),
+      (_, i) => ({ location: i < 2 && name === 'Luxor' ? 0 : 'bank' }),
     ),
   });
 
@@ -193,12 +193,12 @@ Deno.test('resolveMergerOrchestrator applies sell and trade shares for stockhold
     currentPlayer: 0,
     lastUpdated: Date.now(),
     players: [{ id: 0, name: 'P0', money: 0 }],
-    hotels: [makeHotelWithOwnership('Worldwide'), makeHotelWithOwnership('Sackson')],
+    hotels: [makeHotelWithOwnership('Worldwide'), makeHotelWithOwnership('Luxor')],
     tiles,
     mergeContext: {
       stockholderIds: [0],
       survivingHotel: 'Worldwide',
-      mergedHotel: 'Sackson',
+      mergedHotel: 'Luxor',
       originalHotels: [],
       additionalTiles: [],
     },
@@ -221,7 +221,7 @@ Deno.test('resolveMergerOrchestrator applies sell and trade shares for stockhold
 Deno.test('resolveMergerOrchestrator prefers stockholder path over cascading merges', () => {
   const tiles = [
     { row: 0, col: 0, location: 'board', hotel: 'Worldwide' },
-    { row: 0, col: 1, location: 'board', hotel: 'Sackson' },
+    { row: 0, col: 1, location: 'board', hotel: 'Luxor' },
     { row: 0, col: 2, location: 'board', hotel: 'Festival' },
   ] as unknown as any[];
 
@@ -237,12 +237,12 @@ Deno.test('resolveMergerOrchestrator prefers stockholder path over cascading mer
       name: 'P2',
       money: 0,
     }],
-    hotels: [makeHotel('Worldwide'), makeHotel('Sackson'), makeHotel('Festival')],
+    hotels: [makeHotel('Worldwide'), makeHotel('Luxor'), makeHotel('Festival')],
     tiles,
     mergeContext: {
       stockholderIds: [1, 2],
       survivingHotel: 'Worldwide',
-      mergedHotel: 'Sackson',
+      mergedHotel: 'Luxor',
       originalHotels: ['Festival'],
       additionalTiles: [],
     },
@@ -259,18 +259,18 @@ Deno.test('resolveMergerOrchestrator multi-merge cascade completes to buy shares
   const tiles = [
     { row: 0, col: 0, location: 'board', hotel: 'Worldwide' },
     { row: 0, col: 1, location: 'board', hotel: 'Worldwide' },
-    { row: 0, col: 2, location: 'board', hotel: 'Sackson' },
+    { row: 0, col: 2, location: 'board', hotel: 'Luxor' },
     { row: 0, col: 3, location: 'board', hotel: 'Festival' },
   ] as unknown as any[];
 
   const hotels = [
     makeHotel('Worldwide'),
-    makeHotel('Sackson'),
+    makeHotel('Luxor'),
     makeHotel('Festival'),
   ];
 
   // Start with a mergeContext that indicates we're mid-merger and there are two
-  // remaining hotels to absorb (Sackson -> Worldwide, then Festival -> Worldwide)
+  // remaining hotels to absorb (Luxor -> Worldwide, then Festival -> Worldwide)
   let state = {
     gameId: 'g7',
     owner: 'o',
@@ -284,7 +284,7 @@ Deno.test('resolveMergerOrchestrator multi-merge cascade completes to buy shares
     mergeContext: {
       stockholderIds: [],
       survivingHotel: 'Worldwide',
-      mergedHotel: 'Sackson',
+      mergedHotel: 'Luxor',
       originalHotels: ['Festival'],
       additionalTiles: [],
     },
@@ -357,7 +357,7 @@ Deno.test('resolveMergerOrchestrator throws for invalid hotel names', () => {
 Deno.test('resolveMergerOrchestrator handles undefined stockholderIds and proceeds to processMerger when originals exist', () => {
   const tiles = [
     { row: 0, col: 0, location: 'board', hotel: 'Worldwide' },
-    { row: 0, col: 1, location: 'board', hotel: 'Sackson' },
+    { row: 0, col: 1, location: 'board', hotel: 'Luxor' },
   ] as unknown as any[];
 
   const gameState = {
@@ -368,13 +368,13 @@ Deno.test('resolveMergerOrchestrator handles undefined stockholderIds and procee
     currentPlayer: 0,
     lastUpdated: Date.now(),
     players: [{ id: 0, name: 'P0', money: 0 }],
-    hotels: [makeHotel('Worldwide'), makeHotel('Sackson')],
+    hotels: [makeHotel('Worldwide'), makeHotel('Luxor')],
     tiles,
     mergeContext: {
       // stockholderIds omitted
       survivingHotel: 'Worldwide',
-      mergedHotel: 'Sackson',
-      originalHotels: ['Sackson'],
+      mergedHotel: 'Luxor',
+      originalHotels: ['Luxor'],
       additionalTiles: [],
     },
   } as unknown as any;
@@ -405,12 +405,12 @@ Deno.test('resolveMergerOrchestrator handles undefined originalHotels and procee
     currentPlayer: 0,
     lastUpdated: Date.now(),
     players: [{ id: 0, name: 'P0', money: 100000 }],
-    hotels: [makeHotel('Worldwide'), makeHotel('Sackson')],
+    hotels: [makeHotel('Worldwide'), makeHotel('Luxor')],
     tiles,
     mergeContext: {
       stockholderIds: [],
       survivingHotel: 'Worldwide',
-      mergedHotel: 'Sackson',
+      mergedHotel: 'Luxor',
       originalHotels: [],
       additionalTiles: [],
     },
@@ -430,7 +430,7 @@ Deno.test('resolveMergerOrchestrator handles undefined originalHotels and procee
 Deno.test('resolveMergerOrchestrator handles sell-only shares and awards income', () => {
   const tiles = [
     { row: 0, col: 0, location: 'board', hotel: 'Worldwide' },
-    { row: 0, col: 1, location: 'board', hotel: 'Sackson' },
+    { row: 0, col: 1, location: 'board', hotel: 'Luxor' },
   ] as unknown as any[];
 
   const gameState = {
@@ -441,12 +441,12 @@ Deno.test('resolveMergerOrchestrator handles sell-only shares and awards income'
     currentPlayer: 0,
     lastUpdated: Date.now(),
     players: [{ id: 0, name: 'P0', money: 0 }],
-    hotels: [makeHotel('Worldwide'), makeHotel('Sackson')],
+    hotels: [makeHotel('Worldwide'), makeHotel('Luxor')],
     tiles,
     mergeContext: {
       stockholderIds: [],
       survivingHotel: 'Worldwide',
-      mergedHotel: 'Sackson',
+      mergedHotel: 'Luxor',
       originalHotels: [],
       additionalTiles: [],
     },
@@ -461,13 +461,13 @@ Deno.test('resolveMergerOrchestrator handles sell-only shares and awards income'
 Deno.test('resolveMergerOrchestrator handles trade-only shares and reduces stockholder queue', () => {
   const tiles = [
     { row: 0, col: 0, location: 'board', hotel: 'Worldwide' },
-    { row: 0, col: 1, location: 'board', hotel: 'Sackson' },
+    { row: 0, col: 1, location: 'board', hotel: 'Luxor' },
   ] as unknown as any[];
 
   const hotels = [
     { ...makeHotel('Worldwide') },
     {
-      ...makeHotel('Sackson'),
+      ...makeHotel('Luxor'),
       shares: [
         { location: 0 },
         { location: 0 },
@@ -489,7 +489,7 @@ Deno.test('resolveMergerOrchestrator handles trade-only shares and reduces stock
     mergeContext: {
       stockholderIds: [0, 1],
       survivingHotel: 'Worldwide',
-      mergedHotel: 'Sackson',
+      mergedHotel: 'Luxor',
       originalHotels: [],
       additionalTiles: [],
     },
