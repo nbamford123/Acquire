@@ -2,6 +2,8 @@
 
 ## Client general
 
+- make the board squares more 3D? They look very flat right now.
+- Put the unicode characters for hotels on the tiles when they are founded?
 - we need to enforce types on the api calls
 - the specific pico azure background (and azure colors in general) aren't light/darkmode sensitive
 - update to [ky](https://github.com/sindresorhus/ky), cleaner syntax, retries, good interface for polling

@@ -66,6 +66,30 @@ export const styles = css`
     background: var(--pico-color-yellow-200);
   }
 
+  .board-cell.placed.luxor {
+    background: var(--pico-color-red-500);
+  }
+
+  .board-cell.placed.american {
+    background: var(--pico-color-blue-700);
+  }
+
+  .board-cell.placed.festival {
+    background: var(--pico-color-green-500);
+  }
+
+  .board-cell.placed.imperial {
+    background: var(--pico-color-pink-500);
+  }
+
+  .board-cell.placed.continental {
+    background: var(--pico-color-azure-700);
+  }
+
+  .board-cell.placed.worldwide {
+    background: var(--pico-color-sand-500);
+  }
+
   .board-cell:hover {
     background: var(--pico-primary-hover);
     border-color: var(--pico-primary);
@@ -164,28 +188,28 @@ export const styles = css`
     background: var(--pico-color-yellow-800);
   }
   .hotel-chain.luxor {
-    border-color: #f39c12;
-    background: rgba(243, 156, 18, 0.1);
+    border-color: var(--pico-color-red-500);
+    background: var(--pico-color-red-800);
   }
   .hotel-chain.american {
-    border-color: #3498db;
-    background: rgba(52, 152, 219, 0.1);
+    border-color: var(--pico-color-blue-500);
+    background: var(--pico-color-blue-800);
   }
   .hotel-chain.worldwide {
-    border-color: #9b59b6;
-    background: rgba(155, 89, 182, 0.1);
+    border-color: var(--pico-color-sand-500);
+    background: var(--pico-color-sand-800);
   }
   .hotel-chain.festival {
-    border-color: #1abc9c;
-    background: rgba(26, 188, 156, 0.1);
+    border-color:var(--pico-color-green-500);
+    background: var(--pico-color-green-800);
   }
   .hotel-chain.imperial {
-    border-color: #e67e22;
-    background: rgba(230, 126, 34, 0.1);
+    border-color: var(--pico-color-pink-500);
+    background: var(--pico-color-pink-800);
   }
   .hotel-chain.continental {
-    border-color: #2ecc71;
-    background: rgba(46, 204, 113, 0.1);
+    border-color: var(--pico-color-azure-500);
+    background: var(--pico-color-azure-800);
   }
 
   .hotel-header {
