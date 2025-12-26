@@ -1,22 +1,28 @@
 import { getFoundHotelContext } from '../domain/index.ts';
 import { foundHotelReducer } from '../reducers/foundHotelReducer.ts';
 import { proceedToBuySharesOrchestrator } from './proceedToBuySharesOrchestrator.ts';
-import type { GameState, HOTEL_NAME } from '../types/index.ts';
+import type { FoundHotelAction, OrchestratorActionFunction } from '../types/index.ts';
 
-export const foundHotelOrchestrator = (
-  gameState: GameState,
-  hotelName: HOTEL_NAME,
-): GameState => {
+export const foundHotelOrchestrator: OrchestratorActionFunction<FoundHotelAction> = (
+  gameState,
+  foundHotelAction,
+) => {
   const foundHotelContext = getFoundHotelContext(gameState);
+  const hotel = foundHotelAction.payload.hotelName;
   const updatedState = {
     ...gameState,
     ...foundHotelReducer(
       gameState.currentPlayer,
       gameState.hotels,
-      hotelName,
+      hotel,
       foundHotelContext,
       gameState.tiles,
     ),
   };
-  return proceedToBuySharesOrchestrator(updatedState);
+  const action = {
+    turn: gameState.currentTurn,
+    action: `${gameState.players[gameState.currentPlayer]} founds ${hotel} and receives one share`,
+  };
+  const [proceedState, actions] = proceedToBuySharesOrchestrator(updatedState);
+  return [proceedState, [action, ...actions]];
 };

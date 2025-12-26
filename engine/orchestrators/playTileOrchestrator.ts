@@ -7,38 +7,50 @@ import {
 import { growHotelReducer } from '../reducers/index.ts';
 import { processMergerOrchestrator } from './processMergerOrchestrator.ts';
 import { proceedToBuySharesOrchestrator } from './proceedToBuySharesOrchestrator.ts';
-import { type BoardTile, GamePhase, type GameState } from '../types/index.ts';
+import { getTileLabel } from '../utils/getTileLabel.ts';
+import {
+  type BoardTile,
+  GamePhase,
+  type OrchestratorActionFunction,
+  type PlayTileAction,
+} from '../types/index.ts';
 
-export const playTileOrchestrator = (
-  gameState: GameState,
-  playedTile: { row: number; col: number },
-): GameState => {
+export const playTileOrchestrator: OrchestratorActionFunction<PlayTileAction> = (
+  gameState,
+  playTileAction,
+) => {
   // Put the tile on the board
+  const playedTile = playTileAction.payload.tile;
   const tile: BoardTile = { ...playedTile, location: 'board' };
   const updatedGameState = {
     ...gameState,
     tiles: updateTiles(gameState.tiles, [tile]),
   };
+  const action = {
+    turn: gameState.currentTurn,
+    action: `${gameState.players[gameState.currentPlayer].name} played ${getTileLabel(tile)}`,
+  };
   const placement = analyzeTilePlacement(tile, gameState.tiles);
   if (placement.triggersMerger) {
-    return processMergerOrchestrator({
+    const [mergerState, mergerActions] = processMergerOrchestrator({
       ...updatedGameState,
       mergeContext: {
         originalHotels: placement.adjacentHotels,
         additionalTiles: [tile, ...placement.additionalTiles],
       },
     });
+    return [mergerState, [action, ...mergerActions]];
   } else if (placement.foundsHotel) {
-    return {
+    return [{
       ...updatedGameState,
       currentPhase: GamePhase.FOUND_HOTEL,
       foundHotelContext: {
         availableHotels: getAvailableHotelNames(boardTiles(gameState.tiles)),
         tiles: [tile, ...placement.adjacentTiles],
       },
-    };
+    }, [action]];
   } else if (placement.growsHotel) {
-    return proceedToBuySharesOrchestrator({
+    const [buySharesState, buySharesActions] = proceedToBuySharesOrchestrator({
       ...growHotelReducer(
         updatedGameState,
         placement.adjacentHotels[0],
@@ -46,7 +58,12 @@ export const playTileOrchestrator = (
         placement.additionalTiles,
       ),
     });
+    return [
+      buySharesState,
+      [action, ...buySharesActions],
+    ];
   }
   // else, simple placement
-  return proceedToBuySharesOrchestrator(updatedGameState);
+  const [buySharesState, buySharesActions] = proceedToBuySharesOrchestrator(updatedGameState);
+  return [buySharesState, [action, ...buySharesActions]];
 };

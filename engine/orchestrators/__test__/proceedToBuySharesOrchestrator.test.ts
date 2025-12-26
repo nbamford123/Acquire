@@ -24,7 +24,7 @@ Deno.test('proceedToBuySharesOrchestrator allows buying when player has enough m
     tiles,
   } as unknown as any;
 
-  const result = proceedToBuySharesOrchestrator(gameState);
+  const [result, actions] = proceedToBuySharesOrchestrator(gameState);
   assertEquals(result.currentPhase, GamePhase.BUY_SHARES);
 });
 
@@ -46,7 +46,7 @@ Deno.test('proceedToBuySharesOrchestrator advances turn when player cannot buy',
     tiles,
   } as unknown as any;
 
-  const result = proceedToBuySharesOrchestrator(gameState);
+  const [result, actions] = proceedToBuySharesOrchestrator(gameState);
   // Should have advanced to next player and set phase to PLAY_TILE
   assertEquals(result.currentPlayer, 1);
   assertEquals(result.currentPhase, GamePhase.PLAY_TILE);

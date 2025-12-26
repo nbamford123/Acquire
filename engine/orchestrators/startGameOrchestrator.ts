@@ -1,15 +1,15 @@
 import { startGameReducer } from '../reducers/startGameReducers.ts';
-import { GamePhase, type GameState } from '../types/index.ts';
+import { GamePhase, type OrchestratorFunction } from '../types/index.ts';
 
-export const startGameOrchestrator = (
-  gameState: GameState,
-): GameState => {
+export const startGameOrchestrator: OrchestratorFunction = (
+  gameState,
+) => {
   const updatedState = startGameReducer(gameState.tiles, gameState.players);
-  return {
+  return [{
     ...gameState,
     ...updatedState,
     currentPhase: GamePhase.PLAY_TILE,
     currentPlayer: 0,
     currentTurn: 1,
-  };
+  }, []];
 };

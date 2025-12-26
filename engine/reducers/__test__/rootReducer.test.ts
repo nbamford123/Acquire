@@ -1,5 +1,5 @@
 import { rootReducer } from '../rootReducer.ts';
-import { assertEquals } from 'https://deno.land/std@0.203.0/assert/mod.ts';
+import { assertEquals, assertExists } from 'https://deno.land/std@0.203.0/assert/mod.ts';
 import { GameAction, GamePhase, GameState } from '../../types/index.ts';
 import { GameErrorCodes } from '../../types/index.ts';
 import { actionHandlers } from '../actionHandlers.ts';
@@ -33,8 +33,11 @@ Deno.test('rootReducer: calls correct handler and clears error', () => {
     lastUpdated: Date.now(),
   } as unknown as GameState;
   const action = { type: 'START_GAME', payload: { player: 1 } } as unknown as GameAction;
-  const result = rootReducer(state, action);
+  const [result, actions] = rootReducer(state, action);
   assertEquals(result.error, null);
+  // Verify that actions array is returned
+  assertExists(actions);
+  assertEquals(Array.isArray(actions), true);
 });
 
 Deno.test('rootReducer: returns GameError when usecase throws', () => {
@@ -53,7 +56,7 @@ Deno.test('rootReducer: returns GameError when usecase throws', () => {
 
   // Attempt to start game as a non-owner player -> startGameUseCase should throw
   const action = { type: 'START_GAME', payload: { player: 2 } } as unknown as GameAction;
-  const result = rootReducer(state, action);
+  const [result, actions] = rootReducer(state, action);
   // Should capture a GameError with GAME_INVALID_ACTION
   assertEquals(result.error?.code, GameErrorCodes.GAME_INVALID_ACTION);
 });
@@ -72,7 +75,7 @@ Deno.test('rootReducer: handles unknown action type and clears error', () => {
     log: [],
   } as unknown as GameState;
   const action = { type: 'UNKNOWN_ACTION', payload: {} } as unknown as GameAction;
-  const result = rootReducer(state, action);
+  const [result, actions] = rootReducer(state, action);
   assertEquals(result.error, null);
 });
 
@@ -97,7 +100,7 @@ Deno.test('rootReducer: catches non-GameError and maps to UNKNOWN_ERROR', () => 
   } as unknown as GameState;
 
   const action = { type: 'TEST_THROW', payload: {} } as unknown as GameAction;
-  const result = rootReducer(state, action);
+  const [result, actions] = rootReducer(state, action);
   assertEquals(result.error?.code, GameErrorCodes.UNKNOWN_ERROR);
 
   // restore original handlers

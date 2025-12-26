@@ -22,12 +22,21 @@ Deno.test('buySharesOrchestrator applies buySharesReducer then advances turn', (
     currentPlayer: 0,
     lastUpdated: Date.now(),
     players,
-    hotels: [],
+    hotels: [
+      { name: 'Tower', shares: Array.from({ length: 25 }, () => ({ location: 'bank' })) },
+      { name: 'Luxor', shares: Array.from({ length: 25 }, () => ({ location: 'bank' })) },
+    ],
     tiles,
   } as unknown as any;
 
   // Provide an empty shares mapping; reducer should be able to handle this
-  const result = buySharesOrchestrator(baseState, {} as any);
+  const [result, actions] = buySharesOrchestrator(baseState, {
+    type: 'BUY_SHARES',
+    payload: {
+      player: 'P0',
+      shares: {},
+    },
+  } as any);
   // After buying shares the turn advances to next player
   assertEquals(result.currentPlayer, 1);
 });

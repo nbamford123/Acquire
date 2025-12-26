@@ -1,13 +1,25 @@
-import { GamePhase, type GameState } from '../types/index.ts';
-import { drawAndReplaceTilesReducer } from '../reducers/drawAndReplaceTilesReducer.ts';
+import { GamePhase, type OrchestratorFunction } from '../types/index.ts';
+import { boardTiles, gameOver } from '../domain/index.ts';
+import { drawAndReplaceTilesReducer, endGameReducer } from '../reducers/index.ts';
 
-export const advanceTurnOrchestrator = (
-  gameState: GameState,
-): GameState => {
+export const advanceTurnOrchestrator: OrchestratorFunction = (
+  gameState,
+) => {
   const { currentPlayer, currentTurn, players, tiles } = gameState;
 
+  if (gameOver(boardTiles(gameState.tiles), gameState.hotels)) {
+    const [endGameState, endGameActions] = endGameReducer(gameState);
+    return [{
+      ...gameState,
+      currentPhase: GamePhase.GAME_OVER,
+      ...endGameState,
+      mergeContext: undefined,
+      mergerTieContext: undefined,
+      foundHotelContext: undefined,
+    }, endGameActions];
+  }
   const nextPlayerId = (currentPlayer + 1) % players.length;
-  return {
+  return [{
     ...gameState,
     currentPhase: GamePhase.PLAY_TILE,
     currentPlayer: nextPlayerId,
@@ -17,5 +29,5 @@ export const advanceTurnOrchestrator = (
     mergerTieContext: undefined,
     foundHotelContext: undefined,
     error: undefined,
-  };
+  }, []];
 };

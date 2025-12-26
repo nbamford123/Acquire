@@ -22,11 +22,14 @@ Deno.test('advanceTurnOrchestrator advances player and keeps turn count', () => 
     currentPlayer: 0,
     lastUpdated: Date.now(),
     players,
-    hotels: [],
+    hotels: [
+      { name: 'Tower', shares: Array.from({ length: 25 }, () => ({ location: 'bank' })) },
+      { name: 'Luxor', shares: Array.from({ length: 25 }, () => ({ location: 'bank' })) },
+    ],
     tiles,
   } as unknown as any;
 
-  const result = advanceTurnOrchestrator(baseState);
+  const [result, actions] = advanceTurnOrchestrator(baseState);
   // Next player should be 1
   assertEquals(result.currentPlayer, 1);
   // Turn should remain 1 because nextPlayerId !== 0

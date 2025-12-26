@@ -114,15 +114,17 @@ export const resolveShares = (
   survivor: Hotel,
   merged: Hotel,
   shares: { sell: number; trade: number } | undefined,
-): { survivorShares: Share[]; mergedShares: Share[]; income: number } => {
+): { survivorShares: Share[]; mergedShares: Share[]; income: number; action: string } => {
   let survivorShares = survivor.shares;
   let mergedShares = merged.shares;
-
+  let action = '';
   // Trade shares
   if (shares && shares.trade) {
     const tradedShares = shares.trade / 2;
     survivorShares = assignSharesToPlayer(survivorShares, playerId, tradedShares);
     mergedShares = returnSharesToBank(mergedShares, playerId, shares.trade);
+    action =
+      `traded ${shares.trade} shares of ${merged.name} for ${tradedShares} of ${survivor.name}`;
   }
 
   // Sell shares
@@ -131,6 +133,7 @@ export const resolveShares = (
     const shareValue = sharePrice(merged.name, board) * shares.sell;
     income = shareValue;
     mergedShares = returnSharesToBank(mergedShares, playerId, shares.sell);
+    action = `sold ${mergedShares.length} shares of ${merged.name} for $${income}`;
   }
-  return { survivorShares, mergedShares, income };
+  return { survivorShares, mergedShares, income, action };
 };

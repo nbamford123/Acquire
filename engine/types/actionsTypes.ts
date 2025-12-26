@@ -14,7 +14,7 @@ export const ActionTypes = {
 
 export type ActionType = typeof ActionTypes[keyof typeof ActionTypes];
 
-interface Action {
+export interface Action {
   type: ActionType;
   payload: unknown;
 }

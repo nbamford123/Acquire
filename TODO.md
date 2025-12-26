@@ -1,8 +1,11 @@
 # TO DO
 
+## Important!
+
+- Need to check that actions aren't being overwritten in successive orchestrator, reducer, etc. calls
+
 ## Client general
 
-- make the board squares more 3D? They look very flat right now.
 - Put the unicode characters for hotels on the tiles when they are founded?
 - we need to enforce types on the api calls
 - the specific pico azure background (and azure colors in general) aren't light/darkmode sensitive
@@ -22,12 +25,11 @@
 
 ## Game Board
 
+- put the hotel type (economy, standard, luxury) on the bank card as well as the lowest price when inactive
+- make the board squares more 3D? They look very flat right now.
+- game card somewhere on screen? Could make it collapsible/hidable.
 - a game status somewhere, e.g. "Waiting for players", "Player X's turn", "Waiting for player X to sell/trade stocks", "Game over"
-- Have the pending action title featured as the header or something like that in the action card, e.g. "Found Hotel"
-- should we put the current user in the user list, just so they know their place in the rotation?
-- layout, board takes more available space
 - give players unique colors?
-- game state on page somewhere, at least until it's started
 
 ## Misc
 

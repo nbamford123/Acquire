@@ -32,10 +32,13 @@ Deno.test('resolveMergerOrchestrator reduces stockholderIds when multiple remain
     },
   } as unknown as any;
 
-  const result = resolveMergerOrchestrator(gameState, 0, undefined);
+  const [state, actions] = resolveMergerOrchestrator(gameState, {
+    type: 'RESOLVE_MERGER',
+    payload: { player: 'P0', shares: undefined },
+  } as any);
   // One stockholder should have been removed from the front
-  assertEquals(result.mergeContext?.stockholderIds?.length, 1);
-  assertEquals(result.mergeContext?.stockholderIds?.[0], 0);
+  assertEquals(state.mergeContext?.stockholderIds?.length, 1);
+  assertEquals(state.mergeContext?.stockholderIds?.[0], 0);
 });
 
 Deno.test('resolveMergerOrchestrator proceeds to BUY_SHARES when done', () => {
@@ -63,7 +66,10 @@ Deno.test('resolveMergerOrchestrator proceeds to BUY_SHARES when done', () => {
   } as unknown as any;
 
   try {
-    const result = resolveMergerOrchestrator(gameState, 0, undefined);
+    const [state, actions] = resolveMergerOrchestrator(gameState, {
+      type: 'RESOLVE_MERGER',
+      payload: { player: 'P0', shares: undefined },
+    } as any);
     // The orchestrator may either proceed to buy shares or continue merging
     // depending on the state; accept any resulting phase that represents a
     // valid transition.
@@ -72,8 +78,8 @@ Deno.test('resolveMergerOrchestrator proceeds to BUY_SHARES when done', () => {
       GamePhase.PLAY_TILE,
       GamePhase.RESOLVE_MERGER,
       GamePhase.BREAK_MERGER_TIE,
-    ].includes(result.currentPhase);
-    if (!ok) throw new Error(`Unexpected phase: ${String(result.currentPhase)}`);
+    ].includes(state.currentPhase);
+    if (!ok) throw new Error(`Unexpected phase: ${String(state.currentPhase)}`);
   } catch (err) {
     // In a constrained test environment some deeper domain helpers may throw
     // configuration errors (price brackets) or processing errors (insufficient
@@ -119,13 +125,16 @@ Deno.test('resolveMergerOrchestrator triggers processMergerOrchestrator when mor
   } as unknown as any;
 
   try {
-    const result = resolveMergerOrchestrator(gameState, 0, undefined);
+    const [state, actions] = resolveMergerOrchestrator(gameState, {
+      type: 'RESOLVE_MERGER',
+      payload: { player: 'P0', shares: undefined },
+    } as any);
     // processMergerOrchestrator will either return BREAK_MERGER_TIE or RESOLVE_MERGER
     const ok = [
       GamePhase.BREAK_MERGER_TIE,
       GamePhase.RESOLVE_MERGER,
-    ].includes(result.currentPhase);
-    if (!ok) throw new Error(`Unexpected phase: ${String(result.currentPhase)}`);
+    ].includes(state.currentPhase);
+    if (!ok) throw new Error(`Unexpected phase: ${String(state.currentPhase)}`);
   } catch (err: any) {
     const msg = (err && err.message) || String(err);
     if (msg.includes('No price bracket found') || msg.includes('Need at least 2 hotels to merge')) {
@@ -160,9 +169,12 @@ Deno.test('resolveMergerOrchestrator proceeds to proceedToBuyShares when no more
   } as unknown as any;
 
   try {
-    const result = resolveMergerOrchestrator(gameState, 0, undefined);
-    const ok = [GamePhase.BUY_SHARES, GamePhase.PLAY_TILE].includes(result.currentPhase);
-    if (!ok) throw new Error(`Unexpected phase: ${String(result.currentPhase)}`);
+    const [state, actions] = resolveMergerOrchestrator(gameState, {
+      type: 'RESOLVE_MERGER',
+      payload: { player: 'P0', shares: undefined },
+    } as any);
+    const ok = [GamePhase.BUY_SHARES, GamePhase.PLAY_TILE].includes(state.currentPhase);
+    if (!ok) throw new Error(`Unexpected phase: ${String(state.currentPhase)}`);
   } catch (err: any) {
     const msg = (err && err.message) || String(err);
     if (msg.includes('No price bracket found')) return;
@@ -204,14 +216,17 @@ Deno.test('resolveMergerOrchestrator applies sell and trade shares for stockhold
     },
   } as unknown as any;
 
-  const result = resolveMergerOrchestrator(gameState, 0, { sell: 1, trade: 2 });
+  const [state, actions] = resolveMergerOrchestrator(gameState, {
+    type: 'RESOLVE_MERGER',
+    payload: { player: 'P0', shares: { sell: 1, trade: 2 } },
+  } as any);
   // Player should have received money from the sell
-  const player = (result.players as any[]).find((p) => p.id === 0);
+  const player = (state.players as any[]).find((p) => p.id === 0);
   if (!player || typeof player.money !== 'number') throw new Error('Missing player money');
   if (player.money <= 0) throw new Error('Expected player to receive money from selling shares');
 
   // Survivor hotel should now contain some shares for player 0 due to trade
-  const survivor = (result.hotels as any[]).find((h) => h.name === 'Worldwide');
+  const survivor = (state.hotels as any[]).find((h) => h.name === 'Worldwide');
   const survivorOwned = survivor.shares.filter((s: any) => s.location === 0).length;
   if (survivorOwned === 0) {
     throw new Error('Expected survivor to have traded-in shares for player 0');
@@ -248,11 +263,14 @@ Deno.test('resolveMergerOrchestrator prefers stockholder path over cascading mer
     },
   } as unknown as any;
 
-  const result = resolveMergerOrchestrator(gameState, 0, undefined);
+  const [state, actions] = resolveMergerOrchestrator(gameState, {
+    type: 'RESOLVE_MERGER',
+    payload: { player: 'P0', shares: undefined },
+  } as any);
   // Should take the stockholder path and not immediately consume originalHotels
-  assertEquals(result.mergeContext?.stockholderIds?.length, 1);
-  assertEquals(Array.isArray(result.mergeContext?.originalHotels), true);
-  assertEquals(result.mergeContext?.originalHotels?.length, 1);
+  assertEquals(state.mergeContext?.stockholderIds?.length, 1);
+  assertEquals(Array.isArray(state.mergeContext?.originalHotels), true);
+  assertEquals(state.mergeContext?.originalHotels?.length, 1);
 });
 
 Deno.test('resolveMergerOrchestrator multi-merge cascade completes to buy shares', () => {
@@ -295,7 +313,11 @@ Deno.test('resolveMergerOrchestrator multi-merge cascade completes to buy shares
   try {
     for (let i = 0; i < 4; i++) {
       if (!state.mergeContext || !state.mergeContext.survivingHotel) break;
-      state = resolveMergerOrchestrator(state, 0, undefined);
+      const [newState, actions] = resolveMergerOrchestrator(state, {
+        type: 'RESOLVE_MERGER',
+        payload: { player: state.players[0].name, shares: undefined },
+      } as any);
+      state = newState;
       if (!state.mergeContext || state.mergeContext.originalHotels.length === 0) break;
     }
     // After processing, either we have no mergeContext or we've moved to buy/advance
@@ -327,7 +349,10 @@ Deno.test('resolveMergerOrchestrator throws when mergeContext missing', () => {
     // no mergeContext intentionally
   } as unknown as any;
 
-  assertThrows(() => resolveMergerOrchestrator(gameState, 0, undefined));
+  assertThrows(() => resolveMergerOrchestrator(gameState, {
+    type: 'RESOLVE_MERGER',
+    payload: { player: 'P0', shares: undefined },
+  } as any));
 });
 
 Deno.test('resolveMergerOrchestrator throws for invalid hotel names', () => {
@@ -351,7 +376,10 @@ Deno.test('resolveMergerOrchestrator throws for invalid hotel names', () => {
     },
   } as unknown as any;
 
-  assertThrows(() => resolveMergerOrchestrator(gameState, 0, undefined));
+  assertThrows(() => resolveMergerOrchestrator(gameState, {
+    type: 'RESOLVE_MERGER',
+    payload: { player: 'P0', shares: undefined },
+  } as any));
 });
 
 Deno.test('resolveMergerOrchestrator handles undefined stockholderIds and proceeds to processMerger when originals exist', () => {
@@ -380,9 +408,12 @@ Deno.test('resolveMergerOrchestrator handles undefined stockholderIds and procee
   } as unknown as any;
 
   try {
-    const result = resolveMergerOrchestrator(gameState, 0, undefined);
-    const ok = [GamePhase.BREAK_MERGER_TIE, GamePhase.RESOLVE_MERGER].includes(result.currentPhase);
-    if (!ok) throw new Error(`Unexpected phase: ${String(result.currentPhase)}`);
+    const [state, actions] = resolveMergerOrchestrator(gameState, {
+      type: 'RESOLVE_MERGER',
+      payload: { player: 'P0', shares: undefined },
+    } as any);
+    const ok = [GamePhase.BREAK_MERGER_TIE, GamePhase.RESOLVE_MERGER].includes(state.currentPhase);
+    if (!ok) throw new Error(`Unexpected phase: ${String(state.currentPhase)}`);
   } catch (err: any) {
     const msg = (err && err.message) || String(err);
     if (msg.includes('No price bracket found') || msg.includes('Need at least 2 hotels to merge')) {
@@ -417,9 +448,12 @@ Deno.test('resolveMergerOrchestrator handles undefined originalHotels and procee
   } as unknown as any;
 
   try {
-    const result = resolveMergerOrchestrator(gameState, 0, undefined);
-    const ok = [GamePhase.BUY_SHARES, GamePhase.PLAY_TILE].includes(result.currentPhase);
-    if (!ok) throw new Error(`Unexpected phase: ${String(result.currentPhase)}`);
+    const [state, actions] = resolveMergerOrchestrator(gameState, {
+      type: 'RESOLVE_MERGER',
+      payload: { player: 'P0', shares: undefined },
+    } as any);
+    const ok = [GamePhase.BUY_SHARES, GamePhase.PLAY_TILE].includes(state.currentPhase);
+    if (!ok) throw new Error(`Unexpected phase: ${String(state.currentPhase)}`);
   } catch (err: any) {
     const msg = (err && err.message) || String(err);
     if (msg.includes('No price bracket found')) return;
@@ -452,8 +486,11 @@ Deno.test('resolveMergerOrchestrator handles sell-only shares and awards income'
     },
   } as unknown as any;
 
-  const result = resolveMergerOrchestrator(gameState, 0, { sell: 1, trade: 0 });
-  const player = (result.players as any[]).find((p) => p.id === 0);
+  const [state, actions] = resolveMergerOrchestrator(gameState, {
+    type: 'RESOLVE_MERGER',
+    payload: { player: 'P0', shares: { sell: 1, trade: 0 } },
+  } as any);
+  const player = (state.players as any[]).find((p) => p.id === 0);
   if (!player) throw new Error('Missing player');
   if (player.money <= 0) throw new Error('Expected income from selling shares');
 });
@@ -495,7 +532,10 @@ Deno.test('resolveMergerOrchestrator handles trade-only shares and reduces stock
     },
   } as unknown as any;
 
-  const result = resolveMergerOrchestrator(gameState, 0, { sell: 0, trade: 2 });
+  const [state, actions] = resolveMergerOrchestrator(gameState, {
+    type: 'RESOLVE_MERGER',
+    payload: { player: 'P0', shares: { sell: 0, trade: 2 } },
+  } as any);
   // After trading, remaining stockholders should be reduced
-  assertEquals(result.mergeContext?.stockholderIds?.length, 1);
+  assertEquals(state.mergeContext?.stockholderIds?.length, 1);
 });

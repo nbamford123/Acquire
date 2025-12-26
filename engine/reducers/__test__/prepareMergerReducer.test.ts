@@ -34,7 +34,7 @@ Deno.test('prepareMergerReducer: updates players and tiles after merger', () => 
     remainingHotels: ['Luxor'],
   };
   // @ts-expect-error: partial mock for test
-  const state = prepareMergerReducer(players, tiles, hotels, result);
+  const [state, actions] = prepareMergerReducer(players, tiles, hotels, result);
   assertExists(state.players);
   assertEquals(state.players.length, 2);
   assertExists(state.tiles);
@@ -64,7 +64,7 @@ Deno.test('prepareMergerReducer: splits payout equally when all tied', () => {
     remainingHotels: ['Luxor'],
   } as unknown as Extract<MergeResult, { needsMergeOrder: false }>;
 
-  const state = prepareMergerReducer(players, tiles, hotels, result);
+  const [state, actions] = prepareMergerReducer(players, tiles, hotels, result);
   assertExists(state.players);
   // Both players should have received some payout (equal split case)
   const newPlayers = state.players as Player[];
@@ -100,7 +100,7 @@ Deno.test('prepareMergerReducer: tie for majority pays only tied players', () =>
     remainingHotels: ['Luxor'],
   } as unknown as Extract<MergeResult, { needsMergeOrder: false }>;
 
-  const state = prepareMergerReducer(players, tiles, hotels, result);
+  const [state, actions] = prepareMergerReducer(players, tiles, hotels, result);
   assertExists(state.players);
   const newPlayers = state.players as Player[];
   // Player 1 and 2 tied for majority so they should have >0 money, player 3 should be unchanged
@@ -135,7 +135,7 @@ Deno.test('prepareMergerReducer: single majority and single minority payout', ()
     remainingHotels: ['Luxor'],
   } as unknown as Extract<MergeResult, { needsMergeOrder: false }>;
 
-  const state = prepareMergerReducer(players, tiles, hotels, result);
+  const [state, actions] = prepareMergerReducer(players, tiles, hotels, result);
   assertExists(state.players);
   const newPlayers = state.players as Player[];
   // Player 1 should be majority and have increased money, player 2 should have minority payout

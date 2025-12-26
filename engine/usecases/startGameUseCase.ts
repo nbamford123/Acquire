@@ -4,14 +4,14 @@ import {
   GameError,
   GameErrorCodes,
   GamePhase,
-  type GameState,
   type StartGameAction,
+  type UseCaseFunction,
 } from '../types/index.ts';
 
-export const startGameUseCase = (
-  gameState: GameState,
-  action: StartGameAction,
-): GameState => {
+export const startGameUseCase: UseCaseFunction<StartGameAction> = (
+  gameState,
+  action,
+) => {
   if (gameState.currentPhase !== GamePhase.WAITING_FOR_PLAYERS) {
     throw new GameError(
       "Can't add players, game already in progress",

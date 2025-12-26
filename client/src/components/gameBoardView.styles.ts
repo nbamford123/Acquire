@@ -200,7 +200,7 @@ export const styles = css`
     background: var(--pico-color-sand-800);
   }
   .hotel-chain.festival {
-    border-color:var(--pico-color-green-500);
+    border-color: var(--pico-color-green-500);
     background: var(--pico-color-green-800);
   }
   .hotel-chain.imperial {

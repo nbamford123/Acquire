@@ -2,14 +2,14 @@ import {
   GameError,
   GameErrorCodes,
   GamePhase,
-  type GameState,
   type RemovePlayerAction,
+  type UseCaseFunction,
 } from '../types/index.ts';
 
-export const removePlayerUseCase = (
-  gameState: GameState,
-  action: RemovePlayerAction,
-): GameState => {
+export const removePlayerUseCase: UseCaseFunction<RemovePlayerAction> = (
+  gameState,
+  action,
+) => {
   const { player } = action.payload;
   // Check if game is in the correct phase for removing players
   if (gameState.currentPhase !== GamePhase.WAITING_FOR_PLAYERS) {
@@ -26,8 +26,8 @@ export const removePlayerUseCase = (
     );
   }
 
-  return {
+  return [{
     ...gameState,
     players: gameState.players.filter((p) => p.name !== player),
-  };
+  }, [{ turn: gameState.currentTurn, action: `Player ${player} has been removed from the game` }]];
 };

@@ -18,7 +18,7 @@ Deno.test('completeMergerReducer: updates player money and hotel shares after me
   const survivor = { name: 'Tower', shares: [{ location: 1 }, { location: 'bank' }] } as Hotel;
   const merged = { name: 'Luxor', shares: [{ location: 2 }, { location: 'bank' }] } as Hotel;
   // shares param is undefined for this test
-  const result = completeMergerReducer(gameState, 1, undefined, survivor, merged);
+  const [result, actions] = completeMergerReducer(gameState, 1, undefined, survivor, merged);
   assertExists(result.players);
   assertEquals(result.players.length, 2);
   assertExists(result.hotels);

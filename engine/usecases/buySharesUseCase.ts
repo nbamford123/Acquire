@@ -5,13 +5,13 @@ import {
   GameError,
   GameErrorCodes,
   GamePhase,
-  type GameState,
+  type UseCaseFunction,
 } from '../types/index.ts';
 
-export const buySharesUseCase = (
-  gameState: GameState,
-  action: BuySharesAction,
-): GameState => {
+export const buySharesUseCase: UseCaseFunction<BuySharesAction> = (
+  gameState,
+  action,
+) => {
   const { player: playerName, shares } = action.payload;
   const playerId = gameState.players.findIndex((p) => p.name === playerName);
   if (gameState.currentPlayer !== playerId) {
@@ -31,5 +31,13 @@ export const buySharesUseCase = (
   // Domain validation
   buySharesValidation(player, shares, gameBoard, gameState.hotels);
 
-  return buySharesOrchestrator(gameState, shares);
+  const [buySharesState, actions] = buySharesOrchestrator(gameState, action);
+  return [buySharesState, [...actions, {
+    turn: gameState.currentTurn,
+    action: `${gameState.players[gameState.currentPlayer].name} buys ${
+      Object.entries(shares).filter(([, shares]) => shares > 0).map(([hotel, shares], idx) =>
+        `${shares} of ${hotel}${idx < Object.entries(shares).length ? ', ' : ''}`
+      )
+    }`,
+  }]];
 };
