@@ -30,15 +30,15 @@ const createTile = (
 
 // getHotelPrice tests (use real hotel config from types)
 Deno.test('getHotelPrice - returns correct price object for bracket', () => {
-  // Using an actual hotel name from HOTEL_NAMES (Worldwide -> economy)
-  const result2 = getHotelPrice('Worldwide', 2);
+  // Using an actual hotel name from HOTEL_NAMES (Luxor -> economy)
+  const result2 = getHotelPrice('Luxor', 2);
   // result should be the price object for bracket 2
   assertEquals(result2, { price: 200, majority: 2000, minority: 1000 });
 
-  const result4 = getHotelPrice('Worldwide', 4);
+  const result4 = getHotelPrice('Luxor', 4);
   assertEquals(result4, { price: 400, majority: 4000, minority: 2000 });
 
-  const resultLarge = getHotelPrice('Worldwide', Number.MAX_SAFE_INTEGER);
+  const resultLarge = getHotelPrice('Luxor', Number.MAX_SAFE_INTEGER);
   // largest bracket returns the last defined entry
   assertEquals(resultLarge, { price: 1000, majority: 10000, minority: 5000 });
 });
@@ -375,7 +375,7 @@ const createShare = (location: number | 'bank'): Share => ({
 });
 
 const createHotel = (
-  name: 'Worldwide' | 'Sackson' | 'Festival' | 'Imperial' | 'American' | 'Continental' | 'Tower',
+  name: 'Worldwide' | 'Luxor' | 'Festival' | 'Imperial' | 'American' | 'Continental' | 'Tower',
   type: 'economy' | 'standard' | 'luxury',
   shares: Share[],
 ): Hotel => ({
@@ -400,7 +400,7 @@ const createGameState = (overrides: Partial<GameState> = {}): GameState => ({
       createShare('bank'),
       createShare('bank'),
     ]),
-    createHotel('Sackson', 'standard', [
+    createHotel('Luxor', 'standard', [
       createShare(0), // player1 has 2 shares
       createShare(0),
       createShare(1), // player2 has 1 share
@@ -437,7 +437,7 @@ Deno.test('getPlayerView - returns correct stocks for player', () => {
   const playerView = getPlayerView('player1', gameState);
 
   assertEquals(playerView.stocks.Worldwide, 1);
-  assertEquals(playerView.stocks.Sackson, 2);
+  assertEquals(playerView.stocks.Luxor, 2);
   assertEquals(Object.keys(playerView.stocks).length, 2);
 });
 
@@ -461,13 +461,15 @@ Deno.test('getPlayerView - returns correct other players info with OrcCount', ()
   });
   const playerView = getPlayerView('player1', gameState);
 
-  assertEquals(playerView.players.length, 3);
-  assertEquals(playerView.players[0].name, 'player2');
-  assertEquals(playerView.players[0].money, '2');
-  assertEquals(playerView.players[1].name, 'player3');
-  assertEquals(playerView.players[1].money, '1');
-  assertEquals(playerView.players[2].name, 'player4');
-  assertEquals(playerView.players[2].money, 'many');
+  assertEquals(playerView.players.length, 4);
+  assertEquals(playerView.players[0].name, 'player1');
+  assertEquals(playerView.players[0].money, 'many');
+  assertEquals(playerView.players[1].name, 'player2');
+  assertEquals(playerView.players[1].money, '2');
+  assertEquals(playerView.players[2].name, 'player3');
+  assertEquals(playerView.players[2].money, '1');
+  assertEquals(playerView.players[3].name, 'player4');
+  assertEquals(playerView.players[3].money, 'many');
 });
 
 Deno.test('getPlayerView - returns correct other players shares with OrcCount', () => {
@@ -484,8 +486,8 @@ Deno.test('getPlayerView - returns correct other players shares with OrcCount', 
   });
   const playerView = getPlayerView('player1', gameState);
 
-  assertEquals(playerView.players[0].shares.Worldwide, 'many');
-  assertEquals(Object.keys(playerView.players[0].shares).length, 1);
+  assertEquals(playerView.players[1].shares.Worldwide, 'many');
+  assertEquals(Object.keys(playerView.players[1].shares).length, 1);
 });
 
 Deno.test('getPlayerView - returns correct hotel shares available in bank', () => {
@@ -494,7 +496,7 @@ Deno.test('getPlayerView - returns correct hotel shares available in bank', () =
 
   // The hotels mapping counts only bank shares
   assertEquals(playerView.hotels['Worldwide'].shares, 2);
-  assertEquals(playerView.hotels['Sackson'].shares, 1);
+  assertEquals(playerView.hotels['Luxor'].shares, 1);
 });
 
 Deno.test('getPlayerView - includes board tiles', () => {
@@ -508,13 +510,13 @@ Deno.test('getPlayerView - includes board tiles', () => {
 Deno.test('getPlayerView - includes optional context fields when present', () => {
   const gameState = createGameState({
     mergerTieContext: {
-      tiedHotels: ['Worldwide', 'Sackson'],
+      tiedHotels: ['Worldwide', 'Luxor'],
     },
     mergeContext: {
-      originalHotels: ['Worldwide', 'Sackson'],
+      originalHotels: ['Worldwide', 'Luxor'],
       additionalTiles: [{ row: 2, col: 2, location: 'board' as const }],
       survivingHotel: 'Worldwide',
-      mergedHotel: 'Sackson',
+      mergedHotel: 'Luxor',
     },
     foundHotelContext: {
       availableHotels: ['Festival', 'Imperial'],
@@ -525,11 +527,11 @@ Deno.test('getPlayerView - includes optional context fields when present', () =>
   const playerView = getPlayerView('player1', gameState);
 
   assertEquals(playerView.mergerTieContext, {
-    tiedHotels: ['Worldwide', 'Sackson'],
+    tiedHotels: ['Worldwide', 'Luxor'],
   });
-  assertEquals(playerView.mergeContext?.originalHotels, ['Worldwide', 'Sackson']);
+  assertEquals(playerView.mergeContext?.originalHotels, ['Worldwide', 'Luxor']);
   assertEquals(playerView.mergeContext?.survivingHotel, 'Worldwide');
-  assertEquals(playerView.mergeContext?.mergedHotel, 'Sackson');
+  assertEquals(playerView.mergeContext?.mergedHotel, 'Luxor');
   assertEquals(playerView.foundHotelContext, {
     availableHotels: ['Festival', 'Imperial'],
     tiles: [{ row: 2, col: 2 }],
@@ -596,7 +598,7 @@ Deno.test('getPlayerView - handles single player game', () => {
   });
   const playerView = getPlayerView('player1', gameState);
 
-  assertEquals(playerView.players, []);
+  assertEquals(playerView.players[0].name, 'player1');
 });
 
 Deno.test('getPlayerView - handles different money amounts for OrcCount conversion', () => {
@@ -611,10 +613,11 @@ Deno.test('getPlayerView - handles different money amounts for OrcCount conversi
   });
   const playerView = getPlayerView('player1', gameState);
 
-  assertEquals(playerView.players[0].money, '0');
-  assertEquals(playerView.players[1].money, '1');
-  assertEquals(playerView.players[2].money, '2');
-  assertEquals(playerView.players[3].money, 'many');
+  assertEquals(playerView.players[0].money, 'many');
+  assertEquals(playerView.players[1].money, '0');
+  assertEquals(playerView.players[2].money, '1');
+  assertEquals(playerView.players[3].money, '2');
+  assertEquals(playerView.players[4].money, 'many');
 });
 
 Deno.test('getPlayerView - handles different share amounts for OrcCount conversion', () => {
@@ -643,13 +646,14 @@ Deno.test('getPlayerView - handles different share amounts for OrcCount conversi
   const playerView = getPlayerView('player1', gameState);
 
   // player2 should not appear in shares since they have 0
-  assertEquals(Object.keys(playerView.players[0].shares).length, 0); // player2
-  assertEquals(playerView.players[1].shares.Worldwide, '1'); // player3
-  assertEquals(Object.keys(playerView.players[1].shares).length, 1);
-  assertEquals(playerView.players[2].shares.Worldwide, '2'); // player4
+  assertEquals(Object.keys(playerView.players[0].shares).length, 1); // player1
+  assertEquals(Object.keys(playerView.players[1].shares).length, 0); // player2
+  assertEquals(playerView.players[2].shares.Worldwide, '1'); // player3
   assertEquals(Object.keys(playerView.players[2].shares).length, 1);
-  assertEquals(playerView.players[3].shares.Worldwide, 'many'); // player5
+  assertEquals(playerView.players[3].shares.Worldwide, '2'); // player4
   assertEquals(Object.keys(playerView.players[3].shares).length, 1);
+  assertEquals(playerView.players[4].shares.Worldwide, 'many'); // player5
+  assertEquals(Object.keys(playerView.players[4].shares).length, 1);
 });
 
 Deno.test('sortTiles - handles tiles with same column, different rows', () => {

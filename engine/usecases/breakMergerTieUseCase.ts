@@ -5,15 +5,15 @@ import {
   GameError,
   GameErrorCodes,
   GamePhase,
-  type GameState,
+  type UseCaseFunction,
 } from '../types/index.ts';
 
-export const breakMergerTieUseCase = (
-  gameState: GameState,
-  action: BreakMergerTieAction,
-): GameState => {
+export const breakMergerTieUseCase: UseCaseFunction<BreakMergerTieAction> = (
+  gameState,
+  action,
+) => {
   // TODO(me): this should be an id in action, not a player name
-  const { player, resolvedTie } = action.payload;
+  const { player } = action.payload;
   const playerId = gameState.players.findIndex((p) => p.name === player);
 
   // Orchestrate validations
@@ -36,6 +36,6 @@ export const breakMergerTieUseCase = (
 
   return processMergerOrchestrator(
     gameState,
-    resolvedTie,
+    action,
   );
 };

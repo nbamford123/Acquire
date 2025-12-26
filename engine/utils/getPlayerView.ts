@@ -49,19 +49,16 @@ export const getPlayerView = (playerName: string, gameState: GameState): PlayerV
     currentPlayer: gameState.currentPlayer,
     pendingMergePlayer: gameState.pendingMergePlayer,
     lastUpdated: gameState.lastUpdated,
-    players: gameState.players.reduce(
+    players: gameState.players.map(
       (
-        players,
         player,
-      ) =>
-        player.id !== playerId
-          ? [...players, {
-            name: player.name,
-            money: getOrcCount(player.money),
-            shares: getShares(player.id, gameState.hotels, true),
-          }]
-          : players,
-      [] as Array<{ name: string; money: OrcCount; shares: Record<HOTEL_NAME, OrcCount> }>,
+      ) => (
+        {
+          name: player.name,
+          money: getOrcCount(player.money),
+          shares: getShares(player.id, gameState.hotels, true),
+        }
+      ),
     ),
     hotels: gameState.hotels.reduce(
       (hotelShares, hotel) => ({

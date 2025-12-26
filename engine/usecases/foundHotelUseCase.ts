@@ -5,13 +5,13 @@ import {
   GameError,
   GameErrorCodes,
   GamePhase,
-  type GameState,
+  type UseCaseFunction,
 } from '../types/index.ts';
 
-export const foundHotelUseCase = (
-  gameState: GameState,
-  action: FoundHotelAction,
-): GameState => {
+export const foundHotelUseCase: UseCaseFunction<FoundHotelAction> = (
+  gameState,
+  action,
+) => {
   const { player, hotelName } = action.payload;
   const playerId = gameState.players.findIndex((p) => p.name === player);
   if (gameState.currentPlayer !== playerId) {
@@ -29,5 +29,5 @@ export const foundHotelUseCase = (
   // Domain validation
   foundHotelValidation(gameState.foundHotelContext, hotelName, gameState.hotels, gameState.tiles);
 
-  return foundHotelOrchestrator(gameState, hotelName);
+  return foundHotelOrchestrator(gameState, action);
 };

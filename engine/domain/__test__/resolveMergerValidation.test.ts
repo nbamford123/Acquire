@@ -32,8 +32,8 @@ Deno.test('resolveMergerValidation - core checks', async (t) => {
 
   await t.step('throws when playerId is not first stockholder', () => {
     const state = {
-      mergeContext: { survivingHotel: 'Worldwide', mergedHotel: 'Sackson', stockholderIds: [2] },
-      hotels: [makeHotel('Worldwide'), makeHotel('Sackson')],
+      mergeContext: { survivingHotel: 'Worldwide', mergedHotel: 'Luxor', stockholderIds: [2] },
+      hotels: [makeHotel('Worldwide'), makeHotel('Luxor')],
     } as any as GameState;
     const err = assertThrows(
       () => resolveMergerValidation(state, 1, { sell: 0, trade: 0 }),
@@ -56,8 +56,8 @@ Deno.test('resolveMergerValidation - core checks', async (t) => {
 
   await t.step('throws when player does not have enough merged shares', () => {
     const state = {
-      mergeContext: { survivingHotel: 'Worldwide', mergedHotel: 'Sackson', stockholderIds: [1] },
-      hotels: [makeHotel('Worldwide'), makeHotel('Sackson')],
+      mergeContext: { survivingHotel: 'Worldwide', mergedHotel: 'Luxor', stockholderIds: [1] },
+      hotels: [makeHotel('Worldwide'), makeHotel('Luxor')],
     } as any as GameState;
     const err = assertThrows(
       () => resolveMergerValidation(state, 1, { sell: 1, trade: 1 }),
@@ -69,8 +69,8 @@ Deno.test('resolveMergerValidation - core checks', async (t) => {
   await t.step('throws when trying to trade odd number', () => {
     // player owns 2 shares in merged hotel
     const state = {
-      mergeContext: { survivingHotel: 'Worldwide', mergedHotel: 'Sackson', stockholderIds: [1] },
-      hotels: [makeHotel('Worldwide'), makeHotel('Sackson', { 1: 2 })],
+      mergeContext: { survivingHotel: 'Worldwide', mergedHotel: 'Luxor', stockholderIds: [1] },
+      hotels: [makeHotel('Worldwide'), makeHotel('Luxor', { 1: 2 })],
     } as any as GameState;
     const err = assertThrows(
       () => resolveMergerValidation(state, 1, { sell: 0, trade: 1 }),
@@ -83,9 +83,9 @@ Deno.test('resolveMergerValidation - core checks', async (t) => {
     // survivor has 0 remaining (all owned), merged player has 2 to trade -> tradedShares=1 but survivor has 0
     const survivor = makeHotel('Worldwide');
     survivor.shares = survivor.shares.map(() => ({ location: 1 })); // all owned
-    const merged = makeHotel('Sackson', { 1: 2 });
+    const merged = makeHotel('Luxor', { 1: 2 });
     const state = {
-      mergeContext: { survivingHotel: 'Worldwide', mergedHotel: 'Sackson', stockholderIds: [1] },
+      mergeContext: { survivingHotel: 'Worldwide', mergedHotel: 'Luxor', stockholderIds: [1] },
       hotels: [survivor, merged],
     } as any as GameState;
     const err = assertThrows(
@@ -97,14 +97,14 @@ Deno.test('resolveMergerValidation - core checks', async (t) => {
 
   await t.step('returns data when valid', () => {
     const survivor = makeHotel('Worldwide');
-    const merged = makeHotel('Sackson', { 1: 3 });
+    const merged = makeHotel('Luxor', { 1: 3 });
     const state = {
-      mergeContext: { survivingHotel: 'Worldwide', mergedHotel: 'Sackson', stockholderIds: [1] },
+      mergeContext: { survivingHotel: 'Worldwide', mergedHotel: 'Luxor', stockholderIds: [1] },
       hotels: [survivor, merged],
     } as any as GameState;
     const result = resolveMergerValidation(state, 1, { sell: 1, trade: 2 });
     assertEquals(result.survivor.name, 'Worldwide');
-    assertEquals(result.merged.name, 'Sackson');
+    assertEquals(result.merged.name, 'Luxor');
     assertEquals(Array.isArray(result.stockholderIds), true);
   });
 });

@@ -11,11 +11,11 @@ import type {
 // Game phases
 export enum GamePhase {
   WAITING_FOR_PLAYERS = 'Waiting for players',
-  PLAY_TILE = 'PLAY_TILE',
-  FOUND_HOTEL = 'FOUND_HOTEL',
+  PLAY_TILE = 'Play Tile',
+  FOUND_HOTEL = 'Found Hotel',
   RESOLVE_MERGER = 'RESOLVE_MERGER',
   BREAK_MERGER_TIE = 'BREAK_MERGER_TIE',
-  BUY_SHARES = 'BUY_SHARES',
+  BUY_SHARES = 'Buy Shares',
   GAME_OVER = 'GAME_OVER',
 }
 

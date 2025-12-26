@@ -188,12 +188,12 @@ Deno.test('deadTile', async (t) => {
     const tile = createTile(5, 5, 'bag');
     // Create enough tiles to make both hotels safe
     const worldwideTiles = createHotelTiles('Worldwide', SAFE_HOTEL_SIZE);
-    const sacksonTiles = createHotelTiles('Sackson', SAFE_HOTEL_SIZE);
+    const LuxorTiles = createHotelTiles('Luxor', SAFE_HOTEL_SIZE);
     const boardTiles: BoardTile[] = [
       ...worldwideTiles,
-      ...sacksonTiles,
+      ...LuxorTiles,
       createBoardTile(4, 5, 'Worldwide'), // adjacent safe hotel
-      createBoardTile(6, 5, 'Sackson'), // adjacent safe hotel
+      createBoardTile(6, 5, 'Luxor'), // adjacent safe hotel
     ];
 
     const result = deadTile(tile, boardTiles);
@@ -204,12 +204,12 @@ Deno.test('deadTile', async (t) => {
     const tile = createTile(5, 5, 'bag');
     // Create small hotels (less than SAFE_HOTEL_SIZE)
     const worldwideTiles = createHotelTiles('Worldwide', 5);
-    const sacksonTiles = createHotelTiles('Sackson', 3);
+    const LuxorTiles = createHotelTiles('Luxor', 3);
     const boardTiles: BoardTile[] = [
       ...worldwideTiles,
-      ...sacksonTiles,
+      ...LuxorTiles,
       createBoardTile(4, 5, 'Worldwide'), // adjacent but not safe
-      createBoardTile(6, 5, 'Sackson'), // adjacent but not safe
+      createBoardTile(6, 5, 'Luxor'), // adjacent but not safe
     ];
 
     const result = deadTile(tile, boardTiles);
@@ -220,12 +220,12 @@ Deno.test('deadTile', async (t) => {
     const cornerTile = createTile(0, 0, 'bag');
     // Create enough tiles to make both hotels safe
     const worldwideTiles = createHotelTiles('Worldwide', SAFE_HOTEL_SIZE);
-    const sacksonTiles = createHotelTiles('Sackson', SAFE_HOTEL_SIZE);
+    const LuxorTiles = createHotelTiles('Luxor', SAFE_HOTEL_SIZE);
     const boardTiles: BoardTile[] = [
       ...worldwideTiles,
-      ...sacksonTiles,
+      ...LuxorTiles,
       createBoardTile(0, 1, 'Worldwide'), // adjacent safe hotel
-      createBoardTile(1, 0, 'Sackson'), // adjacent safe hotel
+      createBoardTile(1, 0, 'Luxor'), // adjacent safe hotel
     ];
 
     const result = deadTile(cornerTile, boardTiles);
@@ -433,12 +433,12 @@ Deno.test('drawTiles', async (t) => {
 
     // Create enough tiles to make both hotels safe
     const worldwideTiles = createHotelTiles('Worldwide', SAFE_HOTEL_SIZE);
-    const sacksonTiles = createHotelTiles('Sackson', SAFE_HOTEL_SIZE);
+    const LuxorTiles = createHotelTiles('Luxor', SAFE_HOTEL_SIZE);
     const boardTiles: BoardTile[] = [
       ...worldwideTiles,
-      ...sacksonTiles,
+      ...LuxorTiles,
       createBoardTile(4, 5, 'Worldwide'), // adjacent safe hotel
-      createBoardTile(6, 5, 'Sackson'), // adjacent safe hotel
+      createBoardTile(6, 5, 'Luxor'), // adjacent safe hotel
     ];
 
     const playerId = 1;
@@ -485,14 +485,14 @@ Deno.test('drawTiles', async (t) => {
 
     // Create enough tiles to make both hotels safe
     const worldwideTiles = createHotelTiles('Worldwide', SAFE_HOTEL_SIZE);
-    const sacksonTiles = createHotelTiles('Sackson', SAFE_HOTEL_SIZE);
+    const LuxorTiles = createHotelTiles('Luxor', SAFE_HOTEL_SIZE);
     const boardTiles: BoardTile[] = [
       ...worldwideTiles,
-      ...sacksonTiles,
+      ...LuxorTiles,
       createBoardTile(4, 5, 'Worldwide'), // makes (5,5) dead
-      createBoardTile(6, 5, 'Sackson'),
+      createBoardTile(6, 5, 'Luxor'),
       createBoardTile(5, 6, 'Worldwide'), // makes (6,6) dead
-      createBoardTile(7, 6, 'Sackson'),
+      createBoardTile(7, 6, 'Luxor'),
     ];
 
     const playerId = 1;
@@ -526,14 +526,14 @@ Deno.test('drawTiles', async (t) => {
 
     // Create enough tiles to make both hotels safe
     const worldwideTiles = createHotelTiles('Worldwide', SAFE_HOTEL_SIZE);
-    const sacksonTiles = createHotelTiles('Sackson', SAFE_HOTEL_SIZE);
+    const LuxorTiles = createHotelTiles('Luxor', SAFE_HOTEL_SIZE);
     const boardTiles: BoardTile[] = [
       ...worldwideTiles,
-      ...sacksonTiles,
+      ...LuxorTiles,
       createBoardTile(4, 5, 'Worldwide'),
-      createBoardTile(6, 5, 'Sackson'),
+      createBoardTile(6, 5, 'Luxor'),
       createBoardTile(5, 6, 'Worldwide'),
-      createBoardTile(7, 6, 'Sackson'),
+      createBoardTile(7, 6, 'Luxor'),
     ];
 
     const playerId = 1;

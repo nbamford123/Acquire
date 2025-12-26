@@ -1,37 +1,50 @@
-import { GamePhase, type GameState, type ResolvedTie } from '../types/index.ts';
+import {
+  BreakMergerTieAction,
+  GamePhase,
+  type GameState,
+  type PlayerAction,
+} from '../types/index.ts';
 import { boardTiles, getMergeContext, mergeHotels } from '../domain/index.ts';
 import { prepareMergerReducer } from '../reducers/prepareMergerReducer.ts';
 
 export const processMergerOrchestrator = (
   gameState: GameState,
-  resolvedTie?: ResolvedTie,
-): GameState => {
+  breakMergerTieAction?: BreakMergerTieAction,
+): [GameState, PlayerAction[]] => {
   const gameBoard = boardTiles(gameState.tiles);
   const mergeContext = getMergeContext(gameState);
   const result = mergeHotels(
     mergeContext,
     gameBoard,
-    resolvedTie,
+    breakMergerTieAction?.payload.resolvedTie,
   );
   // Found a tie, send back to player for resolution
   if (result.needsMergeOrder) {
-    return {
+    return [{
       ...gameState,
       currentPhase: GamePhase.BREAK_MERGER_TIE,
       mergerTieContext: {
         tiedHotels: result.tiedHotels,
       },
       mergeContext: { ...gameState.mergeContext, ...result.mergeContext },
-    };
+    }, []];
   }
-  return {
-    ...gameState,
-    currentPhase: GamePhase.RESOLVE_MERGER,
-    ...prepareMergerReducer(
-      gameState.players,
-      gameState.tiles,
-      gameState.hotels,
-      result,
-    ),
-  };
+  const [updatedState, actions] = prepareMergerReducer(
+    gameState.players,
+    gameState.tiles,
+    gameState.hotels,
+    result,
+  );
+  return [
+    {
+      ...gameState,
+      currentPhase: GamePhase.RESOLVE_MERGER,
+      ...updatedState,
+    },
+    [{
+      turn: gameState.currentTurn,
+      action:
+        `${gameState.currentPlayer} merged ${result.mergedHotel} into ${result.survivingHotel}`,
+    }, ...actions.map((action) => ({ turn: gameState.currentTurn, action }))],
+  ];
 };

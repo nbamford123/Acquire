@@ -2,7 +2,7 @@ import type { Context, Hono } from 'hono';
 import { setCookie } from 'hono/cookie';
 import { initializeGame, processAction } from '@acquire/engine/core';
 import { filterDefined, getPlayerView } from '@acquire/engine/utils';
-import type { GameAction, GameInfo, GameState } from '@acquire/engine/types';
+import type { GameAction, GameInfo, GameState, PlayerAction } from '@acquire/engine/types';
 
 import { createToken, validateUser } from './auth.ts';
 import { requireAuth } from './middleware.ts';
@@ -10,6 +10,7 @@ import type { ServiceEnv } from './types.ts';
 
 // Simple in-memory store for demo - you'll want to use KV or external DB
 const gameStates = new Map<string, GameState>();
+const playerActions = new Map<string, PlayerAction[]>();
 
 // Load test games
 // TODO(me): remove before production
@@ -154,11 +155,15 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       }
 
       // Apply the action through your reducer
-      const updatedGame = processAction(currentGame, action);
+      const [updatedGame, actions] = processAction(currentGame, action);
 
       // Save the updated state
       gameStates.set(gameId, updatedGame);
-
+      // Save the actions
+      const currentActions = playerActions.has(gameId)
+        ? playerActions.get(gameId)!.concat(actions)
+        : actions;
+      playerActions.set(gameId, currentActions);
       return ctx.json({
         game: getPlayerView(user, updatedGame),
         action: action.type, // Echo back the action type for client confirmation

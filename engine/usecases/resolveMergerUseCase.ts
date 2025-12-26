@@ -4,15 +4,15 @@ import {
   GameError,
   GameErrorCodes,
   GamePhase,
-  type GameState,
   type ResolveMergerAction,
+  type UseCaseFunction,
 } from '../types/index.ts';
 
 // What happens when a surviving hotel was picked, but there's another tie to be resolved?
-export const resolveMergerUseCase = (
-  gameState: GameState,
-  action: ResolveMergerAction,
-): GameState => {
+export const resolveMergerUseCase: UseCaseFunction<ResolveMergerAction> = (
+  gameState,
+  action,
+) => {
   if (gameState.currentPhase !== GamePhase.RESOLVE_MERGER) {
     throw new GameError('Not resolve merge phase', GameErrorCodes.GAME_INVALID_ACTION);
   }
@@ -28,7 +28,6 @@ export const resolveMergerUseCase = (
 
   return resolveMergerOrchestrator(
     gameState,
-    playerId,
-    shares,
+    action,
   );
 };

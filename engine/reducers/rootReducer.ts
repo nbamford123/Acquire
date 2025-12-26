@@ -1,10 +1,16 @@
-import { type GameAction, GameError, GameErrorCodes, type GameState } from '../types/index.ts';
+import {
+  type GameAction,
+  GameError,
+  GameErrorCodes,
+  type GameState,
+  type PlayerAction,
+} from '../types/index.ts';
 import { actionHandlers } from './actionHandlers.ts';
 
 export const rootReducer = (
   state: GameState,
   action: GameAction,
-): GameState => {
+): [GameState, PlayerAction[]] => {
   try {
     // Get the appropriate handler for this action type
     const handler = actionHandlers[action.type];
@@ -12,19 +18,19 @@ export const rootReducer = (
     // If we have a handler, use it; otherwise return the state unchanged but clear error
     if (!handler) {
       console.warn(`No handler registered for action type: ${action.type}`);
-      return {
+      return [{
         ...state,
         error: null, // Clear error even for unknown actions
-      };
+      }, []];
     }
 
-    const newState = handler(state, action);
-    return {
+    const [newState, newActions] = handler(state, action);
+    return [{
       ...newState,
       error: null, // Auto-clear error on success
-    };
+    }, newActions];
   } catch (error) {
-    return {
+    return [{
       ...state,
       error: error instanceof GameError
         ? {
@@ -35,6 +41,6 @@ export const rootReducer = (
           code: GameErrorCodes.UNKNOWN_ERROR,
           message: error instanceof Error ? error.message : String(error),
         },
-    };
+    }, []];
   }
 };

@@ -27,9 +27,9 @@ Deno.test('assertions helper functions', async (t) => {
   await t.step('getHotelByName throws when hotel not found', () => {
     const hotels = [{ name: 'Worldwide' }] as any;
     const err = assertThrows(
-      () => getHotelByName(hotels, 'Sackson'),
+      () => getHotelByName(hotels, 'Luxor'),
       GameError,
-      'Hotel not found: Sackson',
+      'Hotel not found: Luxor',
     );
     assertEquals(err.code, GameErrorCodes.GAME_PROCESSING_ERROR);
   });

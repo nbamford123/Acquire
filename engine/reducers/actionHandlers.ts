@@ -7,10 +7,12 @@ import {
   type FoundHotelAction,
   type GameAction,
   type GameState,
+  type PlayerAction,
   type PlayTileAction,
   type RemovePlayerAction,
   type ResolveMergerAction,
   type StartGameAction,
+  type UseCaseFunction,
 } from '../types/index.ts';
 import {
   addPlayerUseCase,
@@ -24,9 +26,9 @@ import {
 } from '../usecases/index.ts';
 
 function createActionHandler<T extends GameAction>(
-  handler: (state: GameState, action: T) => GameState,
-): (state: GameState, action: GameAction) => GameState {
-  return (state: GameState, action: GameAction): GameState => {
+  handler: UseCaseFunction<T>,
+): (state: GameState, action: GameAction) => readonly [GameState, PlayerAction[]] {
+  return (state: GameState, action: GameAction): readonly [GameState, PlayerAction[]] => {
     return handler(state, action as T);
   };
 }
@@ -34,7 +36,7 @@ function createActionHandler<T extends GameAction>(
 // Action handler registry
 export const actionHandlers: Record<
   ActionType,
-  (state: GameState, action: GameAction) => GameState
+  UseCaseFunction<GameAction>
 > = {
   [ActionTypes.ADD_PLAYER]: createActionHandler<AddPlayerAction>(addPlayerUseCase),
   [ActionTypes.REMOVE_PLAYER]: createActionHandler<RemovePlayerAction>(removePlayerUseCase),
@@ -43,7 +45,5 @@ export const actionHandlers: Record<
   [ActionTypes.BUY_SHARES]: createActionHandler<BuySharesAction>(buySharesUseCase),
   [ActionTypes.FOUND_HOTEL]: createActionHandler<FoundHotelAction>(foundHotelUseCase),
   [ActionTypes.RESOLVE_MERGER]: createActionHandler<ResolveMergerAction>(resolveMergerUseCase),
-  [ActionTypes.BREAK_MERGER_TIE]: createActionHandler<BreakMergerTieAction>(
-    breakMergerTieUseCase,
-  ),
+  [ActionTypes.BREAK_MERGER_TIE]: createActionHandler<BreakMergerTieAction>(breakMergerTieUseCase),
 };

@@ -13,8 +13,9 @@ import {
 } from '@acquire/engine/types';
 import { getHotelPrice, getTileLabel } from '@acquire/engine/utils';
 import { StyledComponent } from './StyledComponent.ts';
+import './ActionCard.ts';
 
-import { styles } from './gameBoardView.styles.ts';
+import { hotelIcons, styles } from './gameBoardView.styles.ts';
 import { GamePhase } from '../../../engine/types/gameState.ts';
 
 @customElement('game-board-view')
@@ -30,7 +31,7 @@ export class GameBoardView extends StyledComponent {
     loading: { type: Boolean, state: true },
     pendingAction: { type: Object, state: true },
   };
-  private playerView: PlayerView | null = null;
+  declare playerView: PlayerView | null;
   private loading = false;
 
   private pendingAction?: { action: GameAction; description: string };
@@ -38,6 +39,11 @@ export class GameBoardView extends StyledComponent {
     super.styles,
     styles,
   ];
+
+  public constructor() {
+    super();
+    this.playerView = null;
+  }
 
   public override connectedCallback() {
     super.connectedCallback();
@@ -82,9 +88,19 @@ export class GameBoardView extends StyledComponent {
         },
         description: `Play tile ${getTileLabel(tile)}`,
       };
-      console.log('setting action', this.pendingAction);
       this.requestUpdate();
     }
+  }
+
+  private handleSetAction(e: CustomEvent) {
+    console.log('handling action', e.detail);
+    const action = e.detail as GameAction;
+    const desc = action.type === ActionTypes.FOUND_HOTEL
+      ? `Found hotel ${action.payload.hotelName}`
+      : `${action.type}`;
+
+    this.pendingAction = { action, description: desc };
+    this.requestUpdate();
   }
 
   private renderBoard() {
@@ -98,7 +114,9 @@ export class GameBoardView extends StyledComponent {
         );
         cells.push(html`
           <div
-            class="board-cell ${placedTile ? 'placed' : ''} ${placedTile?.hotel || ''}"
+            class="board-cell ${placedTile
+              ? 'placed'
+              : ''} ${placedTile?.hotel?.toLocaleLowerCase() || ''}"
             @click="${() => this.handleCellClick(position)}"
           >
             ${position}
@@ -146,18 +164,10 @@ export class GameBoardView extends StyledComponent {
             ${this.renderBoard()}
           </div>
 
-          <article class="current-player-view">
-            <h3>Your Turn</h3>
-            <div class="player-header">
-              <span class="player-name">${this.user}</span>
-              <span class="player-cash">$${this.playerView.money.toLocaleString()}</span>
-            </div>
-            <div class="player-stocks">
-              Stocks: ${this.formatStocks(this.playerView.stocks)}
-            </div>
-            <div style="margin-top: 1rem;">
-              <strong>Your Tiles:</strong>
-              <div class="tile-hand">
+          <div class="current-player-view">
+            <article class="tile-hand">
+              <strong>YOUR TILES</strong>
+              <div class="tiles-list">
                 ${this.playerView.tiles.map((tile) =>
                   html`
                     <button class="${`tile ${
@@ -168,19 +178,14 @@ export class GameBoardView extends StyledComponent {
                   `
                 )}
               </div>
-            </div>
-            <footer>
-              <div role="group">
-                ${this.pendingAction
-                  ? html`
-                    <button @click="${() => this.submitAction()}">Submit</button>
-                  `
-                  : ''}
-                <button @click="${() => this.saveGameState()}">Save Game</button>
-              </div>
-              <span>${this.pendingAction && this.pendingAction.description}</span>
-            </footer>
-          </article>
+            </article>
+            <action-card
+              .playerView="${this.playerView}"
+              .user="${this.user}"
+              @set-action="${(e: CustomEvent) => this.handleSetAction(e)}"
+            ></action-card>
+            <button @click="${() => this.submitAction()}">Submit</button>
+          </div>
         </div>
 
         <div class="bank-section">
@@ -188,15 +193,15 @@ export class GameBoardView extends StyledComponent {
             <h4>Hotel Chains</h4>
             ${Object.entries(this.playerView.hotels).map(([name, { size, shares }]) =>
               html`
-                <div class="hotel-chain ${name}">
+                <div class="hotel-chain ${name.toLocaleLowerCase()}">
                   <div class="hotel-header">
-                    <span class="hotel-name">${name}</span>
+                    <span class="hotel-name ${name}">${hotelIcons[name]} ${name}</span>
                     <span class="hotel-size">${size > 0 ? `Size: ${size}` : 'Inactive'}</span>
                   </div>
                   <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span class="hotel-stock">Available: ${shares}</span>
                     <span class="hotel-price">${size > 0
-                      ? `$${getHotelPrice(name as HOTEL_NAME, size)}`
+                      ? `Share price: $${getHotelPrice(name as HOTEL_NAME, size).price}`
                       : '—'}</span>
                   </div>
                 </div>

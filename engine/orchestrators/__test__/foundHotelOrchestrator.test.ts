@@ -30,7 +30,14 @@ Deno.test('foundHotelOrchestrator assigns hotel to tiles and awards share', () =
   } as unknown as any;
 
   try {
-    const result = foundHotelOrchestrator(gameState, 'Worldwide');
+    const foundHotelAction = {
+      type: 'FOUND_HOTEL',
+      payload: {
+        player: 'P0',
+        hotelName: 'Worldwide',
+      },
+    } as unknown as any;
+    const [result, actions] = foundHotelOrchestrator(gameState, foundHotelAction);
     // Tiles should now include the hotel property on the created tiles
     const updated = (result.tiles as any[]).filter((t) => t.hotel === 'Worldwide');
     assertEquals(updated.length, 2);

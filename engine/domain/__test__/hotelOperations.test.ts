@@ -60,13 +60,13 @@ Deno.test('initializeHotels', async (t) => {
 
     // Check each hotel has correct name, type, and 25 shares
     const expectedHotels = [
-      { name: 'Worldwide', type: 'economy' },
-      { name: 'Sackson', type: 'economy' },
-      { name: 'Festival', type: 'standard' },
-      { name: 'Imperial', type: 'standard' },
+      { name: 'Tower', type: 'economy' },
+      { name: 'Luxor', type: 'economy' },
+      { name: 'Worldwide', type: 'standard' },
       { name: 'American', type: 'standard' },
+      { name: 'Festival', type: 'standard' },
+      { name: 'Imperial', type: 'luxury' },
       { name: 'Continental', type: 'luxury' },
-      { name: 'Tower', type: 'luxury' },
     ];
 
     expectedHotels.forEach((expected, index) => {
@@ -250,7 +250,7 @@ Deno.test('hotelTiles', async (t) => {
   await t.step('returns tiles belonging to specified hotel', () => {
     const tiles: BoardTile[] = [
       createBoardTile(0, 0, 'Worldwide'),
-      createBoardTile(0, 1, 'Sackson'),
+      createBoardTile(0, 1, 'Luxor'),
       createBoardTile(0, 2, 'Worldwide'),
       createBoardTile(0, 3), // no hotel
     ];
@@ -264,7 +264,7 @@ Deno.test('hotelTiles', async (t) => {
 
   await t.step('returns empty array when hotel has no tiles', () => {
     const tiles: BoardTile[] = [
-      createBoardTile(0, 0, 'Sackson'),
+      createBoardTile(0, 0, 'Luxor'),
       createBoardTile(0, 1), // no hotel
     ];
 
@@ -281,8 +281,8 @@ Deno.test('hotelTiles', async (t) => {
 
 Deno.test('sharePrice', async (t) => {
   await t.step('calculates price for economy hotel with 2 tiles', () => {
-    const hotel = createHotel('Worldwide', 'economy');
-    const tiles = createHotelTiles('Worldwide', 2);
+    const hotel = createHotel('Luxor', 'economy');
+    const tiles = createHotelTiles('Luxor', 2);
 
     const price = sharePrice(hotel.name, tiles);
     assertEquals(price, 200); // economy hotel, 2 tiles
@@ -305,15 +305,15 @@ Deno.test('sharePrice', async (t) => {
   });
 
   await t.step('calculates price for very large hotel', () => {
-    const hotel = createHotel('Tower', 'luxury');
-    const tiles = createHotelTiles('Tower', 50); // larger than any bracket
+    const hotel = createHotel('Imperial', 'luxury');
+    const tiles = createHotelTiles('Imperial', 50); // larger than any bracket
 
     const price = sharePrice(hotel.name, tiles);
     assertEquals(price, 1200); // luxury hotel, max price
   });
 
   await t.step('handles hotel with no tiles by using size 0', () => {
-    const hotel = createHotel('Worldwide', 'economy');
+    const hotel = createHotel('Luxor', 'economy');
     const tiles: BoardTile[] = []; // no tiles for this hotel
 
     // When hotel has 0 tiles, it should use the first price bracket (size 2)
@@ -324,8 +324,8 @@ Deno.test('sharePrice', async (t) => {
 
 Deno.test('majorityMinorityValue', async (t) => {
   await t.step('returns correct majority and minority bonuses for economy hotel', () => {
-    const hotel = createHotel('Worldwide', 'economy');
-    const tiles = createHotelTiles('Worldwide', 3);
+    const hotel = createHotel('Luxor', 'economy');
+    const tiles = createHotelTiles('Luxor', 3);
 
     const [majority, minority] = majorityMinorityValue(hotel, tiles);
     assertEquals(majority, 3000);
@@ -385,27 +385,27 @@ Deno.test('getTiedHotels', async (t) => {
   await t.step('returns hotels with same size as target hotel', () => {
     const tiles: BoardTile[] = [
       ...createHotelTiles('Worldwide', 5),
-      ...createHotelTiles('Sackson', 5),
+      ...createHotelTiles('Luxor', 5),
       ...createHotelTiles('Festival', 3),
       ...createHotelTiles('Imperial', 7),
     ];
 
-    const hotels: HOTEL_NAME[] = ['Worldwide', 'Sackson', 'Festival', 'Imperial'];
+    const hotels: HOTEL_NAME[] = ['Worldwide', 'Luxor', 'Festival', 'Imperial'];
     const result = getTiedHotels('Worldwide', hotels, tiles);
 
     assertEquals(result.length, 2);
     assertEquals(result.includes('Worldwide'), true);
-    assertEquals(result.includes('Sackson'), true);
+    assertEquals(result.includes('Luxor'), true);
   });
 
   await t.step('returns only target hotel when no ties', () => {
     const tiles: BoardTile[] = [
       ...createHotelTiles('Worldwide', 5),
-      ...createHotelTiles('Sackson', 3),
+      ...createHotelTiles('Luxor', 3),
       ...createHotelTiles('Festival', 7),
     ];
 
-    const hotels: HOTEL_NAME[] = ['Worldwide', 'Sackson', 'Festival'];
+    const hotels: HOTEL_NAME[] = ['Worldwide', 'Luxor', 'Festival'];
     const result = getTiedHotels('Worldwide', hotels, tiles);
 
     assertEquals(result.length, 1);
@@ -417,27 +417,27 @@ Deno.test('getTiedHotels', async (t) => {
       ...createHotelTiles('Festival', 3),
     ];
 
-    const hotels: HOTEL_NAME[] = ['Worldwide', 'Sackson', 'Festival'];
+    const hotels: HOTEL_NAME[] = ['Worldwide', 'Luxor', 'Festival'];
     const result = getTiedHotels('Worldwide', hotels, tiles); // Worldwide has 0 tiles
 
-    assertEquals(result.length, 2); // Worldwide and Sackson both have 0 tiles
+    assertEquals(result.length, 2); // Worldwide and Luxor both have 0 tiles
     assertEquals(result.includes('Worldwide'), true);
-    assertEquals(result.includes('Sackson'), true);
+    assertEquals(result.includes('Luxor'), true);
   });
 
   await t.step('handles all hotels tied', () => {
     const tiles: BoardTile[] = [
       ...createHotelTiles('Worldwide', 4),
-      ...createHotelTiles('Sackson', 4),
+      ...createHotelTiles('Luxor', 4),
       ...createHotelTiles('Festival', 4),
     ];
 
-    const hotels: HOTEL_NAME[] = ['Worldwide', 'Sackson', 'Festival'];
+    const hotels: HOTEL_NAME[] = ['Worldwide', 'Luxor', 'Festival'];
     const result = getTiedHotels('Worldwide', hotels, tiles);
 
     assertEquals(result.length, 3);
     assertEquals(result.includes('Worldwide'), true);
-    assertEquals(result.includes('Sackson'), true);
+    assertEquals(result.includes('Luxor'), true);
     assertEquals(result.includes('Festival'), true);
   });
 });
@@ -457,14 +457,14 @@ Deno.test('getHotelsByNames', async (t) => {
 
   await t.step('returns hotels in the order of provided names', () => {
     const hotels = initializeHotels();
-    const names: HOTEL_NAME[] = ['Tower', 'Worldwide', 'Sackson'];
+    const names: HOTEL_NAME[] = ['Tower', 'Worldwide', 'Luxor'];
 
     const result = getHotelsByNames(hotels, names);
 
     assertEquals(result.length, 3);
     assertEquals(result[0].name, 'Tower');
     assertEquals(result[1].name, 'Worldwide');
-    assertEquals(result[2].name, 'Sackson');
+    assertEquals(result[2].name, 'Luxor');
   });
 
   await t.step('throws error when hotel name not found', () => {

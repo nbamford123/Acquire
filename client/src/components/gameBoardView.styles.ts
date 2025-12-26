@@ -1,5 +1,15 @@
 import { css } from 'lit';
 
+export const hotelIcons: Record<string, string> = {
+  'Tower': ' ♜',
+  'Luxor': ' 🏛️',
+  'Worldwide': '🌍',
+  'American': '🦅',
+  'Festival': '🎪',
+  'Imperial': '👑',
+  'Continental': '🎪',
+};
+
 export const styles = css`
   :host {
     display: block;
@@ -8,9 +18,9 @@ export const styles = css`
 
   .game-container {
     display: grid;
-    grid-template-columns: 1fr auto 280px;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
     gap: 1rem;
-    max-width: 1600px;
     margin: 0 auto;
   }
 
@@ -18,6 +28,9 @@ export const styles = css`
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    width: 100%;
+    grid-row: 1 / 3;
+    grid-column: 1;
   }
 
   .game-board {
@@ -29,7 +42,10 @@ export const styles = css`
     padding: 1rem;
     border-radius: 8px;
     aspect-ratio: 12/9;
+    width: 100%;
+    min-width: 700px;
     max-width: 900px;
+    margin: 0 auto;
   }
 
   .board-cell {
@@ -46,6 +62,34 @@ export const styles = css`
     min-height: 40px;
   }
 
+  .board-cell.placed.tower {
+    background: var(--pico-color-yellow-200);
+  }
+
+  .board-cell.placed.luxor {
+    background: var(--pico-color-red-500);
+  }
+
+  .board-cell.placed.american {
+    background: var(--pico-color-blue-700);
+  }
+
+  .board-cell.placed.festival {
+    background: var(--pico-color-green-500);
+  }
+
+  .board-cell.placed.imperial {
+    background: var(--pico-color-pink-500);
+  }
+
+  .board-cell.placed.continental {
+    background: var(--pico-color-azure-700);
+  }
+
+  .board-cell.placed.worldwide {
+    background: var(--pico-color-sand-500);
+  }
+
   .board-cell:hover {
     background: var(--pico-primary-hover);
     border-color: var(--pico-primary);
@@ -59,22 +103,26 @@ export const styles = css`
   }
 
   .current-player-view {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tile-hand {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
     padding: 1rem;
     background: var(--pico-card-background-color);
     border-radius: 8px;
     border: 2px solid var(--pico-primary);
   }
 
-  .current-player-view h3 {
-    margin-top: 0;
-    color: var(--pico-primary);
-  }
-
-  .tile-hand {
+  .tiles-list {
     display: flex;
-    gap: 0.5rem;
     flex-wrap: wrap;
     margin-top: 0.5rem;
+    gap: 0.5rem;
   }
 
   .tile {
@@ -103,6 +151,8 @@ export const styles = css`
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    grid-row: 1;
+    grid-column: 2;
   }
 
   .bank-card {
@@ -134,32 +184,32 @@ export const styles = css`
   }
 
   .hotel-chain.tower {
-    border-color: #e74c3c;
-    background: rgba(231, 76, 60, 0.1);
+    border-color: var(--pico-color-yellow-100);
+    background: var(--pico-color-yellow-800);
   }
   .hotel-chain.luxor {
-    border-color: #f39c12;
-    background: rgba(243, 156, 18, 0.1);
+    border-color: var(--pico-color-red-500);
+    background: var(--pico-color-red-800);
   }
   .hotel-chain.american {
-    border-color: #3498db;
-    background: rgba(52, 152, 219, 0.1);
+    border-color: var(--pico-color-blue-500);
+    background: var(--pico-color-blue-800);
   }
   .hotel-chain.worldwide {
-    border-color: #9b59b6;
-    background: rgba(155, 89, 182, 0.1);
+    border-color: var(--pico-color-sand-500);
+    background: var(--pico-color-sand-800);
   }
   .hotel-chain.festival {
-    border-color: #1abc9c;
-    background: rgba(26, 188, 156, 0.1);
+    border-color: var(--pico-color-green-500);
+    background: var(--pico-color-green-800);
   }
   .hotel-chain.imperial {
-    border-color: #e67e22;
-    background: rgba(230, 126, 34, 0.1);
+    border-color: var(--pico-color-pink-500);
+    background: var(--pico-color-pink-800);
   }
   .hotel-chain.continental {
-    border-color: #2ecc71;
-    background: rgba(46, 204, 113, 0.1);
+    border-color: var(--pico-color-azure-500);
+    background: var(--pico-color-azure-800);
   }
 
   .hotel-header {
@@ -191,10 +241,12 @@ export const styles = css`
   }
 
   .players-sidebar {
-    width: 280px;
+    width: 300px;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    grid-row: 2;
+    grid-column: 2;
   }
 
   .player-card {
@@ -235,16 +287,124 @@ export const styles = css`
     margin-top: 0.5rem;
   }
 
-  @media (max-width: 1400px) {
-    .game-container {
-      grid-template-columns: 1fr;
+  /* Laptop: 1200-1400px - Board minimum 600px */
+  @media (max-width: 1400px) and (min-width: 1200px) {
+    .game-board {
+      min-width: 600px;
+      max-width: 900px;
+    }
+  }
+
+  /* Tablet: <1200px - Board spans full width above, bank and players side-by-side below */
+  @media (max-width: 1200px) {
+    :host {
+      padding: 1rem;
+      width: 100%;
     }
 
-    .bank-section,
+    .game-container {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      max-width: 100%;
+      width: 100%;
+    }
+
+    .board-section {
+      width: 100%;
+      grid-row: 1;
+      grid-column: 1 / 3;
+    }
+
+    .game-board {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      margin: 0;
+    }
+
+    .bank-section {
+      width: 100%;
+      grid-row: 2;
+      grid-column: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
     .players-sidebar {
       width: 100%;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-row: 2;
+      grid-column: 2;
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  /* Mobile: <768px - Everything stacks in single column */
+  @media (max-width: 768px) {
+    :host {
+      padding: 0.5rem;
+    }
+
+    .game-container {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 0.75rem;
+    }
+
+    .board-section {
+      width: 100%;
+      grid-row: 1;
+      grid-column: 1;
+      gap: 0.75rem;
+    }
+
+    .game-board {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      padding: 0.75rem;
+      gap: 2px;
+      aspect-ratio: 12/9;
+      margin: 0;
+    }
+
+    .bank-section {
+      width: 100%;
+      grid-row: 2;
+      grid-column: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .bank-card {
+      padding: 0.75rem;
+    }
+
+    .bank-card h4 {
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .players-sidebar {
+      width: 100%;
+      grid-row: 3;
+      grid-column: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .player-card {
+      padding: 0.75rem;
+    }
+
+    .player-header {
+      margin-bottom: 0.25rem;
+    }
+
+    .current-player-view {
+      padding: 0.75rem;
     }
   }
 `;

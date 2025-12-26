@@ -34,7 +34,7 @@ Deno.test('startGameOrchestrator sets play phase and initializes player/turn', (
     tiles,
   } as unknown as any;
 
-  const result = startGameOrchestrator(baseState);
+  const [result, actions] = startGameOrchestrator(baseState);
   assertExists(result);
   assertEquals(result.currentPhase, GamePhase.PLAY_TILE);
   assertEquals(result.currentPlayer, 0);

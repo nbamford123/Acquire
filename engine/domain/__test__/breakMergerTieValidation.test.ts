@@ -22,7 +22,7 @@ Deno.test('breakMergerTieValidation - basic cases', async (t) => {
   });
 
   await t.step('throws when mergeContext missing or invalid hotels in state', () => {
-    const action: any = { payload: { resolvedTie: { survivor: 'Worldwide', merged: 'Sackson' } } };
+    const action: any = { payload: { resolvedTie: { survivor: 'Worldwide', merged: 'Luxor' } } };
     const state = { mergeContext: undefined, tiles: [], hotels: [] } as unknown as GameState;
     const err = assertThrows(() => breakMergerTieValidation(action, state), GameError);
     // getMergeContext throws GAME_INVALID_ACTION when missing
@@ -30,9 +30,9 @@ Deno.test('breakMergerTieValidation - basic cases', async (t) => {
   });
 
   await t.step('throws when hotels in mergeContext cannot be found on state', () => {
-    const action: any = { payload: { resolvedTie: { survivor: 'Worldwide', merged: 'Sackson' } } };
+    const action: any = { payload: { resolvedTie: { survivor: 'Worldwide', merged: 'Luxor' } } };
     const state = {
-      mergeContext: { originalHotels: ['Worldwide', 'Sackson'], survivingHotel: undefined },
+      mergeContext: { originalHotels: ['Worldwide', 'Luxor'], survivingHotel: undefined },
       tiles: [],
       hotels: [{ name: 'Worldwide' }],
     } as unknown as GameState;
@@ -41,16 +41,16 @@ Deno.test('breakMergerTieValidation - basic cases', async (t) => {
   });
 
   await t.step('accepts valid action when hotels and tiles exist', () => {
-    const action: any = { payload: { resolvedTie: { survivor: 'Worldwide', merged: 'Sackson' } } };
+    const action: any = { payload: { resolvedTie: { survivor: 'Worldwide', merged: 'Luxor' } } };
     const state = {
       // include survivingHotel so validation can find the survivor in state.hotels
       mergeContext: {
-        originalHotels: ['Worldwide', 'Sackson'],
+        originalHotels: ['Worldwide', 'Luxor'],
         survivingHotel: 'Worldwide',
         additionalTiles: [],
       },
-      tiles: [boardTile(0, 0, 'Worldwide'), boardTile(0, 1, 'Sackson')],
-      hotels: [{ name: 'Worldwide' }, { name: 'Sackson' }],
+      tiles: [boardTile(0, 0, 'Worldwide'), boardTile(0, 1, 'Luxor')],
+      hotels: [{ name: 'Worldwide' }, { name: 'Luxor' }],
     } as unknown as GameState;
     // Should not throw
     breakMergerTieValidation(action, state);

@@ -1,7 +1,7 @@
 {
   "gameId": "mgq1q3kufnwg3dy26f",
   "owner": "Test",
-  "currentPhase": "PLAY_TILE",
+  "currentPhase": "Play Tile",
   "currentTurn": 1,
   "currentPlayer": 2,
   "lastUpdated": 1760415145374,
@@ -143,7 +143,7 @@
       ]
     },
     {
-      "name": "Sackson",
+      "name": "Luxor",
       "shares": [
         {
           "location": "bank"

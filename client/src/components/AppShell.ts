@@ -51,7 +51,6 @@ export class AppShell extends StyledComponent {
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         box-sizing: border-box;
-        padding: 16px;
       }
       .content.center {
         justify-content: center;
@@ -191,15 +190,31 @@ export class AppShell extends StyledComponent {
   };
 
   private handleError = (event: CustomEvent<string>) => {
-    Toastify({
-      className: 'toastify-error',
-      text: event.detail,
-      duration: 3000,
-      style: {
-        background: 'var(--pico-color-red-500)',
-      },
-    }).showToast();
+    // Always update internal app state so unit tests and UI can reflect errors
+    this.updateAppState({ error: event.detail });
+    // Try to show a toast when running in a DOM environment. Guard access
+    // so server-side or test environments without `document` won't throw.
+    try {
+      if (typeof document !== 'undefined' && typeof Toastify === 'function') {
+        // Toastify may reference `document` internally; wrap in try/catch
+        Toastify({
+          className: 'toastify-error',
+          text: event.detail,
+          duration: 3000,
+          style: {
+            background: 'var(--pico-color-red-500)',
+          },
+        }).showToast();
+      }
+    } catch (e) {
+      // Swallow errors from Toastify in non-browser test environments
+    }
   };
+
+  // Clear the current error from app state (used by tests and UI)
+  public clearError() {
+    this.updateAppState({ error: null });
+  }
 
   public confirm = (title: string, message: string) => {
     return new Promise((resolve) => {

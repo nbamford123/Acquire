@@ -1,4 +1,4 @@
-import type { GameState, Hotel } from '../types/index.ts';
+import type { GameState, Hotel, PlayerAction } from '../types/index.ts';
 import { boardTiles, resolveShares } from '../domain/index.ts';
 
 export const completeMergerReducer = (
@@ -7,17 +7,17 @@ export const completeMergerReducer = (
   shares: { sell: number; trade: number } | undefined,
   survivor: Hotel,
   merged: Hotel,
-): Pick<GameState, 'players' | 'hotels'> => {
+): [Pick<GameState, 'players' | 'hotels'>, PlayerAction[]] => {
   const gameBoard = boardTiles(gameState.tiles);
 
-  const { survivorShares, mergedShares, income } = resolveShares(
+  const { survivorShares, mergedShares, income, action } = resolveShares(
     playerId,
     gameBoard,
     survivor,
     merged,
     shares,
   );
-  return {
+  return [{
     players: gameState.players.map((player) =>
       player.id === playerId ? { ...player, money: player.money + income } : player
     ),
@@ -28,5 +28,5 @@ export const completeMergerReducer = (
         ? { ...hotel, shares: mergedShares }
         : hotel
     ),
-  };
+  }, [{ turn: gameState.currentTurn, action: `${gameState.players[playerId]} ${action}` }]];
 };

@@ -1,10 +1,19 @@
 # TO DO
 
+## Important!
+
+- Need to check that actions aren't being overwritten in successive orchestrator, reducer, etc. calls
+
 ## Client general
 
+- Put the unicode characters for hotels on the tiles when they are founded?
 - we need to enforce types on the api calls
 - the specific pico azure background (and azure colors in general) aren't light/darkmode sensitive
 - update to [ky](https://github.com/sindresorhus/ky), cleaner syntax, retries, good interface for polling
+
+## Action Card
+
+- export css parameterized strings from the template files rather than the inline styles
 
 ## Dashboard
 
@@ -16,13 +25,18 @@
 
 ## Game Board
 
-- should we put the current user in the user list, just so they know their place in the rotation?
-- layout, board takes more available space
+- put the hotel type (economy, standard, luxury) on the bank card as well as the lowest price when inactive
+- make the board squares more 3D? They look very flat right now.
+- game card somewhere on screen? Could make it collapsible/hidable.
+- a game status somewhere, e.g. "Waiting for players", "Player X's turn", "Waiting for player X to sell/trade stocks", "Game over"
 - give players unique colors?
-- game state on page somewhere, at least until it's started
 
 ## Misc
 
+- ignoring a couple of tests because test games are throwing them off
+- pass turn? Is that allowed if you can play?
+- is it really worth it to have playerview hotels as a map? It seems like all I do on the client is convert it to an array for manipulation/display
+- the unit tests for hoteloperations somehow missed the getAvailableHotelNames logic being backwards-- fixing it didn't make anything fail either.
 - it's dumb I say an action is the proper type, but then I have to set type in the action. I should be able to do something like
 
 ```typescript
@@ -41,7 +55,7 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
 - add at least a debug view where the api server logs requests and responses
 - local dev hot reload doesn't seem to be working
 - end game
-- pass (have money but don't want to buy stocks)
+- pass or no stocks in buy stocks phase (have money but don't want to buy stocks)
 - ttl/culling of old games
 
 ## Eventual blog post
@@ -146,14 +160,16 @@ type GameState = {
 For your turn-based state storage, consider:
 
 1. **Error exclusion in persistence**: When persisting state between turns, you might want to strip out transient errors:
-   typescript```
-   function persistGameState(state: GameState): PersistedGameState {
-   const { currentError, ...restState } = state;
-   return restState; // Don't persist the current error
-   }
 
-````
+```typescript
+function persistGameState(state: GameState): PersistedGameState {
+  const { currentError, ...restState } = state;
+  return restState; // Don't persist the current error
+}
+```
+
 2. **Replay safety**: Ensure your state can be replayed without errors affecting the replay:
+
 ```typescript
 function replayTurn(persistedState: PersistedGameState): GameState {
   return {
@@ -161,7 +177,7 @@ function replayTurn(persistedState: PersistedGameState): GameState {
     currentError: null, // Ensure replays start without errors
   };
 }
-````
+```
 
 3. **Turn boundaries**: Define clear points where error states are guaranteed to be clean:
 
@@ -321,9 +337,13 @@ New State
 #### Benefits
 
 ✅ Testability: Each layer can be tested in isolation
+
 ✅ Reusability: Domain functions and reducers are building blocks
+
 ✅ Clarity: Clear separation of "what's legal" vs "when it's legal"
+
 ✅ Flexibility: Easy to compose complex flows from simple pieces
+
 ✅ Type Safety: TypeScript enforces contracts between layers
 
 #### When to Use What

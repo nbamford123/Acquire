@@ -32,7 +32,7 @@ const makeBaseState = (overrides: Partial<GameState> = {}): GameState => ({
 
 Deno.test('addPlayerUseCase: adds a player during waiting phase', () => {
   const state = makeBaseState();
-  const result = addPlayerUseCase(
+  const [result, actions] = addPlayerUseCase(
     state,
     { type: 'ADD_PLAYER', payload: { player: 'Alice' } } as any,
   );
@@ -52,7 +52,7 @@ Deno.test('removePlayerUseCase: removes an existing player during waiting phase'
   const state = makeBaseState({
     players: [{ id: 0, name: 'Alice', money: 0 }, { id: 1, name: 'Bob', money: 0 }],
   });
-  const result = removePlayerUseCase(
+  const [result, actions] = removePlayerUseCase(
     state,
     { type: 'REMOVE_PLAYER', payload: { player: 'Bob' } } as any,
   );
@@ -78,7 +78,7 @@ Deno.test('startGameUseCase: only owner can start and moves to PLAY_TILE', () =>
     players: [{ id: -1, name: 'owner', money: 0 }, { id: -1, name: 'p2', money: 0 }],
     tiles,
   });
-  const result = startGameUseCase(
+  const [result, actions] = startGameUseCase(
     state,
     { type: 'START_GAME', payload: { player: 'owner' } } as any,
   );
@@ -130,7 +130,7 @@ Deno.test('foundHotelUseCase: throws when not player turn', () => {
   assertThrows(() =>
     foundHotelUseCase(
       state,
-      { type: 'FOUND_HOTEL', payload: { player: 'Bob', hotelName: 'Tower' } } as any,
+      { type: 'FFound Hotel', payload: { player: 'Bob', hotelName: 'Tower' } } as any,
     )
   );
 });
@@ -157,4 +157,23 @@ Deno.test('breakMergerTieUseCase: throws when not in break-tie phase or not play
       { type: 'BREAK_MERGER_TIE', payload: { player: 'Bob', resolvedTie: 'Tower' } } as any,
     )
   );
+});
+Deno.test('addPlayerUseCase: returns player action record', () => {
+  const state = makeBaseState();
+  const [result, actions] = addPlayerUseCase(
+    state,
+    { type: 'ADD_PLAYER', payload: { player: 'Alice' } } as any,
+  );
+
+  // Verify actions array is returned
+  assertExists(actions);
+  assertEquals(Array.isArray(actions), true);
+
+  // Verify action contains description of what happened
+  if (actions.length > 0) {
+    const action = actions[0];
+    assertExists(action.turn);
+    assertExists(action.action);
+    assertEquals(typeof action.action, 'string');
+  }
 });

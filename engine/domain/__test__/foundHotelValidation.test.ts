@@ -12,9 +12,9 @@ Deno.test('foundHotelValidation cases', async (t) => {
   await t.step('throws when hotel not in state', () => {
     const tiles: Tile[] = [boardTile(0, 0)];
     const hotels: Hotel[] = [{ name: 'Worldwide', shares: [] } as any];
-    const context = { availableHotels: ['Sackson'], tiles: [{ row: 0, col: 0 }] } as any;
+    const context = { availableHotels: ['Luxor'], tiles: [{ row: 0, col: 0 }] } as any;
 
-    const err = assertThrows(() => foundHotelValidation(context, 'Sackson' as any, hotels, tiles));
+    const err = assertThrows(() => foundHotelValidation(context, 'Luxor' as any, hotels, tiles));
     assertEquals((err as any).message.includes('not found'), true);
   });
 
