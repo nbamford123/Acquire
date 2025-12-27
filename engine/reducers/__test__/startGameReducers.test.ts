@@ -22,7 +22,7 @@ Deno.test('startGameReducer: assigns tiles to players', () => {
     { id: 1, name: 'Alice' },
     { id: 2, name: 'Bob' },
   ] as unknown as Player[];
-  const result = startGameReducer(tiles, players);
+  const [result, actions] = startGameReducer(tiles, players);
   assertExists(result.players);
   assertEquals(result.players.length, 2);
   assertExists(result.tiles);

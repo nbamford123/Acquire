@@ -5,6 +5,7 @@ import {
   type Hotel,
   type HOTEL_NAME,
   type OrcCount,
+  type PlayerAction,
   type PlayerView,
 } from '../types/index.ts';
 import { boardTiles } from '../domain/tileOperations.ts';
@@ -24,7 +25,11 @@ function getShares(playerId: number, hotels: Hotel[], orcCount: boolean = false)
   }, {} as Record<HOTEL_NAME, number | OrcCount>);
 }
 
-export const getPlayerView = (playerName: string, gameState: GameState): PlayerView => {
+export const getPlayerView = (
+  playerName: string,
+  gameState: GameState,
+  actions: PlayerAction[] = [],
+): PlayerView => {
   // Find the player id
   const playerId = gameState.players.findIndex((player) => player.name === playerName);
   if (playerId === -1) {
@@ -34,6 +39,16 @@ export const getPlayerView = (playerName: string, gameState: GameState): PlayerV
     );
   }
   const board = boardTiles(gameState.tiles);
+  // Filter actions: only include actions from the player's first action onward that are from recent turns
+  const viewableActions = actions.length > 0
+    ? (() => {
+      const playerActionIndex = actions.findIndex((action) => action.action.includes(playerName));
+      if (playerActionIndex === -1) return [];
+      return actions
+        .slice(playerActionIndex)
+        .filter((action) => action.turn >= gameState.currentTurn - 1);
+    })()
+    : [];
   return {
     gameId: gameState.gameId,
     owner: gameState.owner,
@@ -74,6 +89,7 @@ export const getPlayerView = (playerName: string, gameState: GameState): PlayerV
     mergerTieContext: gameState.mergerTieContext,
     mergeContext: gameState.mergeContext,
     foundHotelContext: gameState.foundHotelContext,
+    actions: viewableActions,
     error: gameState.error,
   };
 };
