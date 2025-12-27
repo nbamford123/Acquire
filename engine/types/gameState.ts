@@ -13,10 +13,10 @@ export enum GamePhase {
   WAITING_FOR_PLAYERS = 'Waiting for players',
   PLAY_TILE = 'Play Tile',
   FOUND_HOTEL = 'Found Hotel',
-  RESOLVE_MERGER = 'RESOLVE_MERGER',
-  BREAK_MERGER_TIE = 'BREAK_MERGER_TIE',
+  RESOLVE_MERGER = 'Resolve Merger',
+  BREAK_MERGER_TIE = 'Break Merger Tie',
   BUY_SHARES = 'Buy Shares',
-  GAME_OVER = 'GAME_OVER',
+  GAME_OVER = 'Game Over',
 }
 
 // Serializable game state

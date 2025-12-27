@@ -1,6 +1,6 @@
 import { assertEquals, assertNotEquals, assertThrows } from '@std/assert';
 import type { Tile } from '../../types/tile.ts';
-import type { GameState, Hotel, Player, Share } from '../../types/index.ts';
+import type { GameState, Hotel, Player, PlayerAction, Share } from '../../types/index.ts';
 import { GamePhase } from '../../types/gameState.ts';
 import { GameError, GameErrorCodes } from '../../types/index.ts';
 
@@ -767,4 +767,101 @@ Deno.test('sortTiles - handles tiles with different locations', () => {
     createTile(1, 2, 'bag'),
     createTile(1, 2, 'dead'),
   ]);
+});
+
+// PlayerAction test data helpers
+const createPlayerAction = (
+  turn: number,
+  action: string,
+): PlayerAction => ({
+  turn,
+  action,
+});
+
+// getPlayerView with actions tests
+Deno.test('getPlayerView - filters actions to show only those since player last turn', () => {
+  const gameState = createGameState({ currentTurn: 3 });
+  const actions: PlayerAction[] = [
+    createPlayerAction(1, 'player1 played tile'),
+    createPlayerAction(2, 'player2 bought stock'),
+    createPlayerAction(2, 'player1 passed'),
+    createPlayerAction(3, 'player2 played tile'),
+  ];
+
+  const playerView = getPlayerView('player1', gameState, actions);
+
+  // Should include actions from player1's first action onward, filtered to turn >= 2
+  // Slice from index 0 (first player1), then filter by turn >= 2 gives indices 1, 2, 3
+  assertEquals(playerView.actions.length, 3);
+  assertEquals(playerView.actions[0].action, 'player2 bought stock');
+});
+
+Deno.test('getPlayerView - filters actions starting from player action index', () => {
+  const gameState = createGameState({ currentTurn: 2 });
+  const actions: PlayerAction[] = [
+    createPlayerAction(1, 'player1 played tile'),
+    createPlayerAction(1, 'player2 played tile'),
+    createPlayerAction(1, 'player1 bought stock'),
+    createPlayerAction(2, 'player2 played tile'),
+  ];
+
+  const playerView = getPlayerView('player1', gameState, actions);
+
+  // Should start from the first action containing player1's name and filter by turn >= 1
+  // Slice from index 0, filter turn >= 1 gives all 4 actions
+  assertEquals(playerView.actions.length, 4);
+  assertEquals(playerView.actions[0].action, 'player1 played tile');
+});
+
+Deno.test('getPlayerView - returns empty actions array when no actions match', () => {
+  const gameState = createGameState({ currentTurn: 5 });
+  const actions: PlayerAction[] = [
+    createPlayerAction(1, 'player1 played tile'),
+    createPlayerAction(2, 'player2 played tile'),
+  ];
+
+  const playerView = getPlayerView('player1', gameState, actions);
+
+  // No actions match turn >= 4 or contain player1
+  assertEquals(playerView.actions.length, 0);
+});
+
+Deno.test('getPlayerView - includes all recent actions for player', () => {
+  const gameState = createGameState({ currentTurn: 2 });
+  const actions: PlayerAction[] = [
+    createPlayerAction(1, 'player1 played tile'),
+    createPlayerAction(1, 'player2 played tile'),
+    createPlayerAction(2, 'player1 bought stock'),
+    createPlayerAction(2, 'player2 passed'),
+    createPlayerAction(2, 'player1 passed'),
+  ];
+
+  const playerView = getPlayerView('player1', gameState, actions);
+
+  // Should include all actions from player1's first action onwards filtered by turn >= 1
+  // Slice from index 0, then all pass the turn filter, giving all 5 actions
+  assertEquals(playerView.actions.length, 5);
+  assertEquals(playerView.actions[0].action, 'player1 played tile');
+});
+
+Deno.test('getPlayerView - handles empty actions array', () => {
+  const gameState = createGameState();
+  const actions: PlayerAction[] = [];
+
+  const playerView = getPlayerView('player1', gameState, actions);
+
+  assertEquals(playerView.actions.length, 0);
+});
+
+Deno.test('getPlayerView - handles actions with no player name matches', () => {
+  const gameState = createGameState({ currentTurn: 2 });
+  const actions: PlayerAction[] = [
+    createPlayerAction(1, 'player2 played tile'),
+    createPlayerAction(2, 'player2 bought stock'),
+  ];
+
+  const playerView = getPlayerView('player1', gameState, actions);
+
+  // No actions contain player1, so should return empty
+  assertEquals(playerView.actions.length, 0);
 });

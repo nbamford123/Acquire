@@ -113,7 +113,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       return ctx.json({ error: 'Game not found' }, 404);
     }
     const user = ctx.get('user') || '';
-    return ctx.json({ game: getPlayerView(user, game) });
+    return ctx.json({ game: getPlayerView(user, game, playerActions.get(gameId) || []) });
   });
   // Get list of games
   app.get('/api/games', requireAuth, (ctx) => {
@@ -165,7 +165,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
         : actions;
       playerActions.set(gameId, currentActions);
       return ctx.json({
-        game: getPlayerView(user, updatedGame),
+        game: getPlayerView(user, updatedGame, currentActions),
         action: action.type, // Echo back the action type for client confirmation
       });
     } catch (error) {
