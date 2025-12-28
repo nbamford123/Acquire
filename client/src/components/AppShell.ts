@@ -23,12 +23,34 @@ export class AppShell extends StyledComponent {
   static override styles = [
     super.styles,
     css`
+      @media (prefers-color-scheme: light) {
+        /* Soften light mode background to reduce glare */
+        :host(:not([data-theme="dark"])) {
+          --pico-background-color: #f5f5f5;
+        }
+
+        :host([data-theme="light"]) {
+          --pico-background-color: #f5f5f5;
+        }
+      }
+
+      /* Override for system dark mode preference */
+      @media (prefers-color-scheme: dark) {
+        :host:not([data-theme="light"]) {
+          --pico-background-color: rgb(19, 22.5, 30.5);
+        }
+      }
+
+      :host([data-theme="dark"]) {
+        --pico-background-color: rgb(19, 22.5, 30.5);
+      }
+
       /* Root app layout: header outside of the scrollable content area */
       .app-root {
         display: flex;
         flex-direction: column;
         min-height: 100vh;
-        background-color: var(--pico-color-azure-50);
+        background-color: var(--pico-background-color);
         width: 100%;
       }
       /* The header sits above the scrollable content */
@@ -51,6 +73,7 @@ export class AppShell extends StyledComponent {
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         box-sizing: border-box;
+        padding-left: 1.5rem;
       }
       .content.center {
         justify-content: center;

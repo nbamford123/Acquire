@@ -1,9 +1,5 @@
 # TO DO
 
-## Important!
-
-- Need to check that actions aren't being overwritten in successive orchestrator, reducer, etc. calls
-
 ## Client general
 
 - Put the unicode characters for hotels on the tiles when they are founded?
@@ -30,6 +26,7 @@
 - game card somewhere on screen? Could make it collapsible/hidable.
 - a game status somewhere, e.g. "Waiting for players", "Player X's turn", "Waiting for player X to sell/trade stocks", "Game over"
 - give players unique colors?
+- submit button should be disabled until they've performed a valid action (possible exception: you don't _have_ to buy stocks)
 
 ## Misc
 
@@ -65,20 +62,6 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
 - some decorators don't work with deno bundling-- `@state` in particular. How did I test/verify that? Also `@property` requires manual updating
 - DOM testing was a total fail from `deno-dom` to `happy-dom` to `puppeteer` and even `@open-wc/web-test-runner`. Lit just isn't compatible running through deno. Stand along node testing would be required
 - pulling in picocss via typescript file is a bit weird, but it works. Also had to add the css files for pico and toastify to the repo because deno bundle doesn't do remote imports
-
-## Actions
-
-Need a new action state apart from the game state, it can be like
-
-```typescript
-interface gameAction {
-  turn: number;
-  actions: string[];
-}
-```
-
-then the server can send game actions along with the state update, it will be everything that's happened since your last turn, which mean we will have
-to filter and cull the actions
 
 Additional Considerations for HTTP Transmission
 
@@ -205,57 +188,44 @@ For your UI layer
 />;
 ```
 
-### High-level assessment
+# Action-Reducer-UseCase Architecture
 
-The conceptual split is reasonable: you appear to be using
-domain/ for pure business/domain operations (hotel merging, share price calculation, tile ops),
-reducers/ for mapping actions to state-change intents,
-state/ for higher-level orchestration that manipulates GameState or coordinates multi-step transitions.
-That separation is a good starting point: it isolates pure logic from stateful orchestration and from action-handling plumbing.
-However, there are a few clarity and maintenance issues to address so the split remains robust as the project grows.
+## A Composable Pattern for Complex State Management
 
-## The mental model
+### What Is This?
 
-Usecases can call:
-→ Domain functions (validation, calculations)
-→ Reducers (state transformations)
-→ Other usecases (shared orchestration)
+A layered architecture for managing complex state transitions in applications (like board games) that separates concerns into four distinct layers:
 
-Reducers can call:
-→ Domain functions (validation, calculations)
-→ Other domain functions
-✗ NOT other usecases or reducers
+1. **Actions** - Events that describe what happened
+2. **Domain** - Pure business logic functions
+3. **Reducers** - Pure state transformation functions
+4. **Use Cases** - Orchestration layer that coordinates domain logic and reducers
 
-## The Pattern Name
-
-This is "Clean Architecture with Redux-style State Management" or more specifically:
-Action-Reducer-UseCase Architecture (my shorthand)
-It's a hybrid of:
+This is essentially **"Clean Architecture with Redux-style State Management"** - a hybrid combining:
 
 - Redux (unidirectional data flow, reducers)
 - Clean Architecture (use cases, domain layer)
 - Domain-Driven Design (pure domain functions)
 
-### Overview
+---
 
-A layered architecture for managing complex state transitions in applications (like board games) that separates concerns into four distinct layers:
+## The Four Layers Explained
 
-1. Actions - Events that describe what happened
-2. Domain - Pure business logic functions
-3. Reducers - Pure state transformation functions
-4. Use Cases - Orchestration layer that coordinates domain logic and reducers
+### 1. Domain Layer (Pure Business Logic)
 
-### The Layers Explained
+**Purpose:** Pure, deterministic business rules and calculations
 
-#### Domain Layer (Pure Business Logic)
+**Characteristics:**
 
-- Pure, deterministic functions
-- Operate on domain entities (Player, Hotel, Card)
+- Operate on domain entities (Player, Hotel, Card, etc.)
 - No dependencies on GameState or orchestration concerns
 - Reusable across different contexts (AI, simulation, validation)
+- Completely pure - same inputs always produce same outputs
+
+**Example:**
 
 ```typescript
-// Example: Check if a move is legal
+// Check if a move is legal based on business rules
 function canPurchaseShares(
   player: Player,
   shares: Record<string, number>,
@@ -263,15 +233,23 @@ function canPurchaseShares(
 ): boolean;
 ```
 
-#### Reducers (State Transformations)
+---
 
-- Pure functions that transform state
-- Take specific inputs, return state updates
+### 2. Reducers (State Transformations)
+
+**Purpose:** Pure functions that apply specific state changes
+
+**Characteristics:**
+
+- Take specific inputs, return state updates (GameState or Partial<GameState>)
 - No orchestration or business flow logic
-- Can be called by multiple use cases for reusable state changes
+- Can be called by multiple use cases (reusable building blocks)
+- Can call domain functions for validation/calculation
+
+**Example:**
 
 ```typescript
-// Example: Apply a share purchase
+// Apply a share purchase to state
 function buySharesReducer(
   state: GameState,
   shares: Record<string, number>,
@@ -280,220 +258,247 @@ function buySharesReducer(
 ): Partial<GameState>;
 ```
 
-#### Use Cases (Orchestration)
+---
 
-- Coordinate complex flows
-- Handle turn/phase validation (orchestration concerns)
-- Extract data from GameState
-- Call domain functions for validation
-- Call reducers for state transformation
-- Compose multiple reducers/use cases
-- Decide what happens next
+### 3. Use Cases (Entry Points)
 
-```typescript
-// Example: Orchestrate a share purchase
-function buySharesUseCase(
-  state: GameState,
-  action: BuySharesAction,
-): GameState {
-  // 1. Orchestration validation (phase/turn)
-  // 2. Extract data from state
-  // 3. Domain validation
-  // 4. Call reducer(s)
-  // 5. Return next state
-}
-```
+**Purpose:** Validate that an action is allowed RIGHT NOW, then delegate
 
-#### **Actions** (Events)
+**Characteristics:**
 
-- Describe user intent or game events
-- Routed by action handler to appropriate use case or reducer
+- Entry point for all actions
+- Handle orchestration validation (phase/turn/permission checks)
+- Delegate to ONE of: orchestrator, reducer, or inline update
+- Should be concise (~10-15 lines max)
 
-**Data Flow**
-Action
-↓
-Action Handler (routing)
-↓
-Use Case (orchestration)
-├→ Domain Functions (validation/calculation)
-├→ Reducer (state transformation)
-└→ Other Use Cases (continued orchestration)
-↓
-New State
+**What Use Cases SHOULD Have:**
 
-#### Key Principles
+- ✅ Phase/turn/permission checks (orchestration validation)
+- ✅ Business rule validation calls (delegate to domain)
+- ✅ ONE delegation (to orchestrator, reducer, or inline)
 
-1. Reducers don't call use cases - Data flows one direction
-2. Use cases can call reducers and other use cases - Composition is encouraged
-3. Use cases and orchestrators always take and return a full game state
-4. Domain functions are pure - No GameState, no side effects
-5. Validation splits by concern:
-
-- Orchestration checks (phase/turn) → Use case
-- Business rules → Domain functions
-
-6. Reusable reducers - Multiple actions can share the same reducer
-
-#### Benefits
-
-✅ Testability: Each layer can be tested in isolation
-
-✅ Reusability: Domain functions and reducers are building blocks
-
-✅ Clarity: Clear separation of "what's legal" vs "when it's legal"
-
-✅ Flexibility: Easy to compose complex flows from simple pieces
-
-✅ Type Safety: TypeScript enforces contracts between layers
-
-#### When to Use What
-
-| Component                        | Use When                                                |
-| -------------------------------- | ------------------------------------------------------- |
-| Domain Function                  | Pure business logic, reusable calculations              |
-| Reducer                          | State transformation needed by multiple actions         |
-| Use Case                         | Complex orchestration, multiple steps, phase management |
-| Direct Reducer in Action Handler | Simple, single-step state change                        |
-
-##### Comparison to Redux
-
-| Aspect       | Redux                     | This Pattern                         |
-| ------------ | ------------------------- | ------------------------------------ |
-| Reducers     | Top-level action handlers | Composable building blocks           |
-| Middleware   | Handles side effects      | Use cases handle orchestration       |
-| Selectors    | Read state                | Domain functions operate on entities |
-| Thunks/Sagas | Async orchestration       | Use cases handle sync orchestration  |
-
-#### Example Flow
-
-```typescript
-// 1. Simple action - maps directly to reducer
-[ActionTypes.ADD_PLAYER]: addPlayerReducer
-
-// 2. Complex action - needs orchestration
-[ActionTypes.BUY_SHARES]: buySharesUseCase
-  → validates phase/turn
-  → calls canPurchaseShares() [domain]
-  → calls buySharesReducer() [reducer]
-  → calls advancePlayerUseCase() [use case]
-  → returns new state
-
-// 3. Shared reducer - called by multiple use cases
-resolveMergerReducer()
-  ← called by breakMergerTieUseCase
-  ← called by playTileUseCase
-  ← called by others...
-```
-
-#### Blog Post Structure
-
-If you were writing this up, I'd suggest:
-**Title**: "Beyond Redux: A Composable Architecture for Complex State Management"
-
-##### Sections
-
-1. The Problem (Redux works but can get messy for complex flows)
-2. The Solution (Layered architecture with composable reducers)
-3. The Four Layers (detailed explanation)
-4. Real Example (walk through a complex action)
-5. Lessons Learned (what works, what doesn't)
-6. When to Use This (game engines, workflow engines, complex business logic)
-
-## Your Revised Architecture
-
-┌─────────────────────────────────────┐
-│ Action Dispatcher │
-│ - Routes ALL actions to use cases │
-└──────────────┬──────────────────────┘
-│
-▼
-┌─────────────────────────────────────┐
-│ Use Cases (Entry Points) │
-│ - ALWAYS validate orchestration │
-│ - Decide: inline, reducer, or │
-│ orchestrator? │
-└──────────────┬──────────────────────┘
-│
-├─ Simple? Inline update
-├─ Medium? Call reducer
-└─ Complex? Call orchestrator
-↓
-┌─────────────────────┐
-│ Orchestrators │
-│ - Multi-step flows │
-│ - Call reducers │
-└──────────┬──────────┘
-│
-▼
-┌─────────────────────┐
-│ Reducers │
-│ - State transform │
-└─────────────────────┘
-
-### Summary Table
-
-| Layer           | Input              | Output                          | Purpose             |
-| --------------- | ------------------ | ------------------------------- | ------------------- |
-| UseCase         | GameState + Action | GameState                       | Validate & delegate |
-| Orchestrator    | GameState + params | GameState                       | Manage flow         |
-| Reducer         | Flexible           | GameState or Partial<GameState> | Transform state     |
-| Domain Function | Specific types     | Specific types                  | Pure logic          |
-
-### The "Use Case Litmus Test"If your use case has any of these, it's doing too much
+**What Use Cases Should NOT Have:**
 
 - ❌ Multiple orchestration decisions ("if this then that flow")
 - ❌ Complex state transformations
 - ❌ Calling multiple reducers/orchestrators
 
-### What Use Cases SHOULD Have
+**Example:**
 
-✅ **Phase/turn/permission checks** (orchestration validation)
-✅ **Business rule validation calls** (delegate to domain)
-✅ **ONE delegation** (to orchestrator, reducer, or inline)
+```typescript
+function buySharesUseCase(
+  state: GameState,
+  action: BuySharesAction,
+): GameState {
+  // 1. Orchestration validation (phase/turn)
+  if (state.phase !== 'BUY_SHARES') return state;
 
-## Your Architecture Refined
+  // 2. Extract data from state
+  const player = state.players[state.currentPlayer];
 
-Action Dispatcher
-↓
-Use Case (Entry Point)
-├─ Validate: Is this allowed RIGHT NOW?
-└─ Delegate to ONE of:
-│
-├─ Orchestrator (complex multi-step flow)
-│ ├─ Makes flow decisions
-│ ├─ Calls reducers
-│ └─ Calls other orchestrators
-│
-├─ Reducer (state transformation)
-│ └─ Pure state update
-│
-└─ Inline (trivial update)
-└─ return { ...gameState, flag: true }
+  // 3. Domain validation
+  if (!canPurchaseShares(player, action.shares, state.hotels)) {
+    return state;
+  }
 
-## The Rule of Thumb
+  // 4. Delegate to orchestrator for complex flow
+  return buySharesOrchestrator(state, action.shares);
+}
+```
 
-If you're writing more than ~15 lines in a use case, you're probably doing orchestration or transformation that should be extracted.
+---
 
-A use case should be:
+### 4. Orchestrators (Multi-Step Flows)
+
+**Purpose:** Manage complex, multi-step state transitions
+
+**Characteristics:**
+
+- Handle flows with multiple decision points
+- Call reducers for state transformations
+- Can call other orchestrators for composition
+- Make flow decisions based on state
+
+**Example:**
+
+```typescript
+function buySharesOrchestrator(
+  state: GameState,
+  shares: Record<string, number>,
+): GameState {
+  // 1. Calculate cost
+  const cost = calculateShareCost(shares, state.hotels);
+
+  // 2. Apply purchase via reducer
+  let newState = buySharesReducer(state, shares, state.currentPlayer, cost);
+
+  // 3. Check for game-ending condition
+  if (allHotelsMaxed(newState.hotels)) {
+    newState = endGameOrchestrator(newState);
+  }
+
+  // 4. Advance to next player
+  return advancePlayerOrchestrator(newState);
+}
+```
+
+---
+
+## Data Flow
+
+```
+Action
+  ↓
+Action Dispatcher (routing)
+  ↓
+Use Case (entry point)
+  ├─ Orchestration validation (phase/turn checks)
+  ├─ Business validation (domain functions)
+  └─ Delegate to ONE of:
+      │
+      ├─ Inline update (trivial changes)
+      ├─ Reducer (state transformation)
+      └─ Orchestrator (complex flow)
+          ├─ Calls reducers
+          ├─ Calls domain functions
+          └─ Calls other orchestrators
+  ↓
+New State
+```
+
+---
+
+## Key Principles
+
+### The Mental Model
+
+**Use Cases can call:**
+
+- ✓ Domain functions (validation, calculations)
+- ✓ Reducers (state transformations)
+- ✓ Orchestrators (complex flows)
+
+**Orchestrators can call:**
+
+- ✓ Domain functions (validation, calculations)
+- ✓ Reducers (state transformations)
+- ✓ Other orchestrators (composition)
+
+**Reducers can call:**
+
+- ✓ Domain functions (validation, calculations)
+- ✗ NOT use cases or orchestrators
+
+**Domain functions can call:**
+
+- ✓ Other domain functions
+- ✗ Nothing else
+
+### Core Rules
+
+1. **All actions go through use cases** - Use cases are always the entry point
+2. **Use cases validate and delegate** - Orchestration checks + business validation, then ONE delegation
+3. **Orchestrators manage multi-step flows** - Can call reducers and other orchestrators
+4. **Reducers transform state** - Pure state updates, can call domain functions
+5. **Domain functions are pure** - No GameState, no side effects
+6. **Validation splits by concern:**
+   - Orchestration checks (phase/turn/permission) → Use case
+   - Business rules (game logic) → Domain functions
+
+---
+
+## When to Use What
+
+| Component            | Use When                                        | Example                                    |
+| -------------------- | ----------------------------------------------- | ------------------------------------------ |
+| Domain Function      | Pure business logic, reusable calculations      | `canPurchaseShares()`, `calculateCost()`   |
+| Reducer              | State transformation needed by multiple actions | `buySharesReducer()`, `addPlayerReducer()` |
+| Orchestrator         | Multi-step flow with decision points            | `resolveMergerOrchestrator()`              |
+| Inline (in Use Case) | Trivial single-property update                  | `return { ...state, flag: true }`          |
+
+---
+
+## Example Flows
+
+### Simple Action (Direct to Reducer)
+
+```typescript
+[ActionTypes.ADD_PLAYER]: addPlayerUseCase
+  → validates phase
+  → calls addPlayerReducer()
+  → returns new state
+```
+
+### Complex Action (Uses Orchestrator)
+
+```typescript
+[ActionTypes.BUY_SHARES]: buySharesUseCase
+  → validates phase/turn
+  → calls canPurchaseShares() [domain]
+  → calls buySharesOrchestrator() [orchestrator]
+      → calls buySharesReducer() [reducer]
+      → calls advancePlayerOrchestrator() [orchestrator]
+  → returns new state
+```
+
+### Shared Reducer (Reusable Building Block)
+
+```typescript
+resolveMergerReducer()
+  ← called by breakMergerTieOrchestrator
+  ← called by playTileOrchestrator
+  ← called by other orchestrators...
+```
+
+---
+
+## Benefits
+
+✅ **Testability** - Each layer can be tested in isolation\
+✅ **Reusability** - Domain functions and reducers are composable building blocks\
+✅ **Clarity** - Clear separation of "what's legal" (domain) vs "when it's legal" (use case)\
+✅ **Flexibility** - Easy to compose complex flows from simple pieces\
+✅ **Type Safety** - TypeScript enforces contracts between layers\
+✅ **Maintainability** - Each component has a single, clear responsibility
+
+---
+
+## Comparison to Redux
+
+| Aspect       | Redux                     | This Pattern                           |
+| ------------ | ------------------------- | -------------------------------------- |
+| Reducers     | Top-level action handlers | Composable building blocks             |
+| Middleware   | Handles side effects      | Use cases + orchestrators handle flows |
+| Selectors    | Read state                | Domain functions operate on entities   |
+| Thunks/Sagas | Async orchestration       | Orchestrators handle sync flows        |
+
+---
+
+## The "Use Case Litmus Test"
+
+**If your use case is longer than ~15 lines, ask:**
+
+- "Am I making flow decisions?" → Extract to orchestrator
+- "Am I transforming state?" → Extract to reducer
+- "Am I doing complex calculations?" → Extract to domain function
+
+**A good use case structure:**
 
 - ~5-10 lines of validation
 - 1 line of delegation
-- Total: ~10-15 lines max
+- **Total: ~10-15 lines max**
 
-If it's longer, ask:
+---
 
-- "Am I making flow decisions?" → Extract to orchestration
-- "Am I transforming state?" → Extract to reduce
-- "Am I doing complex calculations?" → Extract to domain function
+## Summary
 
-## Your Refined Rules (Final Version)
+| Layer        | Input              | Output                          | Purpose                 |
+| ------------ | ------------------ | ------------------------------- | ----------------------- |
+| Use Case     | GameState + Action | GameState                       | Validate & delegate     |
+| Orchestrator | GameState + params | GameState                       | Manage multi-step flows |
+| Reducer      | Flexible           | GameState or Partial<GameState> | Transform state         |
+| Domain       | Specific types     | Specific types                  | Pure business logic     |
 
-1. All actions go through use cases - Use cases are the entry point
-2. Use cases validate and delegate - Phase/turn checks + business validation, then ONE delegation
-3. Orchestrators manage multi-step flows - Can call reducers and other orchestrators
-4. Reducers transform state - Pure state updates, can call domain functions
-5. Domain functions are pure - No GameState, no side effects
-6. Validation splits by concern:
+---
 
-- Orchestration checks (phase/turn) → Use case (inline)
-- Business rules → Domain functions (extracted)
+This architecture emerged from evolving a Redux-style implementation to handle the complexity of asynchronous board game state management, where simple action→reducer patterns weren't sufficient for multi-step game flows, mergers, and complex turn transitions.

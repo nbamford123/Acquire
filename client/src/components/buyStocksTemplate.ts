@@ -57,69 +57,48 @@ export const buyStocksTemplate = (
   const totalLimit = 3;
   const currentTotal = Object.values(currentShares).reduce((a, b) => a + b, 0);
   return html`
-    <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+    <div style="display: flex; gap: 8px;">
       ${hotels.map((hotel) => {
         const quantity = currentShares[hotel.name] || 0;
         const availableStocks = hotel.shares;
         const canIncrease = quantity < availableStocks && currentTotal < totalLimit;
-        const canDecrease = quantity > 0;
         return html`
-          <div
-            style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border: 1px solid #ccc; padding: 1rem; border-radius: 4px;"
-          >
-            <div style="font-weight: bold;">${hotel.name}</div>
-            <div style="font-size: 0.875rem; color: #666;">
-              Available: ${availableStocks}
-            </div>
-            <div role="group" style="height: 1.5rem; border 1px solid #ccc; border-radius: 4px;">
-              <button
-                @click="${() => {
-                  const updated = handleQuantityChange(
-                    hotel.name,
-                    quantity - 1,
-                    currentShares,
-                    totalLimit,
-                  );
-                  Object.assign(currentShares, updated);
-                  parent.requestUpdate?.();
-                }}"
-                style="max-width: 1.5rem; padding: 0 4px;"
-                ?disabled="${!canDecrease}"
-              >
-                −
-              </button>
-              <span style="font-size: 1rem; width: 3rem; display: inline-block; text-align: center;">
-                ${quantity}
-              </span>
-              <button
-                @click="${() => {
-                  const updated = handleQuantityChange(
-                    hotel.name,
-                    quantity + 1,
-                    currentShares,
-                    totalLimit,
-                  );
-                  Object.assign(currentShares, updated);
-                  parent.requestUpdate?.();
-                }}"
-                style="max-width: 1.5rem; padding: 0 4px;"
-                ?disabled="${!canIncrease}"
-              >
-                +
-              </button>
-            </div>
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <span style="font-size: 13px;">${hotel.name}:</span>
+            <input
+              @change="${(e: Event) => {
+                const updated = handleQuantityChange(
+                  hotel.name,
+                  Number((e.target as HTMLInputElement).value),
+                  currentShares,
+                  totalLimit,
+                );
+                Object.assign(currentShares, updated);
+                const action: GameAction = {
+                  type: ActionTypes.BUY_SHARES,
+                  payload: {
+                    player: user || '',
+                    shares: currentShares as Record<HOTEL_NAME, number>,
+                  },
+                };
+                parent.dispatchEvent(
+                  new CustomEvent('set-action', {
+                    detail: action,
+                    bubbles: true,
+                    composed: true,
+                  }),
+                );
+                parent.requestUpdate?.();
+              }}"
+              type="number"
+              min="0"
+              max="3"
+              defaultValue="0"
+              style="margin-bottom: 0; width: 50px; padding: 6px; background: #0f3460; color: #eee; border: 1px solid #4ECDC4; borderRadius: 4px;"
+            />
           </div>
         `;
       })}
-    </div>
-    <div style="margin-top: 1rem;">
-      <div style="margin-bottom: 0.5rem;">Total stocks selected: ${currentTotal} / ${totalLimit}</div>
-      <button
-        @click="${() => handlePurchase(currentShares, user, parent)}"
-        ?disabled="${currentTotal === 0}"
-      >
-        Purchase Stocks
-      </button>
     </div>
   `;
 };

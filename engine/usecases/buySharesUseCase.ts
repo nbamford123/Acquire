@@ -36,7 +36,7 @@ export const buySharesUseCase: UseCaseFunction<BuySharesAction> = (
     turn: gameState.currentTurn,
     action: `${gameState.players[gameState.currentPlayer].name} buys ${
       Object.entries(shares).filter(([, shares]) => shares > 0).map(([hotel, shares], idx) =>
-        `${shares} of ${hotel}${idx < Object.entries(shares).length ? ', ' : ''}`
+        `${shares} shares of ${hotel}${idx < Object.entries(shares).length ? ', ' : ''}`
       )
     }`,
   }]];

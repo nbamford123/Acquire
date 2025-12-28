@@ -56,13 +56,28 @@ export class DashboardView extends StyledComponent {
       }
       .game-card {
         flex: 1 1 300px;
-        max-width: 350px;
+        min-width: 400px;
+        max-width: 520px;
         margin: 0;
         padding: 1.5rem;
         border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         transition: transform 0.2s, box-shadow 0.2s;
       }
+
+      @media (prefers-color-scheme: light) {
+        :host:not([data-theme="dark"]) .game-card {
+          background-color: #fafbfc;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :host:not([data-theme="light"]) .game-card {
+          background-color: rgb(26, 30.5, 40.25);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+      }
+
       .game-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
@@ -111,8 +126,8 @@ export class DashboardView extends StyledComponent {
         return this.game.phase;
       default:
         return `${
-          this.game.currentPlayer === this.user ? 'Your' : `${this.game.currentPlayer}`
-        }\'s turn`;
+          this.game.currentPlayer === this.user ? 'Your' : `${this.game.currentPlayer}\'s`
+        } turn`;
     }
   }
 
@@ -158,8 +173,9 @@ export class DashboardView extends StyledComponent {
         </header>
         <div class="game-meta">
           <span>👥 ${`${this.game.players.length}/6 players`}</span>
-          <span>🕐 ${new Date(new Date().getTime() - this.game.lastUpdated)
-            .toLocaleDateString()}</span>
+          <span>🕐 ${new Date(this.game.lastUpdated).toLocaleDateString()} ${new Date(
+            this.game.lastUpdated,
+          ).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>
         </div>
         <div role="group">
           ${this

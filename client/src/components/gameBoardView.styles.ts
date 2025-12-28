@@ -12,15 +12,17 @@ export const hotelIcons: Record<string, string> = {
 
 export const styles = css`
   :host {
+    align-self: stretch;
     display: block;
     padding: 1rem;
   }
 
   .game-container {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(700px, 900px) 300px; /* Explicit sizes */
     grid-template-rows: auto auto;
     gap: 1rem;
+    justify-content: center;
     margin: 0 auto;
   }
 
@@ -43,8 +45,6 @@ export const styles = css`
     border-radius: 8px;
     aspect-ratio: 12/9;
     width: 100%;
-    min-width: 700px;
-    max-width: 900px;
     margin: 0 auto;
   }
 
@@ -103,25 +103,26 @@ export const styles = css`
   }
 
   .current-player-view {
+    border-radius: 8px;
+    border: 2px solid var(--pico-primary);
+    padding: 16px 20px;
+    gap: 20px;
     display: flex;
-    flex-direction: column;
+    align-items: center;
   }
 
   .tile-hand {
-    display: flex;
-    flex-direction: column;
+    flex: 0 0 auto;
+  }
+
+  .tiles-title {
     font-size: 0.75rem;
-    margin-top: 0.5rem;
-    padding: 1rem;
-    background: var(--pico-card-background-color);
-    border-radius: 8px;
-    border: 2px solid var(--pico-primary);
+    margin-bottom: 0.5rem;
   }
 
   .tiles-list {
     display: flex;
     flex-wrap: wrap;
-    margin-top: 0.5rem;
     gap: 0.5rem;
   }
 
