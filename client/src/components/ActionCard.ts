@@ -1,5 +1,5 @@
 import { css, html } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement } from 'lit/decorators.js';
 
 import { GamePhase, type HOTEL_NAME, type PlayerView } from '@acquire/engine/types';
 import { StyledComponent } from './StyledComponent.ts';
@@ -21,18 +21,20 @@ export class ActionCard extends StyledComponent {
   static override styles = [
     super.styles,
     css`
+      :host {
+        flex: 1;
+      }
       .action-card {
         display: flex;
-        font-size: 1rem;
-        padding: 1rem;
-        background: var(--pico-card-background-color);
-        border-radius: 8px;
-        border: 2px solid var(--pico-primary);
-        gap: 8px;
+        align-items: center;
+        gap: 1rem;
       }
-      .current-action {
-        display: flex;
-        flex-direction: column;
+      .action-title {
+        font-size: 0.75rem;
+        margin-bottom: 0.5rem;
+      }
+      .action-desc {
+        font-size: 1.5rem;
       }
     `,
   ];
@@ -70,13 +72,15 @@ export class ActionCard extends StyledComponent {
 
   public override render() {
     return html`
-      <article class="action-card">
-        <div class="current-action">
-          <span style="font-size: .75rem"><strong>ACTION</strong></span> ${this.playerView
-            ?.currentPhase}
+      <div class="action-card">
+        <div style="display: flex; flex-direction: column; align-items="flex-start">
+          <div class="action-title"><strong>ACTION</strong></div>
+          <div class="action-desc">
+            ${this.playerView?.currentPhase}
+          </div>
         </div>
         ${this.getActionTemplate()}
-      </article>
+      </div>
     `;
   }
 }

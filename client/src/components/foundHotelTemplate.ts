@@ -26,7 +26,7 @@ export const foundHotelTemplate = (
   parent: LitElement,
 ) =>
   html`
-    <select style="flex: 1; margin-bottom: 0;" name="selecthotel" @change="${(evt: Event) =>
+    <select style="flex: 1; max-width: 10rem; margin-bottom: 0;" name="selecthotel" @change="${(evt: Event) =>
       handleHotelSelect(
         (evt.target as HTMLSelectElement)?.value as HOTEL_NAME,
         user,

@@ -158,15 +158,25 @@ export class GameBoardView extends StyledComponent {
     return html`
       <div class="game-container">
         <div class="board-section">
-          <h2>Acquire Game Board</h2>
+          <h2>${this.gameId}</h2>
 
+          <select style="width: 100%; margin-bottom: 1rem; cursor: default;">
+            <option>Recent Actions</option>
+            ${this.playerView.actions.map((action) =>
+              html`
+                <option>${action.action}</option>
+              `
+            )}
+          </select>
           <div class="game-board">
             ${this.renderBoard()}
           </div>
 
           <div class="current-player-view">
-            <article class="tile-hand">
-              <strong>YOUR TILES</strong>
+            <div class="tile-hand">
+              <div class="tiles-title">
+                <strong>YOUR TILES</strong>
+              </div>
               <div class="tiles-list">
                 ${this.playerView.tiles.map((tile) =>
                   html`
@@ -178,13 +188,15 @@ export class GameBoardView extends StyledComponent {
                   `
                 )}
               </div>
-            </article>
+            </div>
             <action-card
               .playerView="${this.playerView}"
               .user="${this.user}"
               @set-action="${(e: CustomEvent) => this.handleSetAction(e)}"
             ></action-card>
-            <button @click="${() => this.submitAction()}">Submit</button>
+            <button style="margin-left: auto; " @click="${() => this.submitAction()}">
+              Submit
+            </button>
           </div>
         </div>
 
@@ -200,9 +212,9 @@ export class GameBoardView extends StyledComponent {
                   </div>
                   <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span class="hotel-stock">Available: ${shares}</span>
-                    <span class="hotel-price">${size > 0
-                      ? `Share price: $${getHotelPrice(name as HOTEL_NAME, size).price}`
-                      : '—'}</span>
+                    <span class="hotel-price">${`Share price: $${
+                      getHotelPrice(name as HOTEL_NAME, size).price
+                    }`}</span>
                   </div>
                 </div>
               `

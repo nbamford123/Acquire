@@ -44,6 +44,7 @@ export class DashboardView extends StyledComponent {
         display: flex;
         flex-wrap: wrap;
         gap: 1.5rem;
+        padding-left: 1.5rem;
       }
       .loading-container {
         text-align: center;

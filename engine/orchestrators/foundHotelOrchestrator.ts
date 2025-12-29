@@ -21,7 +21,7 @@ export const foundHotelOrchestrator: OrchestratorActionFunction<FoundHotelAction
   };
   const action = {
     turn: gameState.currentTurn,
-    action: `${gameState.players[gameState.currentPlayer]} founds ${hotel} and receives one share`,
+    action: `${gameState.players[gameState.currentPlayer].name} founds ${hotel} and receives one share`,
   };
   const [proceedState, actions] = proceedToBuySharesOrchestrator(updatedState);
   return [proceedState, [action, ...actions]];
