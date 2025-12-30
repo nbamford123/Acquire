@@ -26,12 +26,16 @@ export const foundHotelTemplate = (
   parent: LitElement,
 ) =>
   html`
-    <select style="flex: 1; max-width: 10rem; margin-bottom: 0;" name="selecthotel" @change="${(evt: Event) =>
-      handleHotelSelect(
-        (evt.target as HTMLSelectElement)?.value as HOTEL_NAME,
-        user,
-        parent,
-      )}">
+    <select
+      style="flex: 1; max-width: 10rem; margin-bottom: 0;"
+      name="selecthotel"
+      @change="${(evt: Event) =>
+        handleHotelSelect(
+          (evt.target as HTMLSelectElement)?.value as HOTEL_NAME,
+          user,
+          parent,
+        )}"
+    >
       <option value="">Select hotel...</option>
       ${hotels
         .map((hotel) =>
