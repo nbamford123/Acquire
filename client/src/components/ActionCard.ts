@@ -73,7 +73,7 @@ export class ActionCard extends StyledComponent {
   public override render() {
     return html`
       <div class="action-card">
-        <div style="display: flex; flex-direction: column; align-items="flex-start">
+        <div style="display: flex; flex-direction: column; align-items=flex-start">
           <div class="action-title"><strong>ACTION</strong></div>
           <div class="action-desc">
             ${this.playerView?.currentPhase}

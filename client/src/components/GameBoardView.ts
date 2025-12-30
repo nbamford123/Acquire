@@ -194,7 +194,7 @@ export class GameBoardView extends StyledComponent {
               .user="${this.user}"
               @set-action="${(e: CustomEvent) => this.handleSetAction(e)}"
             ></action-card>
-            <button style="margin-left: auto; " @click="${() => this.submitAction()}">
+            <button style="margin-left: auto;" @click="${() => this.submitAction()}">
               Submit
             </button>
           </div>
