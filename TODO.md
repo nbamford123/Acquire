@@ -2,6 +2,7 @@
 
 ## Client general
 
+- check pr validation
 - Put the unicode characters for hotels on the tiles when they are founded?
 - we need to enforce types on the api calls
 - the specific pico azure background (and azure colors in general) aren't light/darkmode sensitive
