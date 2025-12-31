@@ -3,11 +3,7 @@
   "workspace": ["./engine", "./service", "./client"],
   "tasks": {
     "build": "deno task --cwd client build",
-    "dev:engine": "cd engine && deno task dev",
-    "dev:service": "cd service && deno task dev",
-    "dev:client": "cd client && deno task dev",
-    "dev": "deno run --allow-net --allow-env --env-file --watch service/main.ts",
-    "start": "deno run --allow-net --allow-env service/main.ts",
+    "dev": "deno task build && deno run --allow-net --allow-read --allow-env --env-file --watch service/main.ts",
     "fmt:check": "deno fmt --check",
     "validate": "deno fmt  && deno lint && deno check && deno test --no-check --allow-all"
   },

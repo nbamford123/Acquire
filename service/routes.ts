@@ -39,17 +39,9 @@ const parseJsonBody = async (ctx: Context) => {
 };
 export const setRoutes = (app: Hono<ServiceEnv>) => {
   // Health check
-  app.get('/', (ctx) => {
+  app.get('/health', (ctx) => {
     return ctx.json({ message: 'Acquire Server is running!' });
   });
-
-  // Serve index.html for client bundle
-  app.get(
-    '/',
-    serveStatic({
-      path: '../client/dist/index.html',
-    }),
-  );
 
   // login
   app.post('/api/login', async (ctx) => {
@@ -184,5 +176,11 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
         error: (error instanceof Error) ? error.message : String(error),
       }, 400);
     }
+  });
+  // Everything else is static
+  app.use('/*', serveStatic({ root: './client/dist' }));
+  app.get('/*', async (c) => {
+    const html = await Deno.readTextFile('./client/dist/index.html');
+    return c.html(html);
   });
 };
