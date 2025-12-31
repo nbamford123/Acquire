@@ -2,6 +2,7 @@
   "version": "1.0.0",
   "workspace": ["./engine", "./service", "./client"],
   "tasks": {
+    "build": "deno task --cwd client build",
     "dev:engine": "cd engine && deno task dev",
     "dev:service": "cd service && deno task dev",
     "dev:client": "cd client && deno task dev",
