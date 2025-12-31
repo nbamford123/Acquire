@@ -16,7 +16,7 @@
   },
   "tasks": {
     "dev": "deno run --allow-net --allow-env --env-file --watch --allow-read --allow-write dev-server.ts",
-    "build": "deno bundle --platform browser --output dist/bundle.js --sourcemap=external src/main.ts",
+    "build": "deno run -A scripts/build.ts",
     "preview": "deno run --allow-net --allow-read dist/server.ts",
     "deploy": "deno run --allow-net --allow-read --allow-write deploy.ts"
   }

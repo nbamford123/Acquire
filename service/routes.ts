@@ -1,7 +1,9 @@
 import type { Context, Hono } from 'hono';
+import { serveStatic } from 'hono/deno';
 import { setCookie } from 'hono/cookie';
+
 import { initializeGame, processAction } from '@acquire/engine/core';
-import { filterDefined, getPlayerView } from '@acquire/engine/utils';
+import { getPlayerView } from '@acquire/engine/utils';
 import type { GameAction, GameInfo, GameState, PlayerAction } from '@acquire/engine/types';
 
 import { createToken, validateUser } from './auth.ts';
@@ -14,15 +16,14 @@ const playerActions = new Map<string, PlayerAction[]>();
 
 // Load test games
 // TODO(me): remove before production
-const decoder = new TextDecoder('utf-8');
-const testDataDir = 'service/__test-data__';
-for (const file of Deno.readDirSync(testDataDir)) {
-  if (file.isFile && file.name.endsWith('.json')) {
-    const gameFile = Deno.readTextFileSync(`${testDataDir}/${file.name}`);
-    const game = JSON.parse(gameFile);
-    gameStates.set(game.gameId, game);
-  }
-}
+// const testDataDir = 'service/__test-data__';
+// for (const file of Deno.readDirSync(testDataDir)) {
+//   if (file.isFile && file.name.endsWith('.json')) {
+//     const gameFile = Deno.readTextFileSync(`${testDataDir}/${file.name}`);
+//     const game = JSON.parse(gameFile);
+//     gameStates.set(game.gameId, game);
+//   }
+// }
 
 // Only force https when in production
 const isProduction = Deno.env.get('ENV') === 'production';
@@ -38,9 +39,10 @@ const parseJsonBody = async (ctx: Context) => {
 };
 export const setRoutes = (app: Hono<ServiceEnv>) => {
   // Health check
-  app.get('/', (ctx) => {
+  app.get('/health', (ctx) => {
     return ctx.json({ message: 'Acquire Server is running!' });
   });
+
   // login
   app.post('/api/login', async (ctx) => {
     try {
@@ -174,5 +176,11 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
         error: (error instanceof Error) ? error.message : String(error),
       }, 400);
     }
+  });
+  // Everything else is static
+  app.use('/*', serveStatic({ root: './client/dist' }));
+  app.get('/*', async (c) => {
+    const html = await Deno.readTextFile('./client/dist/index.html');
+    return c.html(html);
   });
 };
