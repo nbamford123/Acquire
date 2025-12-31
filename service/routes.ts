@@ -178,9 +178,9 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
     }
   });
   // Everything else is static
-  app.use('/*', serveStatic({ root: './client/dist' }));
+  app.use('/*', serveStatic({ root: '../client/dist' }));
   app.get('/*', async (c) => {
-    const html = await Deno.readTextFile('./client/dist/index.html');
+    const html = await Deno.readTextFile('../client/dist/index.html');
     return c.html(html);
   });
 };
