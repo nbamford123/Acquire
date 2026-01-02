@@ -41,6 +41,7 @@
     "proseWrap": "preserve",
     "useTabs": false
   },
+  "unstable": ["kv"],
   "deploy": {
     "project": "acquire",
     "entrypoint": "./service/main.ts",
