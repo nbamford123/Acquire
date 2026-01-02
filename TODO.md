@@ -11,6 +11,7 @@
    - merge hotel(s)
    - pass buyng stocks
    - end game
+
 - check pr validation
 - Put the unicode characters for hotels on the tiles when they are founded?
 - we need to enforce types on the api calls

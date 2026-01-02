@@ -8,7 +8,7 @@
     "validate": "deno fmt  && deno lint && deno check && deno test --no-check --allow-all"
   },
   "compilerOptions": {
-    "lib": ["deno.window"],
+    "lib": ["deno.window", "deno.unstable"],
     "strict": true
   },
   "imports": {
