@@ -7,14 +7,20 @@ import type { ServiceEnv } from './types.ts';
 // Application setup
 export const app = new Hono<ServiceEnv>();
 setRoutes(app);
-// CORS middleware (useful for frontend development)
+// CORS middleware
 app.use(
   '/*',
   cors({
-    origin: '*', // Allow all origins for dev purposes
+    origin: (origin) => {
+      const allowed = [
+        'https://acquire.nbamford123.deno.dev',
+        'http://localhost:8000',
+      ];
+      return allowed.includes(origin) ? origin : allowed[0];
+    },
+    credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
-    maxAge: 3600, // Cache preflight response for 1 hour
   }),
 );
 
