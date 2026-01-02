@@ -2,11 +2,19 @@
 
 ## Client general
 
+1. fix light/dark mode over every screen
+2. update to [ky](https://github.com/sindresorhus/ky), cleaner syntax, retries, good interface for polling, and add polling!
+3. improve layout
+4. Finish/test other actions
+   - trade stocks
+   - sell stocks
+   - merge hotel(s)
+   - pass buyng stocks
+   - end game
+
 - check pr validation
 - Put the unicode characters for hotels on the tiles when they are founded?
 - we need to enforce types on the api calls
-- the specific pico azure background (and azure colors in general) aren't light/darkmode sensitive
-- update to [ky](https://github.com/sindresorhus/ky), cleaner syntax, retries, good interface for polling
 
 ## Action Card
 
@@ -31,6 +39,7 @@
 
 ## Misc
 
+- should we have a db layer abstraction? Probably overkill for now, but it seems a bit overloaded in routes, plus it would enable easier swapping of dbs later.
 - ignoring a couple of tests because test games are throwing them off
 - pass turn? Is that allowed if you can play?
 - is it really worth it to have playerview hotels as a map? It seems like all I do on the client is convert it to an array for manipulation/display

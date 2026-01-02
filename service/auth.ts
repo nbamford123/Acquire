@@ -21,6 +21,7 @@ const getKey = async (): Promise<CryptoKey> => {
 
 const getAllowedUsers = (): Record<string, string> => {
   if (!allowedUsersCache) {
+    console.log(Deno.env.get('ALLOWED_EMAILS'));
     allowedUsersCache = Deno.env.get('ALLOWED_EMAILS')
       ?.split(',')
       .reduce((acc, entry) => {
