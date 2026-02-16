@@ -75,15 +75,19 @@ Characteristics:
 
 What Use Cases SHOULD Have:
 
-- ✅ Phase/turn/permission checks (orchestration validation)
-- ✅ Business rule validation calls (delegate to domain)
-- ✅ ONE delegation (to orchestrator, reducer, or inline)
+✅ Phase/turn/permission checks (orchestration validation)
+
+✅ Business rule validation calls (delegate to domain)
+
+✅ ONE delegation (to orchestrator, reducer, or inline)
 
 What Use Cases Should NOT Have:
 
-- ❌ Multiple orchestration decisions ("if this then that flow")
-- ❌ Complex state transformations
-- ❌ Calling multiple reducers/orchestrators
+❌ Multiple orchestration decisions ("if this then that flow")
+
+❌ Complex state transformations
+
+❌ Calling multiple reducers/orchestrators
 
 Example:
 
@@ -170,25 +174,31 @@ New State
 
 Use Cases can call:
 
-- ✓ Domain functions (validation, calculations)
-- ✓ Reducers (state transformations)
-- ✓ Orchestrators (complex flows)
+✅ Domain functions (validation, calculations)
+
+✅ Reducers (state transformations)
+
+✅ Orchestrators (complex flows)
 
 Orchestrators can call:
 
-- ✓ Domain functions (validation, calculations)
-- ✓ Reducers (state transformations)
-- ✓ Other orchestrators (composition)
+✅ Domain functions (validation, calculations)
+
+✅ Reducers (state transformations)
+
+✅ Other orchestrators (composition)
 
 Reducers can call:
 
-- ✓ Domain functions (validation, calculations)
-- ✗ NOT use cases or orchestrators
+✅ Domain functions (validation, calculations)
+
+❌ NOT use cases or orchestrators
 
 Domain functions can call:
 
-- ✓ Other domain functions
-- ✗ Nothing else
+✅ Other domain functions
+
+❌ Nothing else
 
 #### Core Rules
 
@@ -242,10 +252,15 @@ resolveMergerReducer()
 ### Benefits
 
 ✅ Testability - Each layer can be tested in isolation
+
 ✅ Reusability - Domain functions and reducers are composable building blocks
+
 ✅ Clarity - Clear separation of "what's legal" (domain) vs "when it's legal" (use case)
+
 ✅ Flexibility - Easy to compose complex flows from simple pieces
+
 ✅ Type Safety - TypeScript enforces contracts between layers
+
 ✅ Maintainability - Each component has a single, clear responsibility
 
 ### Comparison to Redux
