@@ -30,3 +30,7 @@ Exploring Deno's "code and go" philosophy - minimal configuration, built-in Type
 ```bash
 deno task dev
 ```
+
+Run `deno task hooks` once per clone to check formatting, lint, types, and tests before each commit
+(the same `deno task check` CI runs). `deno task validate` does the same but fixes formatting instead
+of failing on it.

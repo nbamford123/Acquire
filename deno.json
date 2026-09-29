@@ -5,7 +5,9 @@
     "build": "deno task --cwd client build",
     "dev": "deno task build && cd service && deno run -A --env-file --unstable-kv --watch main.ts",
     "fmt:check": "deno fmt --check",
-    "validate": "deno fmt  && deno lint && deno check && deno test --no-check --allow-all"
+    "check": "deno fmt --check && deno lint && deno check && deno test --no-check --allow-all",
+    "hooks": "git config core.hooksPath .githooks",
+    "validate": "deno fmt && deno lint && deno check && deno test --no-check --allow-all"
   },
   "compilerOptions": {
     "lib": ["deno.window", "deno.unstable"],
