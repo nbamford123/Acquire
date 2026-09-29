@@ -67,14 +67,7 @@ the game log, and final standings all matched between the two players. Fixed alo
 action bar covered the bottom row of the board below about 570px wide (the board now sizes from
 square cells).
 
-Small things noticed, not blocking:
-
-- Polling pauses in background tabs, so returning to a tab can take up to 3 seconds to catch up;
-  polling immediately on `visibilitychange` would fix it
-- The dashboard cuts off long game names, and the game card's three buttons overflow it when narrow
-- Submit reads "Submit" (disabled) while waiting for players; "Waiting…" would be clearer
-- The log includes engine detail lines like "Minority bonus paid to single minority shareholder"
-- Each player's log starts from their own first action, so the moves just before it are hidden
+Small things noticed along the way, none blocking, are tracked in `TODO.md`.
 
 ## Not needed for MVP
 
