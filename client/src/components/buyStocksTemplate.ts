@@ -1,104 +1,115 @@
-import { html, type LitElement } from 'lit';
+import { html } from 'lit';
 
-import { ActionTypes, type GameAction, type Hotel, type HOTEL_NAME } from '@acquire/engine/types';
+import type { HOTEL_NAME, PlayerView } from '@acquire/engine/types';
+import { getHotelPrice } from '@acquire/engine/utils';
+import { hotelChip, stepper } from './actionCardStyles.ts';
 
-const handlePurchase = (
-  shares: Partial<Record<HOTEL_NAME, number>>,
-  user: string,
-  parent: LitElement,
-) => {
-  const action: GameAction = {
-    type: ActionTypes.BUY_SHARES,
-    payload: { player: user || '', shares: shares as Record<HOTEL_NAME, number> },
-  };
-  parent.dispatchEvent(
-    new CustomEvent('set-action', {
-      detail: action,
-      bubbles: true,
-      composed: true,
-    }),
-  );
-};
+export const MAX_SHARES_PER_TURN = 3;
 
-const handleQuantityChange = (
-  hotelName: HOTEL_NAME,
-  newQuantity: number,
-  currentShares: Partial<Record<HOTEL_NAME, number>>,
-  totalLimit: number,
-) => {
-  const currentTotal = Object.values(currentShares).reduce((a, b) => (a || 0) + (b || 0), 0);
-  const currentQuantity = currentShares[hotelName] || 0;
-  const difference = newQuantity - currentQuantity;
+// Only hotels with a count above zero, since the engine rejects zero counts
+export type ShareSelection = Partial<Record<HOTEL_NAME, number>>;
 
-  // Check if adding this quantity would exceed the total limit
-  if (currentTotal + difference > totalLimit) {
-    return currentShares;
+export interface BuyableHotel {
+  name: HOTEL_NAME;
+  available: number; // shares left in the bank
+  price: number;
+}
+
+// Hotels on the board with shares left to buy
+export const buyableHotels = (playerView: PlayerView): BuyableHotel[] =>
+  (Object.entries(playerView.hotels) as [HOTEL_NAME, { shares: number; size: number }][])
+    .filter(([, { shares, size }]) => size > 0 && shares > 0)
+    .map(([name, { shares, size }]) => ({
+      name,
+      available: shares,
+      price: getHotelPrice(name, size).price,
+    }));
+
+const countOf = (selection: ShareSelection) =>
+  Object.values(selection).reduce((total, count) => total + (count ?? 0), 0);
+
+export const selectionCost = (selection: ShareSelection, hotels: BuyableHotel[]) =>
+  hotels.reduce((total, { name, price }) => total + (selection[name] ?? 0) * price, 0);
+
+// Returns the next selection, or the current one and an error if the change isn't allowed
+export const updateShareSelection = (
+  current: ShareSelection,
+  hotel: HOTEL_NAME,
+  count: number,
+  hotels: BuyableHotel[],
+  cash: number,
+): { selection: ShareSelection; error?: string } => {
+  const target = hotels.find(({ name }) => name === hotel);
+  if (!target || count < 0) return { selection: current };
+  const selection = { ...current, [hotel]: count };
+  if (!count) delete selection[hotel];
+  if (countOf(selection) > MAX_SHARES_PER_TURN) {
+    return { selection: current, error: `You can buy up to ${MAX_SHARES_PER_TURN} shares a turn.` };
   }
-
-  // Don't allow negative quantities
-  if (newQuantity < 0) {
-    return currentShares;
+  if (count > target.available) {
+    return { selection: current, error: `Only ${target.available} ${hotel} shares are left.` };
   }
-
-  return {
-    ...currentShares,
-    [hotelName]: newQuantity,
-  };
+  const cost = selectionCost(selection, hotels);
+  if (cost > cash) {
+    return { selection: current, error: `That costs $${cost} and you have $${cash}.` };
+  }
+  return { selection };
 };
 
 export const buyStocksTemplate = (
-  hotels: { name: HOTEL_NAME; shares: number; size: number }[],
-  user: string,
-  parent: LitElement,
-  initialShares: Partial<Record<HOTEL_NAME, number>> = {},
+  playerView: PlayerView,
+  selection: ShareSelection,
+  error: string | undefined,
+  onChange: (hotel: HOTEL_NAME, count: number) => void,
 ) => {
-  // Use the passed `initialShares` object directly so mutations persist
-  const currentShares: Partial<Record<HOTEL_NAME, number>> = initialShares || {};
-  const totalLimit = 3;
-  const currentTotal = Object.values(currentShares).reduce((a, b) => a + b, 0);
+  if (playerView.currentPlayer !== playerView.playerId) {
+    const name = playerView.players[playerView.currentPlayer]?.name;
+    return html`
+      <div class="picker">
+        <p class="picker-prompt">Waiting for ${name} to buy shares</p>
+      </div>
+    `;
+  }
+
+  const hotels = buyableHotels(playerView);
+  if (!hotels.length) {
+    return html`
+      <div class="picker">
+        <p class="picker-prompt">No shares are available to buy</p>
+      </div>
+    `;
+  }
+  const count = countOf(selection);
+  const cost = selectionCost(selection, hotels);
   return html`
-    <div style="display: flex; gap: 8px;">
-      ${hotels.map((hotel) => {
-        const quantity = currentShares[hotel.name] || 0;
-        const availableStocks = hotel.shares;
-        const canIncrease = quantity < availableStocks && currentTotal < totalLimit;
-        return html`
-          <div style="display: flex; align-items: center; gap: 4px;">
-            <span style="font-size: 13px;">${hotel.name}:</span>
-            <input
-              @change="${(e: Event) => {
-                const updated = handleQuantityChange(
-                  hotel.name,
-                  Number((e.target as HTMLInputElement).value),
-                  currentShares,
-                  totalLimit,
-                );
-                Object.assign(currentShares, updated);
-                const action: GameAction = {
-                  type: ActionTypes.BUY_SHARES,
-                  payload: {
-                    player: user || '',
-                    shares: currentShares as Record<HOTEL_NAME, number>,
-                  },
-                };
-                parent.dispatchEvent(
-                  new CustomEvent('set-action', {
-                    detail: action,
-                    bubbles: true,
-                    composed: true,
-                  }),
-                );
-                parent.requestUpdate?.();
-              }}"
-              type="number"
-              min="0"
-              max="3"
-              defaultValue="0"
-              style="margin-bottom: 0; width: 50px; padding: 6px; background: #0f3460; color: #eee; border: 1px solid #4ECDC4; borderRadius: 4px;"
-            />
-          </div>
-        `;
-      })}
+    <div class="picker">
+      <div class="picker-row" style="gap: 1rem;">
+        ${hotels.map(({ name, price }) =>
+          html`
+            <div class="picker-row" style="gap: 0.35rem;">
+              ${hotelChip(name, `$${price}`)} ${stepper(
+                name,
+                selection[name] ?? 0,
+                1,
+                (next) => onChange(name, next),
+                false,
+              )}
+            </div>
+          `
+        )}
+      </div>
+      <p class="picker-summary">
+        ${count
+          ? `${count} of ${MAX_SHARES_PER_TURN} shares for $${cost}, leaving you $${
+            playerView.money - cost
+          }.`
+          : `You can buy up to ${MAX_SHARES_PER_TURN} shares, or skip buying this turn.`}
+      </p>
+      ${error
+        ? html`
+          <p class="picker-error" role="alert">${error}</p>
+        `
+        : null}
     </div>
   `;
 };

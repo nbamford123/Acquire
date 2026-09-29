@@ -1,10 +1,33 @@
-import { css, html } from 'lit';
+import { css, html, type PropertyValues } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-import { GamePhase, type HOTEL_NAME, type PlayerView } from '@acquire/engine/types';
+import {
+  ActionTypes,
+  type GameAction,
+  GamePhase,
+  type HOTEL_NAME,
+  type PlayerView,
+} from '@acquire/engine/types';
 import { StyledComponent } from './StyledComponent.ts';
 import { foundHotelTemplate } from './foundHotelTemplate.ts';
-import { buyStocksTemplate } from './buyStocksTemplate.ts';
+import {
+  buyableHotels,
+  buyStocksTemplate,
+  type ShareSelection,
+  updateShareSelection,
+} from './buyStocksTemplate.ts';
+import {
+  breakMergerTieTemplate,
+  completeTieSelection,
+  type TieSelection,
+} from './breakMergerTieTemplate.ts';
+import {
+  mergerLimits,
+  type MergerShares,
+  resolveMergerTemplate,
+  updateMergerShares,
+} from './resolveMergerTemplate.ts';
+import { actionCardStyles } from './actionCardStyles.ts';
 
 @customElement('action-card')
 export class ActionCard extends StyledComponent {
@@ -13,19 +36,35 @@ export class ActionCard extends StyledComponent {
     user: { type: String },
     gameTurn: { type: Number },
     selectedShares: { state: true },
+    buyError: { state: true },
+    tieSelection: { state: true },
+    mergerShares: { state: true },
+    mergerError: { state: true },
   };
   declare playerView: PlayerView | null;
   declare user: string | null;
-  private selectedShares: Partial<Record<HOTEL_NAME, number>> = {};
+  // Reactive state is declared and set in the constructor so class fields don't shadow Lit's accessors
+  declare private selectedShares: ShareSelection;
+  declare private buyError?: string;
+  declare private tieSelection: TieSelection;
+  declare private mergerShares: MergerShares;
+  declare private mergerError?: string;
+  // Identifies the decision on screen, so selections reset when it changes
+  private decisionKey = '';
+  private dispatchDefaultAction = false;
 
   static override styles = [
     super.styles,
+    actionCardStyles,
     css`
       :host {
-        flex: 1;
+        /* Wraps under the tiles when there isn't room beside them */
+        flex: 1 1 24rem;
+        min-width: 0;
       }
       .action-card {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         gap: 1rem;
       }
@@ -43,7 +82,116 @@ export class ActionCard extends StyledComponent {
     super();
     this.playerView = null;
     this.user = null;
+    this.selectedShares = {};
+    this.tieSelection = {};
+    this.mergerShares = { sell: 0, trade: 0 };
   }
+  private setAction(action: GameAction | null) {
+    this.dispatchEvent(
+      new CustomEvent('set-action', {
+        detail: action,
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
+
+  protected override willUpdate(changed: PropertyValues<this>) {
+    if (!changed.has('playerView')) return;
+    const view = this.playerView;
+    const key = [
+      view?.currentTurn,
+      view?.currentPlayer,
+      view?.currentPhase,
+      view?.mergeContext?.survivingHotel,
+      view?.mergeContext?.mergedHotel,
+      view?.pendingMergePlayer,
+      view?.mergerTieContext?.tiedHotels.join(),
+    ].join('|');
+    if (key !== this.decisionKey) {
+      this.decisionKey = key;
+      this.selectedShares = {};
+      this.buyError = undefined;
+      this.tieSelection = {};
+      this.mergerShares = { sell: 0, trade: 0 };
+      this.mergerError = undefined;
+      this.dispatchDefaultAction = true;
+    }
+  }
+
+  protected override updated() {
+    if (!this.dispatchDefaultAction) return;
+    this.dispatchDefaultAction = false;
+    const view = this.playerView;
+    // Keeping every share, or buying none, is a valid choice, so it's ready to submit without changes
+    if (
+      view?.currentPhase === GamePhase.RESOLVE_MERGER &&
+      view.pendingMergePlayer === view.playerId
+    ) {
+      this.handleMergerShares(this.mergerShares);
+    } else if (
+      view?.currentPhase === GamePhase.BUY_SHARES && view.currentPlayer === view.playerId
+    ) {
+      this.dispatchPurchase();
+    }
+  }
+
+  private dispatchPurchase() {
+    this.setAction({
+      type: ActionTypes.BUY_SHARES,
+      payload: {
+        player: this.user || '',
+        shares: this.selectedShares as Record<HOTEL_NAME, number>,
+      },
+    });
+  }
+
+  private handleShareChange(hotel: HOTEL_NAME, count: number) {
+    const view = this.playerView;
+    if (!view) return;
+    const { selection, error } = updateShareSelection(
+      this.selectedShares,
+      hotel,
+      count,
+      buyableHotels(view),
+      view.money,
+    );
+    this.selectedShares = selection;
+    this.buyError = error;
+    this.dispatchPurchase();
+  }
+
+  private handleTieSelection(selection: TieSelection) {
+    const view = this.playerView;
+    if (!view) return;
+    this.tieSelection = selection;
+    const { survivor, merged } = completeTieSelection(
+      view.mergerTieContext?.tiedHotels ?? [],
+      view.mergeContext?.survivingHotel,
+      selection,
+    );
+    this.setAction(
+      survivor && merged
+        ? {
+          type: ActionTypes.BREAK_MERGER_TIE,
+          payload: { player: this.user || '', resolvedTie: { survivor, merged } },
+        }
+        : null,
+    );
+  }
+
+  private handleMergerShares(next: MergerShares) {
+    const limits = this.playerView && mergerLimits(this.playerView);
+    if (!limits) return;
+    const { shares, error } = updateMergerShares(this.mergerShares, next, limits);
+    this.mergerShares = shares;
+    this.mergerError = error;
+    this.setAction({
+      type: ActionTypes.RESOLVE_MERGER,
+      payload: { player: this.user || '', shares },
+    });
+  }
+
   private getActionTemplate() {
     switch (this.playerView?.currentPhase) {
       case GamePhase.FOUND_HOTEL:
@@ -52,19 +200,27 @@ export class ActionCard extends StyledComponent {
           this.user || '',
           this,
         );
-      case GamePhase.BUY_SHARES: {
-        const hotels = Object.entries(this.playerView.hotels).reduce(
-          (hotels, [name, { shares, size }]) =>
-            (size > 0 && shares > 0)
-              ? hotels.concat([{ name: name as HOTEL_NAME, shares, size }])
-              : hotels,
-          [] as { name: HOTEL_NAME; shares: number; size: number }[],
+      case GamePhase.BUY_SHARES:
+        return buyStocksTemplate(
+          this.playerView,
+          this.selectedShares,
+          this.buyError,
+          (hotel, count) => this.handleShareChange(hotel, count),
         );
-        return buyStocksTemplate(hotels, this.user || '', this, this.selectedShares);
-      }
-      case GamePhase.PLAY_TILE:
-      case GamePhase.RESOLVE_MERGER:
       case GamePhase.BREAK_MERGER_TIE:
+        return breakMergerTieTemplate(
+          this.playerView,
+          this.tieSelection,
+          (selection) => this.handleTieSelection(selection),
+        );
+      case GamePhase.RESOLVE_MERGER:
+        return resolveMergerTemplate(
+          this.playerView,
+          this.mergerShares,
+          this.mergerError,
+          (shares) => this.handleMergerShares(shares),
+        );
+      case GamePhase.PLAY_TILE:
       default:
         return null;
     }

@@ -1,7 +1,9 @@
 import { dispatchAppError, dispatchAuthError } from './EventBus.ts';
 import type { GameAction } from '@acquire/engine/types';
 
-const checkResult = async (res: Response) => {
+// silent skips the app error for failures the user doesn't need to hear about, like a background
+// poll; an expired session still sends them to login
+const checkResult = async (res: Response, silent = false) => {
   if (!res.ok) {
     if (res.status === 401) {
       dispatchAuthError();
@@ -13,16 +15,18 @@ const checkResult = async (res: Response) => {
     } catch {
       // ignore JSON parse errors
     }
-    console.log('dispatching app error', errorMessage);
-    dispatchAppError(errorMessage);
+    if (!silent) {
+      console.log('dispatching app error', errorMessage);
+      dispatchAppError(errorMessage);
+    }
     return false;
   }
   return true;
 };
 
-export const getApi = async (path: string) => {
+export const getApi = async (path: string, { silent = false } = {}) => {
   const getResponse = await fetch(path);
-  if (await checkResult(getResponse)) {
+  if (await checkResult(getResponse, silent)) {
     return await getResponse.json();
   }
   return null;

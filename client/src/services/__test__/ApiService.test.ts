@@ -54,6 +54,28 @@ Deno.test('ApiService - getApi', async (t) => {
     restore();
   });
 
+  await t.step('silent requests skip app-error but still dispatch auth-error', async () => {
+    const dispatched: string[] = [];
+    const onAppError = () => dispatched.push('app-error');
+    const onAuthError = () => dispatched.push('auth-error');
+    bus.addEventListener('app-error', onAppError);
+    bus.addEventListener('auth-error', onAuthError);
+
+    stub(globalThis, 'fetch', () => createMockErrorResponse(500, { error: 'Boom' }));
+    assertEquals(await getApi('/poll', { silent: true }), null);
+    restore();
+
+    stub(globalThis, 'fetch', () => createMockErrorResponse(401));
+    assertEquals(await getApi('/poll', { silent: true }), null);
+    restore();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assertEquals(dispatched, ['auth-error']);
+
+    bus.removeEventListener('app-error', onAppError);
+    bus.removeEventListener('auth-error', onAuthError);
+  });
+
   await t.step('should dispatch auth-error on 401 status', async () => {
     let authErrorDispatched = false;
 
