@@ -7,6 +7,7 @@
 3. improve layout
 
 - check pr validation
+  - CI now runs `deno task check` on every PR and the `main` ruleset requires it; anything else?
 - Put the unicode characters for hotels on the tiles when they are founded?
 - we need to enforce types on the api calls
 
@@ -17,6 +18,10 @@
 ## Dashboard
 
 - make the time calculation work right, and add "updated" or "created".
+  - `lastUpdated` now changes on every move (it was only set at creation), so this may already work
+- long game names are cut off, and the game card's three buttons overflow it on narrow screens
+- leaderboard: total $ per player across finished games
+  - final money is already computed at game over (`finalStandings`); it would need saving per player (e.g. a KV entry per player) when a game ends
 - should the join/etc. buttons actually be styled links?
 - create game states for 6/6 players, playing/other owner/etc
 - join/delete/start game -confirmation dialog
@@ -28,12 +33,18 @@
 - make the board squares more 3D? They look very flat right now.
 - game card somewhere on screen? Could make it collapsible/hidable.
 - a game status somewhere, e.g. "Waiting for players", "Player X's turn", "Waiting for player X to sell/trade stocks", "Game over"
+  - partly there: the action card shows waiting messages and game over shows the winner, but there's no single status line
+- Submit reads "Submit" (disabled) while waiting for players; "Waiting…" would be clearer
+- polling pauses in background tabs, so returning to a tab can take up to 3 seconds to catch up; poll immediately on `visibilitychange`
+- the game log includes engine detail lines like "Minority bonus paid to single minority shareholder"
+- each player's log starts from their own first action, so the moves just before it are hidden
 - give players unique colors?
 
 ## Misc
 
 - should we have a db layer abstraction? Probably overkill for now, but it seems a bit overloaded in routes, plus it would enable easier swapping of dbs later.
 - ignoring a couple of tests because test games are throwing them off
+  - run tests against in-memory KV (`KV_PATH=:memory:` in the `check` and `validate` tasks); that stops test games piling up in the default local database and may let these be un-ignored
 - is it really worth it to have playerview hotels as a map? It seems like all I do on the client is convert it to an array for manipulation/display
 - the unit tests for hoteloperations somehow missed the getAvailableHotelNames logic being backwards-- fixing it didn't make anything fail either.
 - it's dumb I say an action is the proper type, but then I have to set type in the action. I should be able to do something like
@@ -49,9 +60,12 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
 - better game ids, something like they do for docker instances on desktop
 - prompts on create/join game?
 - test request failures-- does client display an error?
+  - rejected moves now return 400 and the client shows the reason as an error toast; there's no UI test for it yet
 - add at least a debug view where the api server logs requests and responses
 - local dev hot reload doesn't seem to be working
 - ttl/culling of old games
+- the `"deploy"` block in `deno.json` (`include: ["main.ts", "engine/"]`) looks like old deployctl config; check whether the new Deno Deploy uses it and remove it if not
+- `experimentalDecorators` deprecation warning on every `deno check`
 
 ## Eventual blog post
 
@@ -59,4 +73,5 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
 - had trouble with tw and deno bundling. What?
 - some decorators don't work with deno bundling-- `@state` in particular. How did I test/verify that? Also `@property` requires manual updating
 - DOM testing was a total fail from `deno-dom` to `happy-dom` to `puppeteer` and even `@open-wc/web-test-runner`. Lit just isn't compatible running through deno. Stand along node testing would be required
+  - update: happy-dom 20 does work with Lit under `deno test`, with one workaround (keep Deno's global event methods, see `client/src/components/__test__/dom.ts`)
 - pulling in picocss via typescript file is a bit weird, but it works. Also had to add the css files for pico and toastify to the repo because deno bundle doesn't do remote imports
