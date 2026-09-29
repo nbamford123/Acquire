@@ -1,0 +1,4 @@
+#!/bin/sh
+# Runs the same checks as CI before each commit. Enable with `deno task hooks`; skip once with
+# `git commit --no-verify`.
+exec deno task check

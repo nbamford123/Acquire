@@ -49,7 +49,6 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
 - better game ids, something like they do for docker instances on desktop
 - prompts on create/join game?
 - test request failures-- does client display an error?
-- pre-commit hook? Is that even possible?
 - add at least a debug view where the api server logs requests and responses
 - local dev hot reload doesn't seem to be working
 - ttl/culling of old games
