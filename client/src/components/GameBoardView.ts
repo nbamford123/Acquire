@@ -1,5 +1,5 @@
 import { html, type TemplateResult } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 
 import { getApi, postApi } from '../services/ApiService.ts';
 import {
@@ -24,20 +24,20 @@ const POLL_INTERVAL_MS = 3000;
 @customElement('game-board-view')
 export class GameBoardView extends StyledComponent {
   @property({ type: String })
-  gameId: string | null = null;
+  accessor gameId: string | null = null;
 
   @property({ type: String })
-  private user: string | null = null;
+  accessor user: string | null = null;
 
-  static override properties = {
-    playerView: { type: Object, state: true },
-    loading: { type: Boolean, state: true },
-    pendingAction: { type: Object, state: true },
-  };
-  declare playerView: PlayerView | null;
-  private loading = false;
+  @state()
+  private accessor playerView: PlayerView | null = null;
 
-  private pendingAction?: { action: GameAction; description: string };
+  @state()
+  private accessor loading = false;
+
+  @state()
+  private accessor pendingAction: { action: GameAction; description: string } | undefined;
+
   private pollTimer?: ReturnType<typeof setInterval>;
   private polling = false;
   private submitting = false;
@@ -45,11 +45,6 @@ export class GameBoardView extends StyledComponent {
     super.styles,
     styles,
   ];
-
-  public constructor() {
-    super();
-    this.playerView = null;
-  }
 
   public override connectedCallback() {
     super.connectedCallback();
@@ -107,7 +102,6 @@ export class GameBoardView extends StyledComponent {
       console.log({ playerView: this.playerView });
     } finally {
       this.loading = false;
-      this.requestUpdate();
     }
   }
 
@@ -132,7 +126,6 @@ export class GameBoardView extends StyledComponent {
         },
         description: `Play tile ${getTileLabel(tile)}`,
       };
-      this.requestUpdate();
     }
   }
 
@@ -141,7 +134,6 @@ export class GameBoardView extends StyledComponent {
     // A null action means the current selection isn't complete yet
     if (!e.detail) {
       this.pendingAction = undefined;
-      this.requestUpdate();
       return;
     }
     const action = e.detail as GameAction;
@@ -150,7 +142,6 @@ export class GameBoardView extends StyledComponent {
       : `${action.type}`;
 
     this.pendingAction = { action, description: desc };
-    this.requestUpdate();
   }
 
   private renderBoard() {
@@ -361,7 +352,6 @@ export class GameBoardView extends StyledComponent {
       }
     } finally {
       this.submitting = false;
-      this.requestUpdate();
     }
   }
 

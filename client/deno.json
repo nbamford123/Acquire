@@ -2,9 +2,7 @@
   "version": "1.0.0",
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "deno.ns", "es2022"],
-    "strict": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "strict": true
   },
   "imports": {
     "@happy-dom/global-registrator": "npm:@happy-dom/global-registrator@^20.14.5",

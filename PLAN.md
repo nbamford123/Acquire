@@ -14,7 +14,7 @@ live updates, buying and skipping, unplayable tiles), with CI running formatting
 The site is live, so these come first. Two PRs: the Lit fix on its own, then the rest. Background
 for most of these is in `assessments/stack.md`.
 
-- [ ] Fix Lit reactive properties. Deno ignores `useDefineForClassFields`, so class fields hide Lit's
+- [x] Fix Lit reactive properties. Deno ignores `useDefineForClassFields`, so class fields hide Lit's
       accessors, whether they're declared with decorators or `static properties`; that's why the
       code needs manual `requestUpdate()` calls. It also causes a bug: after deleting a game, the
       dashboard still shows it and drops another, because `GameCard.game` isn't reactive. Switch

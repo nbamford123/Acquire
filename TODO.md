@@ -63,8 +63,6 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
 - local dev hot reload doesn't seem to be working
 - ttl/culling of old games
 - the `"deploy"` block in `deno.json` (`include: ["main.ts", "engine/"]`) is old deployctl config. The new Deno Deploy does read a `deploy` block, with different keys, and it overrides the dashboard, so replace it rather than just deleting it
-- `experimentalDecorators` deprecation warning on every `deno check`
-  - the real problem is bigger: Deno ignores `useDefineForClassFields`, so class fields hide Lit's reactive accessors (decorators and `static properties` alike). The dashboard shows a deleted game after a delete because of it. Use standard decorators with `accessor`
 - save each move atomically with a versionstamp check; today the state and the actions are two separate writes
 - the CORS setup in `service/main.ts` is dead: wrong host, and registered after the routes
 - import Pico and Toastify's CSS from npm instead of the copies, and minify the bundle

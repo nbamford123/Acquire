@@ -1,5 +1,5 @@
 import { css, type CSSResultGroup, html } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
 
 import { StyledComponent } from './StyledComponent.ts';
 import { postApi } from '../services/ApiService.ts';
@@ -7,11 +7,10 @@ import { getUser } from '../services/UserService.ts';
 
 @customElement('login-view')
 export class LoginView extends StyledComponent {
-  static override properties = {
-    loading: { type: Boolean, state: true },
-  };
   private email = '';
-  private loading = false;
+
+  @state()
+  private accessor loading = false;
 
   constructor() {
     super();
@@ -40,7 +39,6 @@ export class LoginView extends StyledComponent {
     if (!this.email) return;
 
     this.loading = true;
-    this.requestUpdate();
 
     try {
       const loginResult = await postApi('/api/login', { email: this.email });
@@ -55,7 +53,6 @@ export class LoginView extends StyledComponent {
       }
     } finally {
       this.loading = false;
-      this.requestUpdate();
     }
   }
 
