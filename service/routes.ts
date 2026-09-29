@@ -2,12 +2,12 @@ import type { Context, Hono } from 'hono';
 import type { GameAction, GameInfo, GameState, PlayerAction } from '@acquire/engine/types';
 import { createToken, validateUser } from './auth.ts';
 import {
+  addPlayerActions,
   deleteGame,
   getAllGames,
   getGameState,
   getPlayerActions,
   saveGameState,
-  savePlayerActions,
 } from './dataLayer.ts';
 import { initializeGame, processAction } from '@acquire/engine/core';
 
@@ -148,13 +148,20 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
         return ctx.json({ error: 'Game not found' }, 404);
       }
 
-      const [updatedGame, actions] = processAction(currentGame, action);
+      const [processedGame, actions] = processAction(currentGame, action);
+      // The engine reports rejected moves on the state; don't save them, just tell the player why
+      if (processedGame.error) {
+        return ctx.json({ error: processedGame.error.message }, 400);
+      }
+      // Stamp the change so polling clients can tell the game moved on
+      const updatedGame = { ...processedGame, lastUpdated: Date.now() };
 
       // Save the updated state
       await saveGameState(updatedGame);
       // Save the actions
-      const currentActions = (await getPlayerActions(gameId)).concat(actions);
-      await savePlayerActions(currentActions, gameId);
+      const previousActions = await getPlayerActions(gameId);
+      await addPlayerActions(gameId, previousActions.length, actions);
+      const currentActions = previousActions.concat(actions);
       return ctx.json({
         game: getPlayerView(user, updatedGame, currentActions),
         action: action.type, // Echo back the action type for client confirmation

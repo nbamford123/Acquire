@@ -22,12 +22,17 @@ export async function getGameState(gameId: string): Promise<GameState | null> {
   return result.value;
 }
 
-export async function savePlayerActions(actions: PlayerAction[], gameId: string) {
-  await kv.set(['actions', gameId], actions);
+// Each action is its own entry, keyed by its position in the log, so a long game doesn't run into
+// the KV value size limit. start is the number of actions already saved.
+export async function addPlayerActions(gameId: string, start: number, actions: PlayerAction[]) {
+  const operation = kv.atomic();
+  actions.forEach((action, i) => operation.set(['actions', gameId, start + i], action));
+  await operation.commit();
 }
 
 export async function getPlayerActions(gameId: string): Promise<PlayerAction[]> {
   const actions: PlayerAction[] = [];
+  // Numeric positions list in order
   const iter = kv.list<PlayerAction>({ prefix: ['actions', gameId] });
 
   for await (const entry of iter) {

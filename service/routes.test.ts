@@ -11,14 +11,17 @@ import type { ServiceEnv } from './types.ts';
 clearCache();
 Deno.env.set('ALLOWED_EMAILS', 'TestUser:test@example.com, Admin:admin@test.com');
 
-const login = async (app: Hono<ServiceEnv>): Promise<string> => {
+const login = async (
+  app: Hono<ServiceEnv>,
+  email = 'test@example.com',
+): Promise<string> => {
   const response = await app.fetch(
     new Request('http://localhost/api/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email: 'test@example.com' }),
+      body: JSON.stringify({ email }),
     }),
   );
 
@@ -216,17 +219,18 @@ Deno.test('POST /games/:id performs actions', async () => {
   );
   const { gameId } = await createResponse.json();
 
-  // Add player
+  // A second player joins (the service takes the player from the login, not the payload)
+  const adminCookies = await login(app, 'admin@test.com');
   const addPlayer: AddPlayerAction = {
     type: ActionTypes.ADD_PLAYER,
-    payload: { player: 'notsosuperoak' },
+    payload: { player: 'Admin' },
   };
   const postResponse = await app.fetch(
     new Request(`http://localhost/api/games/${gameId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Cookie': cookies,
+        'Cookie': adminCookies,
       },
       body: JSON.stringify({ action: addPlayer }),
     }),
@@ -248,4 +252,70 @@ Deno.test('POST /games/:id performs actions', async () => {
     }),
   );
   assertEquals(startResponse.status, 200);
+});
+
+Deno.test('POST /games/:id updates lastUpdated', async () => {
+  const cookies = await login(app);
+  const adminCookies = await login(app, 'admin@test.com');
+  const request = (path: string, init: RequestInit = {}, as = cookies) =>
+    app.fetch(
+      new Request(`http://localhost${path}`, {
+        ...init,
+        headers: { 'Content-Type': 'application/json', 'Cookie': as },
+      }),
+    );
+
+  const createResponse = await request('/api/games', {
+    method: 'POST',
+    body: JSON.stringify({ player: 'hono' }),
+  });
+  const { gameId } = await createResponse.json();
+  const before = (await (await request(`/api/games/${gameId}`)).json()).game.lastUpdated;
+
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  const addPlayer: AddPlayerAction = {
+    type: ActionTypes.ADD_PLAYER,
+    payload: { player: 'Admin' },
+  };
+  const postResponse = await request(`/api/games/${gameId}`, {
+    method: 'POST',
+    body: JSON.stringify({ action: addPlayer }),
+  }, adminCookies);
+  const after = (await postResponse.json()).game.lastUpdated;
+  const saved = (await (await request(`/api/games/${gameId}`)).json()).game.lastUpdated;
+
+  assertEquals(after > before, true);
+  assertEquals(saved, after);
+});
+
+Deno.test('POST /games/:id rejects invalid moves without saving them', async () => {
+  const cookies = await login(app);
+  const request = (path: string, init: RequestInit = {}) =>
+    app.fetch(
+      new Request(`http://localhost${path}`, {
+        ...init,
+        headers: { 'Content-Type': 'application/json', 'Cookie': cookies },
+      }),
+    );
+  const { gameId } = await (await request('/api/games', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  })).json();
+  const before = (await (await request(`/api/games/${gameId}`)).json()).game;
+
+  // Can't start with only one player
+  const startGame: StartGameAction = {
+    type: ActionTypes.START_GAME,
+    payload: { player: 'TestUser' },
+  };
+  const response = await request(`/api/games/${gameId}`, {
+    method: 'POST',
+    body: JSON.stringify({ action: startGame }),
+  });
+  assertEquals(response.status, 400);
+  assertEquals((await response.json()).error, "Can't start game without minimum of 2 players");
+
+  const after = (await (await request(`/api/games/${gameId}`)).json()).game;
+  assertEquals(after.lastUpdated, before.lastUpdated);
+  assertEquals(after.error, undefined);
 });
