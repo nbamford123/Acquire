@@ -59,7 +59,7 @@ Deno.test('POST /login invalid email does not log in', async () => {
   assertEquals(response.status, 403);
 });
 
-Deno.test.ignore('GET /games returns empty game list', async () => {
+Deno.test('GET /games returns empty game list', async () => {
   const cookies = await login(app);
   // Make a raw request instead
   const response = await app.fetch(
@@ -75,7 +75,7 @@ Deno.test.ignore('GET /games returns empty game list', async () => {
   assertEquals(bodyJson.games.length, 0);
 });
 
-Deno.test.ignore('GET /games returns game list', async () => {
+Deno.test('GET /games returns game list', async () => {
   const cookies = await login(app);
 
   // Create game 1
@@ -116,7 +116,7 @@ Deno.test.ignore('GET /games returns game list', async () => {
   const { games } = await getResponse.json();
   assertEquals(games.length, 2);
   assertEquals(games.map((g: { id: string }) => g.id), [game1, game2]);
-}); // Skipped due to test isolation issues
+});
 
 Deno.test('POST /games creates a game and returns the id', async () => {
   const cookies = await login(app);
@@ -201,6 +201,21 @@ Deno.test('DELETE /games/:id deletes a game', async () => {
     }),
   );
   expect(getResponse.status).toBe(404);
+});
+
+Deno.test('DELETE /games/:id only lets the owner delete a game', async () => {
+  const cookies = await login(app);
+  const adminCookies = await login(app, 'admin@test.com');
+  const request = (path: string, init: RequestInit, as: string) =>
+    app.fetch(new Request(`http://localhost${path}`, { ...init, headers: { 'Cookie': as } }));
+
+  const { gameId } = await (await request('/api/games', { method: 'POST' }, cookies)).json();
+  const deleteResponse = await request(`/api/games/${gameId}`, { method: 'DELETE' }, adminCookies);
+  assertEquals(deleteResponse.status, 403);
+  assertEquals((await deleteResponse.json()).error, 'Only the owner can delete a game');
+
+  const getResponse = await request(`/api/games/${gameId}`, { method: 'GET' }, cookies);
+  assertEquals(getResponse.status, 200);
 });
 
 Deno.test('POST /games/:id performs actions', async () => {

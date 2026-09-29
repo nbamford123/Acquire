@@ -105,11 +105,6 @@ export class GameBoardView extends StyledComponent {
     }
   }
 
-  private async saveGameState() {
-    const saveResponse = await getApi(`/api/save/${this.gameId}`);
-    console.log(saveResponse);
-  }
-
   private handleCellClick(position: string) {
     console.log(position);
   }
