@@ -2,11 +2,18 @@ import { assertEquals, assertNotEquals, assertThrows } from '@std/assert';
 import type { Tile } from '../../types/tile.ts';
 import type { GameState, Hotel, Player, PlayerAction, Share } from '../../types/index.ts';
 import { GamePhase } from '../../types/gameState.ts';
-import { GameError, GameErrorCodes } from '../../types/index.ts';
+import {
+  CASH_TIER_LIMITS,
+  GameError,
+  GameErrorCodes,
+  INITIAL_PLAYER_MONEY,
+} from '../../types/index.ts';
 
+import { getCashTier } from '../getPlayerView.ts';
 import {
   cmpTiles,
   filterDefined,
+  getActivePlayer,
   getAdjacentPositions,
   getHotelPrice,
   getPlayerView,
@@ -450,26 +457,26 @@ Deno.test('getPlayerView - returns correct tiles for player', () => {
   ]);
 });
 
-Deno.test('getPlayerView - returns correct other players info with OrcCount', () => {
+Deno.test('getPlayerView - returns correct other players info with cash tiers', () => {
   const gameState = createGameState({
     players: [
       createPlayer(0, 'player1', 6000),
-      createPlayer(1, 'player2', 2), // '2' OrcCount
-      createPlayer(2, 'player3', 1), // '1' OrcCount
-      createPlayer(3, 'player4', 3), // 'many' OrcCount (>= 3)
+      createPlayer(1, 'player2', 2),
+      createPlayer(2, 'player3', INITIAL_PLAYER_MONEY),
+      createPlayer(3, 'player4', 2000),
     ],
   });
   const playerView = getPlayerView('player1', gameState);
 
   assertEquals(playerView.players.length, 4);
   assertEquals(playerView.players[0].name, 'player1');
-  assertEquals(playerView.players[0].money, 'many');
+  assertEquals(playerView.players[0].money, 4);
   assertEquals(playerView.players[1].name, 'player2');
-  assertEquals(playerView.players[1].money, '2');
+  assertEquals(playerView.players[1].money, 1);
   assertEquals(playerView.players[2].name, 'player3');
-  assertEquals(playerView.players[2].money, '1');
+  assertEquals(playerView.players[2].money, 3);
   assertEquals(playerView.players[3].name, 'player4');
-  assertEquals(playerView.players[3].money, 'many');
+  assertEquals(playerView.players[3].money, 2);
 });
 
 Deno.test('getPlayerView - returns correct other players shares with OrcCount', () => {
@@ -522,7 +529,6 @@ Deno.test('getPlayerView - includes optional context fields when present', () =>
       availableHotels: ['Festival', 'Imperial'],
       tiles: [{ row: 2, col: 2 }],
     },
-    pendingMergePlayer: 1,
   });
   const playerView = getPlayerView('player1', gameState);
 
@@ -536,7 +542,102 @@ Deno.test('getPlayerView - includes optional context fields when present', () =>
     availableHotels: ['Festival', 'Imperial'],
     tiles: [{ row: 2, col: 2 }],
   });
+  // Not resolving a merger, so nobody is pending
+  assertEquals(playerView.pendingMergePlayer, undefined);
+});
+
+Deno.test('getPlayerView - pendingMergePlayer is the next stockholder while resolving', () => {
+  const gameState = createGameState({
+    currentPhase: GamePhase.RESOLVE_MERGER,
+    currentPlayer: 0,
+    mergeContext: {
+      originalHotels: [],
+      additionalTiles: [],
+      survivingHotel: 'Worldwide',
+      mergedHotel: 'Luxor',
+      mergedHotelSize: 3,
+      stockholderIds: [1, 0],
+    },
+  });
+  const playerView = getPlayerView('player1', gameState);
   assertEquals(playerView.pendingMergePlayer, 1);
+  assertEquals(playerView.mergeContext?.mergedHotelSize, 3);
+});
+
+Deno.test('getPlayerView - final standings only at game over, highest money first', () => {
+  const players = [
+    createPlayer(0, 'player1', 9000),
+    createPlayer(1, 'player2', 12500),
+    createPlayer(2, 'player3', 400),
+  ];
+  const playing = getPlayerView('player1', createGameState({ players }));
+  assertEquals(playing.finalStandings, undefined);
+
+  const over = getPlayerView(
+    'player1',
+    createGameState({ players, currentPhase: GamePhase.GAME_OVER }),
+  );
+  assertEquals(over.finalStandings, [
+    { name: 'player2', money: 12500 },
+    { name: 'player1', money: 9000 },
+    { name: 'player3', money: 400 },
+  ]);
+});
+
+Deno.test('getPlayerView - marks tiles that can not be played', () => {
+  const safeHotel = (hotel: string, col: number) =>
+    Array.from({ length: 11 }, (_, row) => ({ row, col, location: 'board' as const, hotel }));
+  const gameState = createGameState({
+    tiles: [
+      ...safeHotel('Worldwide', 0),
+      ...safeHotel('Tower', 2),
+      { row: 5, col: 1, location: 0 },
+      { row: 5, col: 6, location: 0 },
+    ] as Tile[],
+  });
+  assertEquals(getPlayerView('player1', gameState).tiles, [
+    { row: 5, col: 1, unplayable: 'it would merge two safe hotels' },
+    { row: 5, col: 6 },
+  ]);
+});
+
+Deno.test('getActivePlayer - returns the acting player for the phase', async (t) => {
+  const mergeContext = {
+    originalHotels: [],
+    additionalTiles: [],
+    stockholderIds: [2, 0],
+  };
+  await t.step('next stockholder while resolving a merger', () => {
+    assertEquals(
+      getActivePlayer({ currentPhase: GamePhase.RESOLVE_MERGER, currentPlayer: 1, mergeContext }),
+      2,
+    );
+  });
+  await t.step('stockholder 0 is not treated as missing', () => {
+    assertEquals(
+      getActivePlayer({
+        currentPhase: GamePhase.RESOLVE_MERGER,
+        currentPlayer: 1,
+        mergeContext: { ...mergeContext, stockholderIds: [0] },
+      }),
+      0,
+    );
+  });
+  await t.step('current player when no stockholders are queued', () => {
+    assertEquals(
+      getActivePlayer({
+        currentPhase: GamePhase.RESOLVE_MERGER,
+        currentPlayer: 1,
+        mergeContext: { ...mergeContext, stockholderIds: [] },
+      }),
+      1,
+    );
+  });
+  await t.step('current player in other phases', () => {
+    for (const currentPhase of [GamePhase.BREAK_MERGER_TIE, GamePhase.BUY_SHARES]) {
+      assertEquals(getActivePlayer({ currentPhase, currentPlayer: 1, mergeContext }), 1);
+    }
+  });
 });
 
 Deno.test('getPlayerView - includes error when present', () => {
@@ -601,23 +702,18 @@ Deno.test('getPlayerView - handles single player game', () => {
   assertEquals(playerView.players[0].name, 'player1');
 });
 
-Deno.test('getPlayerView - handles different money amounts for OrcCount conversion', () => {
-  const gameState = createGameState({
-    players: [
-      createPlayer(0, 'player1', 6000),
-      createPlayer(1, 'player2', 0), // '0' OrcCount
-      createPlayer(2, 'player3', 1), // '1' OrcCount
-      createPlayer(3, 'player4', 2), // '2' OrcCount
-      createPlayer(4, 'player5', 3), // 'many' OrcCount (>= 3)
-    ],
-  });
-  const playerView = getPlayerView('player1', gameState);
-
-  assertEquals(playerView.players[0].money, 'many');
-  assertEquals(playerView.players[1].money, '0');
-  assertEquals(playerView.players[2].money, '1');
-  assertEquals(playerView.players[3].money, '2');
-  assertEquals(playerView.players[4].money, 'many');
+Deno.test('getCashTier - buckets cash relative to starting money', () => {
+  const [tier1Limit, tier2Limit, tier3Limit] = CASH_TIER_LIMITS;
+  // Starting cash sits in tier 3 so players can see others spending down or pulling ahead
+  assertEquals(getCashTier(INITIAL_PLAYER_MONEY), 3);
+  assertEquals(getCashTier(0), 1);
+  assertEquals(getCashTier(tier1Limit - 1), 1);
+  assertEquals(getCashTier(tier1Limit), 2);
+  assertEquals(getCashTier(tier2Limit - 1), 2);
+  assertEquals(getCashTier(tier2Limit), 3);
+  assertEquals(getCashTier(tier3Limit - 1), 3);
+  assertEquals(getCashTier(tier3Limit), 4);
+  assertEquals(getCashTier(100000), 4);
 });
 
 Deno.test('getPlayerView - handles different share amounts for OrcCount conversion', () => {

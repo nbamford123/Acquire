@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 
 import { setRoutes } from './routes.ts';
+import { seedTestGames } from './seed.ts';
 import type { ServiceEnv } from './types.ts';
 
 // Application setup
@@ -23,6 +24,11 @@ app.use(
     allowHeaders: ['Content-Type', 'Authorization'],
   }),
 );
+
+// Wipe KV and reload test games on each start (local development only)
+if (Deno.env.get('SEED_TEST_GAMES') === 'true') {
+  await seedTestGames();
+}
 
 // Start server
 const port = parseInt(Deno.env.get('PORT') || '8000');

@@ -9,7 +9,7 @@ export {
   updateTiles,
 } from './tileOperations.ts';
 export { addPlayerValidation } from './addPlayerValidation.ts';
-export { analyzeTilePlacement } from './analyzeTilePlacement.ts';
+export { analyzeTilePlacement, unplayableReason } from './analyzeTilePlacement.ts';
 export { buySharesValidation } from './buySharesValidation.ts';
 export { calculateShareholderPayouts } from './calculateShareholderPayoutsOperation.ts';
 export { drawInitialTiles } from './drawInitialTiles.ts';

@@ -31,13 +31,14 @@ export const buySharesUseCase: UseCaseFunction<BuySharesAction> = (
   // Domain validation
   buySharesValidation(player, shares, gameBoard, gameState.hotels);
 
+  const bought = Object.entries(shares).filter(([, count]) => count > 0);
+  const purchase = bought.length
+    ? `bought ${bought.map(([hotel, count]) => `${count} ${hotel}`).join(', ')}`
+    : "didn't buy any shares";
   const [buySharesState, actions] = buySharesOrchestrator(gameState, action);
-  return [buySharesState, [...actions, {
-    turn: gameState.currentTurn,
-    action: `${gameState.players[gameState.currentPlayer].name} buys ${
-      Object.entries(shares).filter(([, shares]) => shares > 0).map(([hotel, shares], idx) =>
-        `${shares} shares of ${hotel}${idx < Object.entries(shares).length ? ', ' : ''}`
-      )
-    }`,
-  }]];
+  // The purchase comes before whatever the turn change logs (next turn, or end of game)
+  return [buySharesState, [
+    { turn: gameState.currentTurn, action: `${player.name} ${purchase}` },
+    ...actions,
+  ]];
 };

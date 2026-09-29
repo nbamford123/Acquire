@@ -48,6 +48,8 @@ Deno.test('playTileOrchestrator: found hotel branch sets FOUND_HOTEL', () => {
 Deno.test('playTileOrchestrator: grows hotel branch proceeds to buying or next action', () => {
   const tiles = [
     { row: 0, col: 0, location: 'board', hotel: 'Worldwide' },
+    // Rest of P0's hand, away from the board
+    ...Array.from({ length: 5 }, (_, col) => ({ row: 8, col, location: 0 })),
   ] as unknown as any[];
 
   const gameState = {
@@ -87,6 +89,8 @@ Deno.test('playTileOrchestrator: triggers merger branch returns merger flow', ()
   const tiles = [
     { row: 1, col: 0, location: 'board', hotel: 'Worldwide' },
     { row: 1, col: 2, location: 'board', hotel: 'Luxor' },
+    // Rest of P0's hand, away from the board
+    ...Array.from({ length: 5 }, (_, col) => ({ row: 8, col, location: 0 })),
   ] as unknown as any[];
 
   const gameState = {

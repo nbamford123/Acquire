@@ -1,5 +1,11 @@
-import type { GameState, Hotel, PlayerAction } from '../types/index.ts';
-import { boardTiles, resolveShares } from '../domain/index.ts';
+import {
+  GameError,
+  GameErrorCodes,
+  type GameState,
+  type Hotel,
+  type PlayerAction,
+} from '../types/index.ts';
+import { getMergeContext, resolveShares } from '../domain/index.ts';
 
 export const completeMergerReducer = (
   gameState: GameState,
@@ -8,11 +14,14 @@ export const completeMergerReducer = (
   survivor: Hotel,
   merged: Hotel,
 ): [Pick<GameState, 'players' | 'hotels'>, PlayerAction[]] => {
-  const gameBoard = boardTiles(gameState.tiles);
+  const { mergedHotelSize } = getMergeContext(gameState);
+  if (mergedHotelSize === undefined) {
+    throw new GameError('Missing merged hotel size', GameErrorCodes.GAME_PROCESSING_ERROR);
+  }
 
   const { survivorShares, mergedShares, income, action } = resolveShares(
     playerId,
-    gameBoard,
+    mergedHotelSize,
     survivor,
     merged,
     shares,
@@ -28,5 +37,5 @@ export const completeMergerReducer = (
         ? { ...hotel, shares: mergedShares }
         : hotel
     ),
-  }, [{ turn: gameState.currentTurn, action: `${gameState.players[playerId]} ${action}` }]];
+  }, [{ turn: gameState.currentTurn, action: `${gameState.players[playerId].name} ${action}` }]];
 };

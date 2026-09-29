@@ -1,33 +1,21 @@
 import type { Context, Hono } from 'hono';
-import { serveStatic } from 'hono/deno';
-import { setCookie } from 'hono/cookie';
-
-import { initializeGame, processAction } from '@acquire/engine/core';
-import { getPlayerView } from '@acquire/engine/utils';
 import type { GameAction, GameInfo, GameState, PlayerAction } from '@acquire/engine/types';
-
 import { createToken, validateUser } from './auth.ts';
 import {
+  addPlayerActions,
   deleteGame,
   getAllGames,
   getGameState,
   getPlayerActions,
   saveGameState,
-  savePlayerActions,
 } from './dataLayer.ts';
-import { requireAuth } from './middleware.ts';
-import type { ServiceEnv } from './types.ts';
+import { initializeGame, processAction } from '@acquire/engine/core';
 
-// Load test games
-// TODO(me): remove before production
-// const testDataDir = 'service/__test-data__';
-// for (const file of Deno.readDirSync(testDataDir)) {
-//   if (file.isFile && file.name.endsWith('.json')) {
-//     const gameFile = Deno.readTextFileSync(`${testDataDir}/${file.name}`);
-//     const game = JSON.parse(gameFile);
-//     gameStates.set(game.gameId, game);
-//   }
-// }
+import type { ServiceEnv } from './types.ts';
+import { getActivePlayer, getPlayerView } from '@acquire/engine/utils';
+import { requireAuth } from './middleware.ts';
+import { serveStatic } from 'hono/deno';
+import { setCookie } from 'hono/cookie';
 
 // Only force https when in production
 const isProduction = Deno.env.get('ENV') === 'production';
@@ -125,7 +113,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
   app.get('/api/games', requireAuth, async (ctx) => {
     const gameList: GameInfo[] = Array.from((await getAllGames()).map((game) => ({
       id: game.gameId,
-      currentPlayer: game.players[game.pendingMergePlayer || game.currentPlayer].name,
+      currentPlayer: game.players[getActivePlayer(game)].name,
       owner: game.owner,
       players: game.players.map((player) => player.name),
       phase: game.currentPhase,
@@ -160,13 +148,20 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
         return ctx.json({ error: 'Game not found' }, 404);
       }
 
-      const [updatedGame, actions] = processAction(currentGame, action);
+      const [processedGame, actions] = processAction(currentGame, action);
+      // The engine reports rejected moves on the state; don't save them, just tell the player why
+      if (processedGame.error) {
+        return ctx.json({ error: processedGame.error.message }, 400);
+      }
+      // Stamp the change so polling clients can tell the game moved on
+      const updatedGame = { ...processedGame, lastUpdated: Date.now() };
 
       // Save the updated state
       await saveGameState(updatedGame);
       // Save the actions
-      const currentActions = (await getPlayerActions(gameId)).concat(actions);
-      await savePlayerActions(currentActions, gameId);
+      const previousActions = await getPlayerActions(gameId);
+      await addPlayerActions(gameId, previousActions.length, actions);
+      const currentActions = previousActions.concat(actions);
       return ctx.json({
         game: getPlayerView(user, updatedGame, currentActions),
         action: action.type, // Echo back the action type for client confirmation

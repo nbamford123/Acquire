@@ -289,7 +289,6 @@ export class AppShell extends StyledComponent {
   private renderHeader() {
     if (this.appState.currentView === 'login') {
       return html`
-
       `;
     }
 
@@ -297,7 +296,9 @@ export class AppShell extends StyledComponent {
       <header class="header">
         <nav>
           <ul>
-            <li><h1>Acquire</h1></li>
+            <li>
+              <h1>Acquire</h1>
+            </li>
           </ul>
           <ul>
             ${this.appState.currentView === 'game'

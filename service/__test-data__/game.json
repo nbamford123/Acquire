@@ -1,31 +1,13 @@
 {
-  "gameId": "mgq1q3kufnwg3dy26f",
+  "gameId": "mgq1q3kufnwg3dy26b",
   "owner": "Test",
   "currentPhase": "Play Tile",
   "currentTurn": 1,
-  "currentPlayer": 2,
+  "currentPlayer": 0,
   "lastUpdated": 1760415145374,
   "players": [
     {
       "id": 0,
-      "name": "Reid",
-      "money": 3000,
-      "firstTile": {
-        "row": 7,
-        "col": 0
-      }
-    },
-    {
-      "id": 1,
-      "name": "James",
-      "money": 3000,
-      "firstTile": {
-        "row": 5,
-        "col": 3
-      }
-    },
-    {
-      "id": 2,
       "name": "Test",
       "money": 3000,
       "firstTile": {
@@ -34,30 +16,12 @@
       }
     },
     {
-      "id": 3,
+      "id": 1,
       "name": "Nate",
       "money": 3000,
       "firstTile": {
         "row": 3,
         "col": 8
-      }
-    },
-    {
-      "id": 4,
-      "name": "Jamie",
-      "money": 3000,
-      "firstTile": {
-        "row": 5,
-        "col": 8
-      }
-    },
-    {
-      "id": 5,
-      "name": "Cannon",
-      "money": 3000,
-      "firstTile": {
-        "row": 2,
-        "col": 11
       }
     }
   ],
@@ -632,17 +596,17 @@
     {
       "row": 0,
       "col": 1,
-      "location": 3
+      "location": "bag"
     },
     {
       "row": 0,
       "col": 2,
-      "location": 3
+      "location": "bag"
     },
     {
       "row": 0,
       "col": 3,
-      "location": 2
+      "location": "bag"
     },
     {
       "row": 0,
@@ -652,7 +616,7 @@
     {
       "row": 0,
       "col": 5,
-      "location": 5
+      "location": "bag"
     },
     {
       "row": 0,
@@ -692,7 +656,7 @@
     {
       "row": 1,
       "col": 1,
-      "location": 4
+      "location": "bag"
     },
     {
       "row": 1,
@@ -702,7 +666,7 @@
     {
       "row": 1,
       "col": 3,
-      "location": 2
+      "location": "bag"
     },
     {
       "row": 1,
@@ -742,12 +706,12 @@
     {
       "row": 1,
       "col": 11,
-      "location": 2
+      "location": "bag"
     },
     {
       "row": 2,
       "col": 0,
-      "location": 4
+      "location": "bag"
     },
     {
       "row": 2,
@@ -757,7 +721,7 @@
     {
       "row": 2,
       "col": 2,
-      "location": 5
+      "location": "bag"
     },
     {
       "row": 2,
@@ -772,7 +736,7 @@
     {
       "row": 2,
       "col": 5,
-      "location": 3
+      "location": "bag"
     },
     {
       "row": 2,
@@ -782,7 +746,7 @@
     {
       "row": 2,
       "col": 7,
-      "location": 2
+      "location": "bag"
     },
     {
       "row": 2,
@@ -817,7 +781,7 @@
     {
       "row": 3,
       "col": 2,
-      "location": 5
+      "location": "bag"
     },
     {
       "row": 3,
@@ -852,179 +816,179 @@
     {
       "row": 3,
       "col": 9,
-      "location": "bag"
-    },
-    {
-      "row": 3,
-      "col": 10,
-      "location": "bag"
-    },
-    {
-      "row": 3,
-      "col": 11,
-      "location": "bag"
-    },
-    {
-      "row": 4,
-      "col": 0,
-      "location": "bag"
-    },
-    {
-      "row": 4,
-      "col": 1,
-      "location": 5
-    },
-    {
-      "row": 4,
-      "col": 2,
-      "location": "bag"
-    },
-    {
-      "row": 4,
-      "col": 3,
-      "location": "bag"
-    },
-    {
-      "row": 4,
-      "col": 4,
-      "location": 0
-    },
-    {
-      "row": 4,
-      "col": 5,
-      "location": "bag"
-    },
-    {
-      "row": 4,
-      "col": 6,
-      "location": 4
-    },
-    {
-      "row": 4,
-      "col": 7,
-      "location": "bag"
-    },
-    {
-      "row": 4,
-      "col": 8,
-      "location": "bag"
-    },
-    {
-      "row": 4,
-      "col": 9,
-      "location": "bag"
-    },
-    {
-      "row": 4,
-      "col": 10,
-      "location": "bag"
-    },
-    {
-      "row": 4,
-      "col": 11,
-      "location": "bag"
-    },
-    {
-      "row": 5,
-      "col": 0,
-      "location": 5
-    },
-    {
-      "row": 5,
-      "col": 1,
-      "location": "bag"
-    },
-    {
-      "row": 5,
-      "col": 2,
-      "location": "bag"
-    },
-    {
-      "row": 5,
-      "col": 3,
-      "location": "board"
-    },
-    {
-      "row": 5,
-      "col": 4,
-      "location": 4
-    },
-    {
-      "row": 5,
-      "col": 5,
-      "location": "bag"
-    },
-    {
-      "row": 5,
-      "col": 6,
-      "location": 4
-    },
-    {
-      "row": 5,
-      "col": 7,
-      "location": "bag"
-    },
-    {
-      "row": 5,
-      "col": 8,
-      "location": "board"
-    },
-    {
-      "row": 5,
-      "col": 9,
-      "location": "bag"
-    },
-    {
-      "row": 5,
-      "col": 10,
-      "location": "bag"
-    },
-    {
-      "row": 5,
-      "col": 11,
-      "location": "bag"
-    },
-    {
-      "row": 6,
-      "col": 0,
-      "location": "bag"
-    },
-    {
-      "row": 6,
-      "col": 1,
-      "location": "bag"
-    },
-    {
-      "row": 6,
-      "col": 2,
-      "location": 2
-    },
-    {
-      "row": 6,
-      "col": 3,
-      "location": "bag"
-    },
-    {
-      "row": 6,
-      "col": 4,
-      "location": 0
-    },
-    {
-      "row": 6,
-      "col": 5,
-      "location": 2
-    },
-    {
-      "row": 6,
-      "col": 6,
-      "location": "bag"
-    },
-    {
-      "row": 6,
-      "col": 7,
       "location": 1
     },
     {
+      "row": 3,
+      "col": 10,
+      "location": 0
+    },
+    {
+      "row": 3,
+      "col": 11,
+      "location": 0
+    },
+    {
+      "row": 4,
+      "col": 0,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 1,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 2,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 3,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 4,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 5,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 6,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 7,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 8,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 9,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 10,
+      "location": "bag"
+    },
+    {
+      "row": 4,
+      "col": 11,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 0,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 1,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 2,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 3,
+      "location": "board"
+    },
+    {
+      "row": 5,
+      "col": 4,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 5,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 6,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 7,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 8,
+      "location": "board"
+    },
+    {
+      "row": 5,
+      "col": 9,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 10,
+      "location": "bag"
+    },
+    {
+      "row": 5,
+      "col": 11,
+      "location": "bag"
+    },
+    {
+      "row": 6,
+      "col": 0,
+      "location": "bag"
+    },
+    {
+      "row": 6,
+      "col": 1,
+      "location": "bag"
+    },
+    {
+      "row": 6,
+      "col": 2,
+      "location": "bag"
+    },
+    {
+      "row": 6,
+      "col": 3,
+      "location": "bag"
+    },
+    {
+      "row": 6,
+      "col": 4,
+      "location": "bag"
+    },
+    {
+      "row": 6,
+      "col": 5,
+      "location": "bag"
+    },
+    {
+      "row": 6,
+      "col": 6,
+      "location": "bag"
+    },
+    {
+      "row": 6,
+      "col": 7,
+      "location": "bag"
+    },
+    {
       "row": 6,
       "col": 8,
       "location": "bag"
@@ -1037,7 +1001,7 @@
     {
       "row": 6,
       "col": 10,
-      "location": 3
+      "location": "bag"
     },
     {
       "row": 6,
@@ -1067,7 +1031,7 @@
     {
       "row": 7,
       "col": 4,
-      "location": 3
+      "location": "bag"
     },
     {
       "row": 7,
@@ -1082,7 +1046,7 @@
     {
       "row": 7,
       "col": 7,
-      "location": 5
+      "location": "bag"
     },
     {
       "row": 7,
@@ -1097,7 +1061,7 @@
     {
       "row": 7,
       "col": 10,
-      "location": 4
+      "location": "bag"
     },
     {
       "row": 7,
@@ -1147,7 +1111,7 @@
     {
       "row": 8,
       "col": 8,
-      "location": 3
+      "location": "bag"
     },
     {
       "row": 8,

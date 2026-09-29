@@ -8,7 +8,6 @@ import {
   type UseCaseFunction,
 } from '../types/index.ts';
 
-// What happens when a surviving hotel was picked, but there's another tie to be resolved?
 export const resolveMergerUseCase: UseCaseFunction<ResolveMergerAction> = (
   gameState,
   action,

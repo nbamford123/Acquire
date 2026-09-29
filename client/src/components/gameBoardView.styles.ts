@@ -1,13 +1,13 @@
 import { css } from 'lit';
 
 export const hotelIcons: Record<string, string> = {
-  'Tower': ' ♜',
-  'Luxor': ' 🏛️',
+  'Tower': '♜',
+  'Luxor': '🏛️',
   'Worldwide': '🌍',
   'American': '🦅',
   'Festival': '🎪',
   'Imperial': '👑',
-  'Continental': '🎪',
+  'Continental': '🗺️',
 };
 
 export const styles = css`
@@ -38,12 +38,10 @@ export const styles = css`
   .game-board {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
-    grid-template-rows: repeat(9, 1fr);
     gap: 4px;
     background: var(--pico-background-color);
     padding: 1rem;
     border-radius: 8px;
-    aspect-ratio: 12/9;
     width: 100%;
     margin: 0 auto;
   }
@@ -59,6 +57,8 @@ export const styles = css`
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
+    /* Square cells size the board; a fixed board aspect ratio let rows overflow when narrow */
+    aspect-ratio: 1;
     min-height: 40px;
   }
 
@@ -108,7 +108,54 @@ export const styles = css`
     padding: 16px 20px;
     gap: 20px;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
+  }
+
+  .current-player-view > button {
+    white-space: nowrap;
+  }
+
+  .game-over {
+    align-items: flex-start;
+  }
+
+  .game-over-summary {
+    flex: 0 0 auto;
+  }
+
+  .game-over-headline {
+    font-size: 1.5rem;
+  }
+
+  .standings {
+    flex: 1;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .standings li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.35rem 0;
+    margin: 0;
+    border-bottom: 1px solid var(--pico-muted-border-color);
+    list-style: none;
+  }
+
+  .standings li:last-child {
+    border-bottom: none;
+  }
+
+  .standings li.winner {
+    font-weight: 700;
+    color: var(--pico-primary);
+  }
+
+  .standing-money {
+    font-variant-numeric: tabular-nums;
   }
 
   .tile-hand {
@@ -137,8 +184,14 @@ export const styles = css`
     color: var(--pico-contrast);
   }
 
+  .tile:disabled {
+    opacity: 0.4;
+    text-decoration: line-through;
+    cursor: not-allowed;
+  }
+
   /* tiles should not shift when selected */
-  .tile:not(.selected):hover {
+  .tile:not(.selected):not(:disabled):hover {
     background: var(--pico-secondary-hover);
     transform: translateY(-2px);
   }
@@ -282,6 +335,121 @@ export const styles = css`
     font-size: 0.9rem;
   }
 
+  .you-badge {
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--pico-primary-inverse);
+    background: var(--pico-primary-background);
+    vertical-align: middle;
+  }
+
+  .hotel-color.tower {
+    --hotel-color: var(--pico-color-yellow-100);
+    --hotel-bg: var(--pico-color-yellow-800);
+  }
+  .hotel-color.luxor {
+    --hotel-color: var(--pico-color-red-500);
+    --hotel-bg: var(--pico-color-red-800);
+  }
+  .hotel-color.american {
+    --hotel-color: var(--pico-color-blue-500);
+    --hotel-bg: var(--pico-color-blue-800);
+  }
+  .hotel-color.worldwide {
+    --hotel-color: var(--pico-color-sand-500);
+    --hotel-bg: var(--pico-color-sand-800);
+  }
+  .hotel-color.festival {
+    --hotel-color: var(--pico-color-green-500);
+    --hotel-bg: var(--pico-color-green-800);
+  }
+  .hotel-color.imperial {
+    --hotel-color: var(--pico-color-pink-500);
+    --hotel-bg: var(--pico-color-pink-800);
+  }
+  .hotel-color.continental {
+    --hotel-color: var(--pico-color-azure-500);
+    --hotel-bg: var(--pico-color-azure-800);
+  }
+
+  .holding-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    padding: 0.15rem 0;
+  }
+
+  .holding-total {
+    margin-top: 0.35rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--pico-muted-border-color);
+    font-weight: 600;
+  }
+
+  .holding-value {
+    color: var(--pico-muted-color);
+    font-weight: 400;
+  }
+
+  .hotel-dot {
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    margin-right: 0.4rem;
+    border-radius: 2px;
+    background: var(--hotel-color);
+  }
+
+  .cash-meter {
+    display: inline-flex;
+    gap: 2px;
+  }
+
+  .cash-segment {
+    width: 0.4rem;
+    height: 0.8rem;
+    border-radius: 1px;
+    background: var(--pico-muted-border-color);
+  }
+
+  .cash-segment.filled {
+    background: var(--pico-ins-color);
+  }
+
+  .share-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .share-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.1rem 0.5rem;
+    border: 1px solid var(--hotel-color);
+    border-radius: 4px;
+    background: var(--hotel-bg);
+    font-size: 0.8rem;
+  }
+
+  .share-pips {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .share-pip {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
   .player-stocks {
     font-size: 0.85rem;
     color: var(--pico-muted-color);
@@ -346,6 +514,12 @@ export const styles = css`
       padding: 0.5rem;
     }
 
+    /* Twelve 40px cells don't fit; let them shrink with the width */
+    .board-cell {
+      min-height: 0;
+      font-size: 0.6rem;
+    }
+
     .game-container {
       grid-template-columns: 1fr;
       grid-template-rows: auto auto auto;
@@ -365,7 +539,6 @@ export const styles = css`
       max-width: 100%;
       padding: 0.75rem;
       gap: 2px;
-      aspect-ratio: 12/9;
       margin: 0;
     }
 

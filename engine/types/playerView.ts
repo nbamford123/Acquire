@@ -8,6 +8,8 @@ import type {
 } from './index.ts';
 
 export type OrcCount = '0' | '1' | '2' | 'many';
+// Relative size of a player's cash, 1 (lowest) to 4 (highest), see CASH_TIER_LIMITS
+export type CashTier = 1 | 2 | 3 | 4;
 
 // Player view of game state
 export interface PlayerView {
@@ -16,14 +18,15 @@ export interface PlayerView {
   playerId: number; // this player
   money: number; // this player's money
   stocks: Record<HOTEL_NAME, number>; // only hotels this player has shares in
-  tiles: { row: number; col: number }[]; // this players tiles
+  // this players tiles; unplayable says why a tile can't be played right now
+  tiles: { row: number; col: number; unplayable?: string }[];
   currentPhase: GamePhase;
   currentTurn: number;
   currentPlayer: number; // Player id
   pendingMergePlayer?: number; // next player to act in merger
   lastUpdated: number; // Timestamp
   // in player order
-  players: { name: string; money: OrcCount; shares: Record<HOTEL_NAME, OrcCount> }[];
+  players: { name: string; money: CashTier; shares: Record<HOTEL_NAME, OrcCount> }[];
   // Existing hotels with available shares
   hotels: Record<HOTEL_NAME, { shares: number; size: number }>;
   board: BoardTile[];
@@ -36,6 +39,8 @@ export interface PlayerView {
     availableHotels: HOTEL_NAME[];
     tiles: { row: number; col: number }[];
   };
+  // Only at game over: every player's final money, highest first
+  finalStandings?: { name: string; money: number }[];
   actions: PlayerAction[];
   error?: {
     code: ErrorCodeValue;

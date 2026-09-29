@@ -28,7 +28,7 @@ Deno.test('gameOver', async (t) => {
     assertEquals(result, false);
   });
 
-  await t.step('returns true when a hotel reaches safe size (11 tiles)', () => {
+  await t.step('returns true when the only hotel on the board is safe', () => {
     const board: BoardTile[] = Array.from(
       { length: 11 },
       (_, i) => ({
@@ -115,5 +115,40 @@ Deno.test('gameOver', async (t) => {
 
     const result = gameOver(board, hotels);
     assertEquals(result, true);
+  });
+
+  const hotel = (name: string) =>
+    ({ name, shares: Array.from({ length: 25 }, () => ({ location: 'bank' })) }) as unknown as Hotel;
+  // Lays out hotels row by row, 12 tiles per row
+  const boardWith = (sizes: Record<string, number>) => {
+    const board: BoardTile[] = [];
+    for (const [name, size] of Object.entries(sizes)) {
+      for (let i = 0; i < size; i++) {
+        const index = board.length;
+        board.push({ row: Math.floor(index / 12), col: index % 12, location: 'board', hotel: name } as BoardTile);
+      }
+    }
+    return board;
+  };
+  const allHotels = ['Tower', 'Luxor', 'Worldwide', 'American'].map(hotel);
+
+  await t.step('returns false when one hotel is safe but another is not', () => {
+    assertEquals(gameOver(boardWith({ Tower: 11, Luxor: 5 }), allHotels), false);
+  });
+
+  await t.step('ignores hotels not on the board when checking all safe', () => {
+    assertEquals(gameOver(boardWith({ Tower: 11, Luxor: 12 }), allHotels), true);
+  });
+
+  await t.step('returns true when a hotel reaches 41 tiles', () => {
+    assertEquals(gameOver(boardWith({ Tower: 41, Luxor: 3 }), allHotels), true);
+  });
+
+  await t.step('returns false when the largest hotel has 40 tiles and another is unsafe', () => {
+    assertEquals(gameOver(boardWith({ Tower: 40, Luxor: 3 }), allHotels), false);
+  });
+
+  await t.step('returns false when no hotel is on the board', () => {
+    assertEquals(gameOver([], allHotels), false);
   });
 });

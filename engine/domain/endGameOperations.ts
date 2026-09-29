@@ -6,9 +6,13 @@ import {
 } from '../types/index.ts';
 import { hotelTiles } from './hotelOperations.ts';
 
-// Check for end game state (single hotel >= 41 tiles or all hotels are safe)
-export const gameOver = (board: BoardTile[], hotels: Hotel[]) =>
-  hotels.length > 0 && (
-    (hotels.some((hotel) => hotelTiles(hotel.name, board).length >= SAFE_HOTEL_SIZE)) ||
-    (hotels.every((hotel) => hotelTiles(hotel.name, board).length >= END_GAME_HOTEL_SIZE))
+// Game ends when any hotel has 41+ tiles, or every hotel on the board is safe
+export const gameOver = (board: BoardTile[], hotels: Hotel[]) => {
+  const activeSizes = hotels
+    .map((hotel) => hotelTiles(hotel.name, board).length)
+    .filter((size) => size > 0);
+  return activeSizes.length > 0 && (
+    activeSizes.some((size) => size >= END_GAME_HOTEL_SIZE) ||
+    activeSizes.every((size) => size >= SAFE_HOTEL_SIZE)
   );
+};

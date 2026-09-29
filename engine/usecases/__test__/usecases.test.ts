@@ -96,6 +96,48 @@ Deno.test('startGameUseCase: throws if non-owner attempts to start', () => {
 });
 
 // Generic validation/error branch tests for phases and turn checks
+Deno.test('buySharesUseCase: logs the purchase before the next turn', async (t) => {
+  const makeState = () =>
+    makeBaseState({
+      currentPhase: GamePhase.BUY_SHARES,
+      currentTurn: 3,
+      players: [
+        { id: 0, name: 'Alice', money: 6000 },
+        { id: 1, name: 'Bob', money: 6000 },
+      ],
+      hotels: ['Tower', 'Luxor', 'American'].map((name) => ({
+        name,
+        shares: Array.from({ length: 25 }, () => ({ location: 'bank' })),
+      })) as any,
+      tiles: [
+        { row: 0, col: 0, location: 'board', hotel: 'Tower' },
+        { row: 0, col: 1, location: 'board', hotel: 'Tower' },
+        { row: 2, col: 0, location: 'board', hotel: 'Luxor' },
+        { row: 2, col: 1, location: 'board', hotel: 'Luxor' },
+        ...Array.from({ length: 5 }, (_, col) => ({ row: 8, col, location: 0 })),
+        ...Array.from({ length: 6 }, (_, col) => ({ row: 7, col, location: 1 })),
+        ...Array.from({ length: 4 }, (_, col) => ({ row: 5, col, location: 'bag' })),
+      ] as any,
+    });
+
+  await t.step('lists each hotel bought', () => {
+    const [, actions] = buySharesUseCase(makeState(), {
+      type: 'BUY_SHARES',
+      payload: { player: 'Alice', shares: { Tower: 2, Luxor: 1 } as any },
+    });
+    assertEquals(actions[0], { turn: 3, action: 'Alice bought 2 Tower, 1 Luxor' });
+  });
+
+  await t.step('says when nothing was bought', () => {
+    const [state, actions] = buySharesUseCase(makeState(), {
+      type: 'BUY_SHARES',
+      payload: { player: 'Alice', shares: {} as any },
+    });
+    assertEquals(actions[0].action, "Alice didn't buy any shares");
+    assertEquals(state.currentPlayer, 1);
+  });
+});
+
 Deno.test('buySharesUseCase: throws when not player turn', () => {
   const state = makeBaseState({
     currentPhase: GamePhase.BUY_SHARES,
