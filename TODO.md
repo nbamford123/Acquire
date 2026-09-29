@@ -62,14 +62,15 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
 - add at least a debug view where the api server logs requests and responses
 - local dev hot reload doesn't seem to be working
 - ttl/culling of old games
-- the `"deploy"` block in `deno.json` (`include: ["main.ts", "engine/"]`) looks like old deployctl config; check whether the new Deno Deploy uses it and remove it if not
+- the `"deploy"` block in `deno.json` (`include: ["main.ts", "engine/"]`) is old deployctl config. The new Deno Deploy does read a `deploy` block, with different keys, and it overrides the dashboard, so replace it rather than just deleting it
 - `experimentalDecorators` deprecation warning on every `deno check`
+  - the real problem is bigger: Deno ignores `useDefineForClassFields`, so class fields hide Lit's reactive accessors (decorators and `static properties` alike). The dashboard shows a deleted game after a delete because of it. Use standard decorators with `accessor`
+- save each move atomically with a versionstamp check; today the state and the actions are two separate writes
+- the CORS setup in `service/main.ts` is dead: wrong host, and registered after the routes
+- import Pico and Toastify's CSS from npm instead of the copies, and minify the bundle
+- light DOM for the top-level views, so one Pico stylesheet applies?
+- stale member lockfiles, duplicate `hono`/`@std/testing` entries, and client `preview`/`deploy` tasks for files that don't exist
 
 ## Eventual blog post
 
-- the workspace thing lets me inherit fmt and stuff, which is awesome
-- had trouble with tw and deno bundling. What?
-- some decorators don't work with deno bundling-- `@state` in particular. How did I test/verify that? Also `@property` requires manual updating
-- DOM testing was a total fail from `deno-dom` to `happy-dom` to `puppeteer` and even `@open-wc/web-test-runner`. Lit just isn't compatible running through deno. Stand along node testing would be required
-  - update: happy-dom 20 does work with Lit under `deno test`, with one workaround (keep Deno's global event methods, see `client/src/components/__test__/dom.ts`)
-- pulling in picocss via typescript file is a bit weird, but it works. Also had to add the css files for pico and toastify to the repo because deno bundle doesn't do remote imports
+See `blog/outline.md`, which also keeps the original notes from this section.

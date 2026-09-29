@@ -11,15 +11,35 @@ live updates, buying and skipping, unplayable tiles), with CI running formatting
 
 ## Phase 1: Production hardening
 
-One small PR. The site is live, so these come first.
+The site is live, so these come first. Two PRs: the Lit fix on its own, then the rest. Background
+for most of these is in `assessments/stack.md`.
 
+- [ ] Fix Lit reactive properties. Deno ignores `useDefineForClassFields`, so class fields hide Lit's
+      accessors, whether they're declared with decorators or `static properties`; that's why the
+      code needs manual `requestUpdate()` calls. It also causes a bug: after deleting a game, the
+      dashboard still shows it and drops another, because `GameCard.game` isn't reactive. Switch
+      to standard decorators (`@property() accessor x`, `@state() accessor x`), remove
+      `experimentalDecorators` and `emitDecoratorMetadata` (which also clears the deprecation
+      warning), and delete all 12 manual `requestUpdate()` calls (AppShell 4, GameBoardView 5,
+      LoginView 2, DashboardView 1). Each one follows an assignment to a property that becomes
+      reactive, so none are needed. Add a dashboard test that deletes a game (M)
+- [ ] Run tests against in-memory KV (`KV_PATH=:memory:` in the `check` and `validate` tasks) and
+      un-ignore the two ignored route tests, which pass that way (S)
 - [ ] Only a game's owner can delete it; today anyone signed in can delete any game (S)
 - [ ] Remove the temporary `/api/save/:id` endpoint, marked "remove before production"; it writes
       game state to the server's disk (S)
-- [ ] Remove the stale `"deploy"` block in `deno.json`, old deployctl config the new Deno Deploy
-      doesn't use (S)
+- [ ] Save each move in one atomic KV commit that checks the game's versionstamp, so two submits
+      can't overwrite each other and the state and its actions are always saved together; also
+      stop reading the whole action log just to count it (S–M)
+- [ ] Replace the old deployctl `"deploy"` block in `deno.json` with the new Deno Deploy format
+      (`install`, `build`, and `runtime` with `entrypoint` and `cwd`), so the deploy settings live
+      in the repo instead of only in the dashboard. Settings in `deno.json` override the dashboard,
+      so try it on a preview deploy first (S)
+- [ ] Remove the CORS setup in `service/main.ts`: it names a `.deno.dev` host that no longer
+      resolves, it's registered after the routes so it only affects preflight requests, and the
+      client is served from the same origin (S)
 - [ ] Delete games after a period of inactivity so the production database doesn't only grow; pick
-      the cutoff, e.g. 30 days since `lastUpdated` (M)
+      the cutoff, e.g. 30 days since `lastUpdated`. `Deno.cron` on Deno Deploy can run the sweep (M)
 
 ## Phase 2: Clarity while playing
 
@@ -53,6 +73,15 @@ Its own PR.
 
 ## Phase 5: Look and feel
 
+Do the first two before the rest, since they change how every component gets its styles.
+
+- [ ] Import Pico and Toastify's CSS from npm instead of `client/src/pico-styles.ts` and the copies
+      in `client/public` (`with { type: 'text' }` works in `deno bundle` now), build the Pico
+      stylesheet once instead of once per component, and add `--minify` to the build (S)
+- [ ] Decide whether the top-level views (login, dashboard, board) render without shadow DOM
+      (`createRenderRoot() { return this; }`), so one page-level Pico stylesheet applies and
+      `StyledComponent` goes away. That makes light/dark mode and the layout pass simpler; the cost
+      is prefixing component selectors and updating the tests that use `shadowRoot` (M)
 - [ ] Light/dark mode on every screen (M)
 - [ ] General layout pass (M–L)
 - [ ] Hotel type (economy, standard, luxury) and price on the bank cards, including inactive hotels;
@@ -73,16 +102,23 @@ None of these change what players see; pick them up whenever.
       need `Object.entries` plus a cast) and include each hotel's price and type in the view (the
       client recalculates prices in four places). An array would simplify the loops but make the
       four lookups by name clumsier (S–M)
-- [ ] Run tests against in-memory KV (`KV_PATH=:memory:`) and try un-ignoring the two ignored route
-      tests (S)
-- [ ] Fix the `experimentalDecorators` warning by replacing the remaining decorators with
-      `static properties`, which most components already use (S–M)
 - [ ] Add the missing `getAvailableHotelNames` test (S)
 - [ ] UI test for a rejected move showing its error (S)
-- [ ] Root task to run the client in dev mode, and fix local hot reload (S–M)
+- [ ] Root task to run the client in dev mode, and fix local hot reload: `deno bundle --watch` next
+      to the service's `--watch` can replace `client/dev-server.ts`, and the live-reload script in
+      `index.html` is commented out (S–M)
+- [ ] Config cleanup: delete the stale `client/deno.lock` and `service/deno.lock` (a workspace only
+      uses the root lock), drop the duplicate `hono` and `@std/testing` entries in the member
+      `deno.json` files, remove the client's `preview` and `deploy` tasks (their files don't exist),
+      and drop `--unstable-kv` from the `dev` task since `deno.json` already sets it (S)
 - [ ] Break merger ties by player id rather than name, and domain prefixes for error codes (from
       `TODO(me)` comments) (S)
 - [ ] Server debug view of API requests and responses (M)
+
+## After the plan
+
+- [ ] Re-assess the stack against `assessments/stack.md`: Deno, Lit, and Deno Deploy all move
+      quickly, so recheck its claims and update the blog outline in `blog/outline.md`
 
 ## Not planned
 

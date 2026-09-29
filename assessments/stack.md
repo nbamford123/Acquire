@@ -96,9 +96,10 @@ makes this repo cheap to maintain alone, and it's the premise of the blog post.
 | `LoginView`                                     | static `loading = false`                                                                    | No                                       |
 | `AppShell`                                      | static `appState = {...}`, `dialogConfig?:`                                                 | No                                       |
 
-The code makes up for this with 10 manual `requestUpdate()` calls (AppShell 4, GameBoardView 5,
-DashboardView 1), and with the fact that parents usually set properties before a child's first
-render.
+The code makes up for this with 12 manual `requestUpdate()` calls (AppShell 4, GameBoardView 5,
+LoginView 2, DashboardView 1), and with the fact that parents usually set properties before a
+child's first render. Each call follows an assignment to one of these properties, and none follows
+an in-place mutation, so all 12 become unnecessary once the properties are reactive.
 
 I reproduced the behavior in isolation, with the client's `compilerOptions`:
 
@@ -139,7 +140,7 @@ production, but lit-html sets `.game` the same way in a browser.
 
 - **Standard decorators with `accessor`.** Recommended; S–M effort. Remove `experimentalDecorators`
   and `emitDecoratorMetadata`. Change every reactive field to `@property() accessor x = ...` or
-  `@state() accessor x = ...`. Delete the manual `requestUpdate()` calls. Make `GameCard.game` a
+  `@state() accessor x = ...`. Delete all 12 manual `requestUpdate()` calls. Make `GameCard.game` a
   `@property({ attribute: false }) accessor`. This also clears the deprecation warning. The cost:
   the bundle grows because esbuild lowers the decorators (my test component went from 25.6 KB to
   36.6 KB unminified, and most of that is fixed helper code), and `accessor` is less familiar
@@ -298,7 +299,7 @@ Lit, `deno bundle`, KV, and Deploy**, and change how you use them. In order:
 
 1. **Fix Lit reactivity** with standard decorators and `accessor`, and drop
    `experimentalDecorators`/`emitDecoratorMetadata`. This replaces the Phase 6 decorator item, whose
-   planned fix wouldn't work. Delete the manual `requestUpdate()` calls, and add a dashboard test
+   planned fix wouldn't work. Delete all 12 manual `requestUpdate()` calls, and add a dashboard test
    that deletes a game. This fixes a user-visible bug, so it belongs in Phase 1 or 2, not Phase 6.
 2. **Point the tests at `KV_PATH=:memory:`** in `check` and `validate`, and un-ignore the two route
    tests. I verified they pass.
