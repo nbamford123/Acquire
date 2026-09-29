@@ -67,9 +67,8 @@ Its own PR.
 
 None of these change what players see; pick them up whenever.
 
-- [ ] API client: switch to [ky](https://github.com/sindresorhus/ky) (cleaner syntax, retries)
-      together with typed API calls, a `createAction` helper instead of setting `type` by hand, and
-      taking the player from the login rather than the action payload (M–L)
+- [ ] API client: typed API calls, a `createAction` helper instead of setting `type` by hand, and
+      taking the player from the login rather than the action payload (M)
 - [ ] Player view hotels: keep the map, but add a typed helper for iterating it (today two places
       need `Object.entries` plus a cast) and include each hotel's price and type in the view (the
       client recalculates prices in four places). An array would simplify the loops but make the
@@ -88,3 +87,5 @@ None of these change what players see; pick them up whenever.
 ## Not planned
 
 - A database layer abstraction: little benefit at this size
+- Switching the API client to ky: plain `fetch` plus the polling timer already covers what it would
+  add

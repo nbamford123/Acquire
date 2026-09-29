@@ -3,8 +3,7 @@
 ## Client general
 
 1. fix light/dark mode over every screen
-2. update to [ky](https://github.com/sindresorhus/ky), cleaner syntax, retries (polling is done with a timer in `GameBoardView`)
-3. improve layout
+2. improve layout
 
 - Put the unicode characters for hotels on the tiles when they are founded?
 - we need to enforce types on the api calls
