@@ -33,7 +33,7 @@
   },
   "fmt": {
     "include": ["./"],
-    "exclude": ["**/node_modules/", "**/dist/", "**/__test__/"],
+    "exclude": ["**/node_modules/", "**/dist/", "**/__test__/", "client/public/*.min.css"],
     "indentWidth": 2,
     "lineWidth": 100,
     "semiColons": true,

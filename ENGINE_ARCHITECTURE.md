@@ -1,4 +1,5 @@
 # Action-Reducer-UseCase Architecture
+
 A Composable Pattern for Complex State Management
 
 ## What Is This?
@@ -39,6 +40,7 @@ function canPurchaseShares(
   hotels: Hotel[],
 ): boolean;
 ```
+
 #### 2. Reducers (State Transformations)
 
 Purpose: Pure functions that apply specific state changes
@@ -208,21 +210,22 @@ Domain functions can call:
 - Reducers transform state - Pure state updates, can call domain functions
 - Domain functions are pure - No GameState, no side effects
 - Validation splits by concern:
-    - Orchestration checks (phase/turn/permission) → Use case
-    - Business rules (game logic) → Domain functions
+  - Orchestration checks (phase/turn/permission) → Use case
+  - Business rules (game logic) → Domain functions
 
 #### When to Use What
 
-| Component | Use When | Example |
-|---|---|---|
-| Domain Function | Pure business logic, reusable calculations | `canPurchaseShares()`, `calculateCost()` |
-| Reducer | State transformation needed by multiple actions | `buySharesReducer()`, `addPlayerReducer()` |
-| Orchestrator | Multi-step flow with decision points | `resolveMergerOrchestrator()` |
-| Inline (in Use Case) | Trivial single-property update | `return { ...state, flag: true }` |
+| Component            | Use When                                        | Example                                    |
+| -------------------- | ----------------------------------------------- | ------------------------------------------ |
+| Domain Function      | Pure business logic, reusable calculations      | `canPurchaseShares()`, `calculateCost()`   |
+| Reducer              | State transformation needed by multiple actions | `buySharesReducer()`, `addPlayerReducer()` |
+| Orchestrator         | Multi-step flow with decision points            | `resolveMergerOrchestrator()`              |
+| Inline (in Use Case) | Trivial single-property update                  | `return { ...state, flag: true }`          |
 
 #### Example Flows
 
 **Simple Action (Direct to Reducer)**
+
 ```
 [ActionTypes.ADD_PLAYER]: addPlayerUseCase
   → validates phase
@@ -231,6 +234,7 @@ Domain functions can call:
 ```
 
 **Complex Action (Uses Orchestrator)**
+
 ```
 [ActionTypes.BUY_SHARES]: buySharesUseCase
   → validates phase/turn
@@ -242,6 +246,7 @@ Domain functions can call:
 ```
 
 **Shared Reducer (Reusable Building Block)**
+
 ```
 resolveMergerReducer()
   ← called by breakMergerTieOrchestrator
@@ -265,12 +270,12 @@ resolveMergerReducer()
 
 ### Comparison to Redux
 
-| Aspect | Redux | This Pattern |
-|---|---|---|
-| Reducers | Top-level action handlers | Composable building blocks |
-| Middleware | Handles side effects | Use cases + orchestrators handle flows |
-| Selectors | Read state | Domain functions operate on entities |
-| Thunks/Sagas | Async orchestration | Orchestrators handle sync flows |
+| Aspect       | Redux                     | This Pattern                           |
+| ------------ | ------------------------- | -------------------------------------- |
+| Reducers     | Top-level action handlers | Composable building blocks             |
+| Middleware   | Handles side effects      | Use cases + orchestrators handle flows |
+| Selectors    | Read state                | Domain functions operate on entities   |
+| Thunks/Sagas | Async orchestration       | Orchestrators handle sync flows        |
 
 ### The "Use Case Litmus Test"
 
@@ -288,11 +293,11 @@ A good use case structure:
 
 ### Summary
 
-| Layer | Input | Output | Purpose |
-|---|---|---|---|
-| Use Case | GameState + Action | GameState | Validate & delegate |
-| Orchestrator | GameState + params | GameState | Manage multi-step flows |
-| Reducer | Flexible | GameState or Partial | Transform state |
-| Domain | Specific types | Specific types | Pure business logic |
+| Layer        | Input              | Output               | Purpose                 |
+| ------------ | ------------------ | -------------------- | ----------------------- |
+| Use Case     | GameState + Action | GameState            | Validate & delegate     |
+| Orchestrator | GameState + params | GameState            | Manage multi-step flows |
+| Reducer      | Flexible           | GameState or Partial | Transform state         |
+| Domain       | Specific types     | Specific types       | Pure business logic     |
 
 This architecture emerged from evolving a Redux-style implementation to handle the complexity of asynchronous board game state management, where simple action→reducer patterns weren't sufficient for multi-step game flows involving mergers, complex turn transitions, and an event-driven action model.
