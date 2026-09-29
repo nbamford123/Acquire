@@ -3,14 +3,8 @@
 ## Client general
 
 1. fix light/dark mode over every screen
-2. update to [ky](https://github.com/sindresorhus/ky), cleaner syntax, retries, good interface for polling, and add polling!
+2. update to [ky](https://github.com/sindresorhus/ky), cleaner syntax, retries (polling is done with a timer in `GameBoardView`)
 3. improve layout
-4. Finish/test other actions
-   - trade stocks
-   - sell stocks
-   - merge hotel(s)
-   - pass buyng stocks
-   - end game
 
 - check pr validation
 - Put the unicode characters for hotels on the tiles when they are founded?
@@ -35,13 +29,11 @@
 - game card somewhere on screen? Could make it collapsible/hidable.
 - a game status somewhere, e.g. "Waiting for players", "Player X's turn", "Waiting for player X to sell/trade stocks", "Game over"
 - give players unique colors?
-- submit button should be disabled until they've performed a valid action (possible exception: you don't _have_ to buy stocks)
 
 ## Misc
 
 - should we have a db layer abstraction? Probably overkill for now, but it seems a bit overloaded in routes, plus it would enable easier swapping of dbs later.
 - ignoring a couple of tests because test games are throwing them off
-- pass turn? Is that allowed if you can play?
 - is it really worth it to have playerview hotels as a map? It seems like all I do on the client is convert it to an array for manipulation/display
 - the unit tests for hoteloperations somehow missed the getAvailableHotelNames logic being backwards-- fixing it didn't make anything fail either.
 - it's dumb I say an action is the proper type, but then I have to set type in the action. I should be able to do something like
@@ -56,13 +48,10 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
 - root deno.json should have a task to run the client in dev mode, too
 - better game ids, something like they do for docker instances on desktop
 - prompts on create/join game?
-- the client needs to check response codes and for game engine errors. Probably need a central handler (note the auth service does this)
 - test request failures-- does client display an error?
 - pre-commit hook? Is that even possible?
 - add at least a debug view where the api server logs requests and responses
 - local dev hot reload doesn't seem to be working
-- end game
-- pass or no stocks in buy stocks phase (have money but don't want to buy stocks)
 - ttl/culling of old games
 
 ## Eventual blog post
