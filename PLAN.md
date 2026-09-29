@@ -23,22 +23,22 @@ for most of these is in `assessments/stack.md`.
       warning), and delete all 12 manual `requestUpdate()` calls (AppShell 4, GameBoardView 5,
       LoginView 2, DashboardView 1). Each one follows an assignment to a property that becomes
       reactive, so none are needed. Add a dashboard test that deletes a game (M)
-- [ ] Run tests against in-memory KV (`KV_PATH=:memory:` in the `check` and `validate` tasks) and
+- [x] Run tests against in-memory KV (`KV_PATH=:memory:` in the `check` and `validate` tasks) and
       un-ignore the two ignored route tests, which pass that way (S)
-- [ ] Only a game's owner can delete it; today anyone signed in can delete any game (S)
-- [ ] Remove the temporary `/api/save/:id` endpoint, marked "remove before production"; it writes
+- [x] Only a game's owner can delete it; today anyone signed in can delete any game (S)
+- [x] Remove the temporary `/api/save/:id` endpoint, marked "remove before production"; it writes
       game state to the server's disk (S)
-- [ ] Save each move in one atomic KV commit that checks the game's versionstamp, so two submits
+- [x] Save each move in one atomic KV commit that checks the game's versionstamp, so two submits
       can't overwrite each other and the state and its actions are always saved together; also
       stop reading the whole action log just to count it (S–M)
-- [ ] Replace the old deployctl `"deploy"` block in `deno.json` with the new Deno Deploy format
+- [x] Replace the old deployctl `"deploy"` block in `deno.json` with the new Deno Deploy format
       (`install`, `build`, and `runtime` with `entrypoint` and `cwd`), so the deploy settings live
       in the repo instead of only in the dashboard. Settings in `deno.json` override the dashboard,
       so try it on a preview deploy first (S)
-- [ ] Remove the CORS setup in `service/main.ts`: it names a `.deno.dev` host that no longer
+- [x] Remove the CORS setup in `service/main.ts`: it names a `.deno.dev` host that no longer
       resolves, it's registered after the routes so it only affects preflight requests, and the
       client is served from the same origin (S)
-- [ ] Delete games after a period of inactivity so the production database doesn't only grow; pick
+- [x] Delete games after a period of inactivity so the production database doesn't only grow; pick
       the cutoff, e.g. 30 days since `lastUpdated`. `Deno.cron` on Deno Deploy can run the sweep (M)
 
 ## Phase 2: Clarity while playing
@@ -76,8 +76,8 @@ Its own PR.
 Do the first two before the rest, since they change how every component gets its styles.
 
 - [ ] Import Pico and Toastify's CSS from npm instead of `client/src/pico-styles.ts` and the copies
-      in `client/public` (`with { type: 'text' }` works in `deno bundle` now), build the Pico
-      stylesheet once instead of once per component, and add `--minify` to the build (S)
+      in `client/public` (`with { type: 'text' }` works in `deno bundle` now), and build the Pico
+      stylesheet once instead of once per component (S)
 - [ ] Decide whether the top-level views (login, dashboard, board) render without shadow DOM
       (`createRenderRoot() { return this; }`), so one page-level Pico stylesheet applies and
       `StyledComponent` goes away. That makes light/dark mode and the layout pass simpler; the cost

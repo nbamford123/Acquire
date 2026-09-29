@@ -1,29 +1,23 @@
 import { Hono } from 'hono';
-import { cors } from 'hono/cors';
 
 import { setRoutes } from './routes.ts';
+import { deleteGamesUpdatedBefore } from './dataLayer.ts';
 import { seedTestGames } from './seed.ts';
 import type { ServiceEnv } from './types.ts';
 
 // Application setup
 export const app = new Hono<ServiceEnv>();
 setRoutes(app);
-// CORS middleware
-app.use(
-  '/*',
-  cors({
-    origin: (origin) => {
-      const allowed = [
-        'https://acquire.nbamford123.deno.dev',
-        'http://localhost:8000',
-      ];
-      return allowed.includes(origin) ? origin : allowed[0];
-    },
-    credentials: true,
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
-  }),
-);
+
+// Games nobody has touched in this long are deleted by the daily sweep
+const INACTIVE_GAME_DAYS = 30;
+
+// Deno Deploy only finds cron jobs registered at the top level, before the server starts
+Deno.cron('Delete inactive games', '0 4 * * *', async () => {
+  const cutoff = Date.now() - INACTIVE_GAME_DAYS * 24 * 60 * 60 * 1000;
+  const deleted = await deleteGamesUpdatedBefore(cutoff);
+  console.log(`🧹 Deleted ${deleted.length} inactive games`);
+});
 
 // Wipe KV and reload test games on each start (local development only)
 if (Deno.env.get('SEED_TEST_GAMES') === 'true') {

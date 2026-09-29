@@ -2,12 +2,13 @@ import type { Context, Hono } from 'hono';
 import type { GameAction, GameInfo, GameState, PlayerAction } from '@acquire/engine/types';
 import { createToken, validateUser } from './auth.ts';
 import {
-  addPlayerActions,
   deleteGame,
   getAllGames,
+  getGameEntry,
   getGameState,
   getPlayerActions,
   saveGameState,
+  saveMove,
 } from './dataLayer.ts';
 import { initializeGame, processAction } from '@acquire/engine/core';
 
@@ -19,6 +20,9 @@ import { setCookie } from 'hono/cookie';
 
 // Only force https when in production
 const isProduction = Deno.env.get('ENV') === 'production';
+
+// The built client, found from this file so the service can run from any directory
+const clientDist = `${import.meta.dirname}/../client/dist`;
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
@@ -78,25 +82,14 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
   app.delete('/api/games/:id', requireAuth, async (ctx) => {
     const gameId = ctx.req.param('id') || '';
     const game = await getGameState(gameId);
-    // TODO(me): only owner should be able to delete game
     if (!game) {
       return ctx.json({ error: 'Game not found' }, 404);
+    }
+    if (game.owner !== ctx.get('user')) {
+      return ctx.json({ error: 'Only the owner can delete a game' }, 403);
     }
     await deleteGame(gameId);
     return ctx.body(null, 204);
-  });
-  // Save game
-  // TODO(me): temporary - remove before production
-  app.get('/api/save/:id', requireAuth, async (ctx) => {
-    const gameId = ctx.req.param('id') || '';
-    const game = await getGameState(gameId);
-    if (!game) {
-      return ctx.json({ error: 'Game not found' }, 404);
-    }
-    const gameJson = JSON.stringify(game, null, 2);
-    const filename = `acquire-game-${gameId}.json`;
-    Deno.writeTextFileSync(filename, gameJson);
-    return ctx.text('saved ' + filename);
   });
   // Get game
   app.get('/api/games/:id', requireAuth, async (ctx) => {
@@ -143,10 +136,13 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
         );
       }
 
-      const currentGame = await getGameState(gameId);
-      if (!currentGame) {
+      const { value: currentGame, versionstamp } = await getGameEntry(gameId);
+      if (!currentGame || !versionstamp) {
         return ctx.json({ error: 'Game not found' }, 404);
       }
+      // The player view needs the log too. Actions are only saved with a new state, so if one is
+      // saved after this read, the versionstamp check below fails.
+      const previousActions = await getPlayerActions(gameId);
 
       const [processedGame, actions] = processAction(currentGame, action);
       // The engine reports rejected moves on the state; don't save them, just tell the player why
@@ -156,11 +152,10 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       // Stamp the change so polling clients can tell the game moved on
       const updatedGame = { ...processedGame, lastUpdated: Date.now() };
 
-      // Save the updated state
-      await saveGameState(updatedGame);
-      // Save the actions
-      const previousActions = await getPlayerActions(gameId);
-      await addPlayerActions(gameId, previousActions.length, actions);
+      const saved = await saveMove(updatedGame, versionstamp, previousActions.length, actions);
+      if (!saved) {
+        return ctx.json({ error: 'The game changed before your move was saved; try again' }, 409);
+      }
       const currentActions = previousActions.concat(actions);
       return ctx.json({
         game: getPlayerView(user, updatedGame, currentActions),
@@ -174,9 +169,9 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
     }
   });
   // Everything else is static
-  app.use('/*', serveStatic({ root: '../client/dist' }));
+  app.use('/*', serveStatic({ root: clientDist }));
   app.get('/*', async (c) => {
-    const html = await Deno.readTextFile('../client/dist/index.html');
+    const html = await Deno.readTextFile(`${clientDist}/index.html`);
     return c.html(html);
   });
 };

@@ -40,8 +40,6 @@
 ## Misc
 
 - should we have a db layer abstraction? Probably overkill for now, but it seems a bit overloaded in routes, plus it would enable easier swapping of dbs later.
-- ignoring a couple of tests because test games are throwing them off
-  - run tests against in-memory KV (`KV_PATH=:memory:` in the `check` and `validate` tasks); that stops test games piling up in the default local database and may let these be un-ignored
 - is it really worth it to have playerview hotels as a map? It seems like all I do on the client is convert it to an array for manipulation/display
   - the client looks hotels up by name in four places (merge pickers, your holdings) and iterates them in two (bank cards, buy picker), which need `Object.entries` plus a cast; it also recalculates share prices in four places. Keep the map, add a typed iteration helper, and include each hotel's price and type in the view
 - the unit tests for hoteloperations somehow missed the getAvailableHotelNames logic being backwards-- fixing it didn't make anything fail either.
@@ -61,11 +59,7 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
   - rejected moves now return 400 and the client shows the reason as an error toast; there's no UI test for it yet
 - add at least a debug view where the api server logs requests and responses
 - local dev hot reload doesn't seem to be working
-- ttl/culling of old games
-- the `"deploy"` block in `deno.json` (`include: ["main.ts", "engine/"]`) is old deployctl config. The new Deno Deploy does read a `deploy` block, with different keys, and it overrides the dashboard, so replace it rather than just deleting it
-- save each move atomically with a versionstamp check; today the state and the actions are two separate writes
-- the CORS setup in `service/main.ts` is dead: wrong host, and registered after the routes
-- import Pico and Toastify's CSS from npm instead of the copies, and minify the bundle
+- import Pico and Toastify's CSS from npm instead of the copies
 - light DOM for the top-level views, so one Pico stylesheet applies?
 - stale member lockfiles, duplicate `hono`/`@std/testing` entries, and client `preview`/`deploy` tasks for files that don't exist
 
