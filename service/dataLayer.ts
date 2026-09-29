@@ -1,6 +1,7 @@
 import type { GameState, PlayerAction } from '@acquire/engine/types';
 
-const kv = await Deno.openKv();
+// KV_PATH pins a local database file; leave unset on Deno Deploy to use hosted KV
+const kv = await Deno.openKv(Deno.env.get('KV_PATH'));
 
 export async function getAllGames(): Promise<GameState[]> {
   const games: GameState[] = [];
@@ -42,6 +43,13 @@ export async function deleteGame(gameId: string) {
 
   // Delete all actions for this game
   const iter = kv.list({ prefix: ['actions', gameId] });
+  for await (const entry of iter) {
+    await kv.delete(entry.key);
+  }
+}
+
+export async function deleteAllData() {
+  const iter = kv.list({ prefix: [] });
   for await (const entry of iter) {
     await kv.delete(entry.key);
   }

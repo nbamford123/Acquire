@@ -1,11 +1,5 @@
 import type { Context, Hono } from 'hono';
-import { serveStatic } from 'hono/deno';
-import { setCookie } from 'hono/cookie';
-
-import { initializeGame, processAction } from '@acquire/engine/core';
-import { getPlayerView } from '@acquire/engine/utils';
 import type { GameAction, GameInfo, GameState, PlayerAction } from '@acquire/engine/types';
-
 import { createToken, validateUser } from './auth.ts';
 import {
   deleteGame,
@@ -15,19 +9,13 @@ import {
   saveGameState,
   savePlayerActions,
 } from './dataLayer.ts';
-import { requireAuth } from './middleware.ts';
-import type { ServiceEnv } from './types.ts';
+import { initializeGame, processAction } from '@acquire/engine/core';
 
-// Load test games
-// TODO(me): remove before production
-// const testDataDir = 'service/__test-data__';
-// for (const file of Deno.readDirSync(testDataDir)) {
-//   if (file.isFile && file.name.endsWith('.json')) {
-//     const gameFile = Deno.readTextFileSync(`${testDataDir}/${file.name}`);
-//     const game = JSON.parse(gameFile);
-//     gameStates.set(game.gameId, game);
-//   }
-// }
+import type { ServiceEnv } from './types.ts';
+import { getPlayerView } from '@acquire/engine/utils';
+import { requireAuth } from './middleware.ts';
+import { serveStatic } from 'hono/deno';
+import { setCookie } from 'hono/cookie';
 
 // Only force https when in production
 const isProduction = Deno.env.get('ENV') === 'production';

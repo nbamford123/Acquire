@@ -12,14 +12,14 @@
     "strict": true
   },
   "imports": {
-    "@std/assert": "jsr:@std/assert@1.0.14",
-    "@std/fs": "jsr:@std/fs@1.0.19",
-    "@std/expect": "jsr:@std/expect@1.0.17",
+    "@std/assert": "jsr:@std/assert@1.0.19",
+    "@std/fs": "jsr:@std/fs@1.0.24",
+    "@std/expect": "jsr:@std/expect@1.0.20",
     "@acquire/engine/core": "./engine/core/index.ts",
     "@acquire/engine/types": "./engine/types/index.ts",
     "@acquire/engine/utils": "./engine/utils/index.ts",
-    "hono": "jsr:@hono/hono@^4.9.10",
-    "hono/cookie": "jsr:@hono/hono@^4.9.10/cookie.ts"
+    "hono": "jsr:@hono/hono@^4.13.9",
+    "hono/cookie": "jsr:@hono/hono@^4.13.9/cookie.ts"
   },
 
   "lint": {
