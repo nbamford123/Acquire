@@ -1,5 +1,5 @@
 import { css, html } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 
 import { StyledComponent } from './StyledComponent.ts';
 import { deleteApi, getApi, postApi } from '../services/ApiService.ts';
@@ -10,17 +10,18 @@ import './GameCard.ts';
 @customElement('dashboard-view')
 export class DashboardView extends StyledComponent {
   @property({ type: String })
-  user: string | null = null;
+  accessor user: string | null = null;
 
-  @property({ type: Function })
-  showConfirmationDialog?: (title: string, message: string) => Promise<boolean>;
+  @property({ attribute: false })
+  accessor showConfirmationDialog:
+    | ((title: string, message: string) => Promise<boolean>)
+    | undefined;
 
-  static override properties = {
-    games: { type: Object, state: true },
-    loading: { type: Boolean, state: true },
-  };
-  private games: GameInfo[] = [];
-  private loading = false;
+  @state()
+  private accessor games: GameInfo[] = [];
+
+  @state()
+  private accessor loading = false;
 
   static override styles = [
     super.styles,
@@ -81,7 +82,6 @@ export class DashboardView extends StyledComponent {
       this.games = gamesResponse.games || [];
     } finally {
       this.loading = false;
-      this.requestUpdate('loading', true);
     }
   }
 

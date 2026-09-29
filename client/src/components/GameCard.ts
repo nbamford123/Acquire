@@ -6,22 +6,18 @@ import { GameInfo, GamePhase, MAX_PLAYERS } from '@acquire/engine/types';
 
 @customElement('game-card')
 export class DashboardView extends StyledComponent {
-  private game: GameInfo;
+  @property({ attribute: false })
+  accessor game: GameInfo = {
+    id: '',
+    currentPlayer: '',
+    owner: '',
+    players: [],
+    phase: GamePhase.WAITING_FOR_PLAYERS,
+    lastUpdated: Date.now(),
+  };
 
   @property({ type: String })
-  user: string | null = null;
-
-  constructor() {
-    super();
-    this.game = {
-      id: '',
-      currentPlayer: '',
-      owner: '',
-      players: [],
-      phase: GamePhase.WAITING_FOR_PLAYERS,
-      lastUpdated: Date.now(),
-    };
-  }
+  accessor user: string | null = null;
 
   static override styles = [
     super.styles,

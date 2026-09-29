@@ -1,5 +1,5 @@
 import { css, html, type PropertyValues } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 
 import {
   ActionTypes,
@@ -31,24 +31,27 @@ import { actionCardStyles } from './actionCardStyles.ts';
 
 @customElement('action-card')
 export class ActionCard extends StyledComponent {
-  static override properties = {
-    playerView: { type: Object },
-    user: { type: String },
-    gameTurn: { type: Number },
-    selectedShares: { state: true },
-    buyError: { state: true },
-    tieSelection: { state: true },
-    mergerShares: { state: true },
-    mergerError: { state: true },
-  };
-  declare playerView: PlayerView | null;
-  declare user: string | null;
-  // Reactive state is declared and set in the constructor so class fields don't shadow Lit's accessors
-  declare private selectedShares: ShareSelection;
-  declare private buyError?: string;
-  declare private tieSelection: TieSelection;
-  declare private mergerShares: MergerShares;
-  declare private mergerError?: string;
+  @property({ attribute: false })
+  accessor playerView: PlayerView | null = null;
+
+  @property({ type: String })
+  accessor user: string | null = null;
+
+  @state()
+  private accessor selectedShares: ShareSelection = {};
+
+  @state()
+  private accessor buyError: string | undefined;
+
+  @state()
+  private accessor tieSelection: TieSelection = {};
+
+  @state()
+  private accessor mergerShares: MergerShares = { sell: 0, trade: 0 };
+
+  @state()
+  private accessor mergerError: string | undefined;
+
   // Identifies the decision on screen, so selections reset when it changes
   private decisionKey = '';
   private dispatchDefaultAction = false;
@@ -78,14 +81,6 @@ export class ActionCard extends StyledComponent {
     `,
   ];
 
-  public constructor() {
-    super();
-    this.playerView = null;
-    this.user = null;
-    this.selectedShares = {};
-    this.tieSelection = {};
-    this.mergerShares = { sell: 0, trade: 0 };
-  }
   private setAction(action: GameAction | null) {
     this.dispatchEvent(
       new CustomEvent('set-action', {

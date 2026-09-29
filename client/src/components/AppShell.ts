@@ -1,6 +1,6 @@
 // src/components/AppShell.ts
 import { css, html } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
 import Toastify from 'toastify-js';
 
 import type { AppState, Route } from '../types.ts';
@@ -98,19 +98,16 @@ export class AppShell extends StyledComponent {
     `,
   ];
 
-  static override properties = {
-    appState: { type: Object, state: true },
-    dialogConfig: { type: Object, state: true },
-  };
-
-  private appState: AppState = {
+  @state()
+  private accessor appState: AppState = {
     currentView: 'login',
     user: null,
     selectedGameId: null,
     error: null,
   };
 
-  private dialogConfig?: ConfirmDialogConfig;
+  @state()
+  private accessor dialogConfig: ConfirmDialogConfig | undefined;
 
   private router = RouterService.getInstance();
 
@@ -123,7 +120,6 @@ export class AppShell extends StyledComponent {
         currentView: route.view,
         selectedGameId: route.gameId || null,
       };
-      this.requestUpdate();
     });
   }
 
@@ -147,18 +143,14 @@ export class AppShell extends StyledComponent {
         ...this.appState,
         user: persisted,
       };
-      // ensure Lit knows state changed
-      this.requestUpdate();
     }
   }
 
   private updateAppState(newState: Partial<AppState>) {
-    const oldState = this.appState;
     this.appState = {
       ...this.appState,
       ...newState,
     };
-    this.requestUpdate('appState', oldState);
   }
 
   public override disconnectedCallback() {
@@ -242,7 +234,6 @@ export class AppShell extends StyledComponent {
   public confirm = (title: string, message: string) => {
     return new Promise((resolve) => {
       this.dialogConfig = { title, message, resolve };
-      this.requestUpdate();
       this.shadowRoot?.querySelector<HTMLDialogElement>('.confirm-dialog')?.showModal();
     });
   };
