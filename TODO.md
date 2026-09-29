@@ -6,8 +6,6 @@
 2. update to [ky](https://github.com/sindresorhus/ky), cleaner syntax, retries (polling is done with a timer in `GameBoardView`)
 3. improve layout
 
-- check pr validation
-  - CI now runs `deno task check` on every PR and the `main` ruleset requires it; anything else?
 - Put the unicode characters for hotels on the tiles when they are founded?
 - we need to enforce types on the api calls
 
@@ -22,7 +20,7 @@
 - long game names are cut off, and the game card's three buttons overflow it on narrow screens
 - leaderboard: total $ per player across finished games
   - final money is already computed at game over (`finalStandings`); it would need saving per player (e.g. a KV entry per player) when a game ends
-- should the join/etc. buttons actually be styled links?
+- make the join/etc. buttons styled links
 - create game states for 6/6 players, playing/other owner/etc
 - join/delete/start game -confirmation dialog
 - before game has started, players can leave, confimation dialog
@@ -46,6 +44,7 @@
 - ignoring a couple of tests because test games are throwing them off
   - run tests against in-memory KV (`KV_PATH=:memory:` in the `check` and `validate` tasks); that stops test games piling up in the default local database and may let these be un-ignored
 - is it really worth it to have playerview hotels as a map? It seems like all I do on the client is convert it to an array for manipulation/display
+  - the client looks hotels up by name in four places (merge pickers, your holdings) and iterates them in two (bank cards, buy picker), which need `Object.entries` plus a cast; it also recalculates share prices in four places. Keep the map, add a typed iteration helper, and include each hotel's price and type in the view
 - the unit tests for hoteloperations somehow missed the getAvailableHotelNames logic being backwards-- fixing it didn't make anything fail either.
 - it's dumb I say an action is the proper type, but then I have to set type in the action. I should be able to do something like
 
