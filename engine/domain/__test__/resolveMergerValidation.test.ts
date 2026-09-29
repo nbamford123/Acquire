@@ -108,3 +108,33 @@ Deno.test('resolveMergerValidation - core checks', async (t) => {
     assertEquals(Array.isArray(result.stockholderIds), true);
   });
 });
+
+Deno.test('resolveMergerValidation - share counts', async (t) => {
+  const state = {
+    mergeContext: { survivingHotel: 'Worldwide', mergedHotel: 'Luxor', stockholderIds: [1] },
+    hotels: [makeHotel('Worldwide'), makeHotel('Luxor', { 1: 4 })],
+  } as any as GameState;
+
+  await t.step('accepts missing shares as keeping all of them', () => {
+    const result = resolveMergerValidation(state, 1, undefined);
+    assertEquals(result.merged.name, 'Luxor');
+  });
+
+  for (
+    const shares of [
+      { sell: -1, trade: 0 },
+      { sell: 0, trade: -2 },
+      { sell: 1.5, trade: 0 },
+      { sell: Number.NaN, trade: 0 },
+    ]
+  ) {
+    await t.step(`throws for sell ${shares.sell}, trade ${shares.trade}`, () => {
+      const err = assertThrows(
+        () => resolveMergerValidation(state, 1, shares),
+        GameError,
+        'Share counts must be whole numbers of zero or more',
+      );
+      assertEquals(err.code, GameErrorCodes.GAME_INVALID_ACTION);
+    });
+  }
+});

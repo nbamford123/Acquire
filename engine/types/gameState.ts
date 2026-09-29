@@ -26,7 +26,6 @@ export interface GameState {
   currentPhase: GamePhase;
   currentTurn: number;
   currentPlayer: number; // Player id
-  pendingMergePlayer?: number; // next player to act in merger
   lastUpdated: number; // Timestamp
   players: Player[]; // Sorted by player order
   hotels: Hotel[];

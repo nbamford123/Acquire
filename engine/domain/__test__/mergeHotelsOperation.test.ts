@@ -103,6 +103,8 @@ Deno.test('mergeHotels - Basic functionality', async (t) => {
     assertEquals(result.needsMergeOrder, false);
     if (!result.needsMergeOrder) {
       assertEquals(result.survivorTiles.length, 8); // 4 + 2 + 2 additional tiles
+      // The played tile and loose neighbors join the survivor too
+      result.survivorTiles.forEach((tile) => assertEquals(tile.hotel, 'Worldwide'));
     }
   });
 });
@@ -228,8 +230,8 @@ Deno.test('mergeHotels - Tie resolution with user input', async (t) => {
       'Worldwide',
     );
     const tieResolution: ResolvedTie = {
-      survivor: 'Luxor', // this becomes the merged hotel
-      merged: 'Festival', // this parameter is ignored when survivor already picked
+      survivor: 'Worldwide', // must match the survivor already picked
+      merged: 'Luxor',
     };
 
     const result = mergeHotels(mergeContext, gameBoard, tieResolution);
@@ -241,6 +243,72 @@ Deno.test('mergeHotels - Tie resolution with user input', async (t) => {
       // After merging Luxor, Festival remains
       assertEquals(result.remainingHotels, ['Festival']);
     }
+  });
+
+  await t.step('resolves three-way tie for largest with chosen survivor and merged', () => {
+    const gameBoard: BoardTile[] = [
+      ...createHotelTiles('Worldwide', 4),
+      ...createHotelTiles('Luxor', 4, 1, 0),
+      ...createHotelTiles('Festival', 4, 2, 0),
+    ];
+
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor', 'Festival']);
+    const result = mergeHotels(mergeContext, gameBoard, { survivor: 'Luxor', merged: 'Festival' });
+
+    assertEquals(result.needsMergeOrder, false);
+    if (!result.needsMergeOrder) {
+      assertEquals(result.survivingHotel, 'Luxor');
+      assertEquals(result.mergedHotel, 'Festival');
+      assertEquals(result.remainingHotels, ['Worldwide']);
+    }
+  });
+
+  await t.step('throws when tie resolution survivor is not tied for largest', () => {
+    const gameBoard: BoardTile[] = [
+      ...createHotelTiles('Worldwide', 5),
+      ...createHotelTiles('Luxor', 5, 1, 0),
+      ...createHotelTiles('Festival', 3, 2, 0),
+    ];
+
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor', 'Festival']);
+    const error = assertThrows(
+      () => mergeHotels(mergeContext, gameBoard, { survivor: 'Festival', merged: 'Luxor' }),
+      GameError,
+      'Tie resolution contains invalid hotels',
+    );
+    assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
+  });
+
+  await t.step('throws when tie resolution merges a smaller hotel first', () => {
+    const gameBoard: BoardTile[] = [
+      ...createHotelTiles('Worldwide', 5),
+      ...createHotelTiles('Luxor', 5, 1, 0),
+      ...createHotelTiles('Festival', 3, 2, 0),
+    ];
+
+    const mergeContext = createMergeContext(['Worldwide', 'Luxor', 'Festival']);
+    const error = assertThrows(
+      () => mergeHotels(mergeContext, gameBoard, { survivor: 'Worldwide', merged: 'Festival' }),
+      GameError,
+      'Tie resolution contains invalid hotels',
+    );
+    assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
+  });
+
+  await t.step('throws when tie resolution changes a survivor already picked', () => {
+    const gameBoard: BoardTile[] = [
+      ...createHotelTiles('Worldwide', 8),
+      ...createHotelTiles('Luxor', 4, 1, 0),
+      ...createHotelTiles('Festival', 4, 2, 0),
+    ];
+
+    const mergeContext = createMergeContext(['Luxor', 'Festival'], [], 'Worldwide');
+    const error = assertThrows(
+      () => mergeHotels(mergeContext, gameBoard, { survivor: 'Luxor', merged: 'Festival' }),
+      GameError,
+      'Tie resolution contains invalid hotels',
+    );
+    assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
   });
 
   await t.step('throws error when tie resolution contains invalid hotels', () => {
@@ -261,6 +329,53 @@ Deno.test('mergeHotels - Tie resolution with user input', async (t) => {
       'Tie resolution contains invalid hotels',
     );
     assertEquals(error.code, GameErrorCodes.GAME_INVALID_ACTION);
+  });
+});
+
+Deno.test('mergeHotels - Subsequent mergers with survivor already picked', async (t) => {
+  await t.step('merges the last remaining hotel into the survivor', () => {
+    const gameBoard: BoardTile[] = [
+      ...createHotelTiles('Worldwide', 12), // survivor, already absorbed the first merged hotel
+      ...createHotelTiles('Festival', 3, 2, 0),
+    ];
+
+    const mergeContext = createMergeContext(['Festival'], [], 'Worldwide');
+    const result = mergeHotels(mergeContext, gameBoard);
+
+    assertEquals(result.needsMergeOrder, false);
+    if (!result.needsMergeOrder) {
+      assertEquals(result.survivingHotel, 'Worldwide');
+      assertEquals(result.mergedHotel, 'Festival');
+      assertEquals(result.remainingHotels, []);
+      assertEquals(result.survivorTiles.length, 15);
+    }
+  });
+
+  await t.step('keeps the survivor even when a remaining hotel is listed first', () => {
+    const gameBoard: BoardTile[] = [
+      ...createHotelTiles('Worldwide', 12),
+      ...createHotelTiles('Festival', 4, 2, 0),
+      ...createHotelTiles('Imperial', 2, 3, 0),
+    ];
+
+    const mergeContext = createMergeContext(['Festival', 'Imperial'], [], 'Worldwide');
+    const result = mergeHotels(mergeContext, gameBoard);
+
+    assertEquals(result.needsMergeOrder, false);
+    if (!result.needsMergeOrder) {
+      assertEquals(result.survivingHotel, 'Worldwide');
+      assertEquals(result.mergedHotel, 'Festival');
+      assertEquals(result.remainingHotels, ['Imperial']);
+    }
+  });
+
+  await t.step('throws when no hotels are left to merge into the survivor', () => {
+    const mergeContext = createMergeContext([], [], 'Worldwide');
+    assertThrows(
+      () => mergeHotels(mergeContext, createHotelTiles('Worldwide', 5)),
+      GameError,
+      'Need at least 2 hotels to merge',
+    );
   });
 });
 

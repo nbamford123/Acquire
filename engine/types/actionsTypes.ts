@@ -9,7 +9,6 @@ export const ActionTypes = {
   BREAK_MERGER_TIE: 'BREAK_MERGER_TIE',
   RESOLVE_MERGER: 'RESOLVE_MERGER',
   FOUND_HOTEL: 'FOUND_HOTEL',
-  // TODO(me): need an action for dumping all your tiles and redrawing. Do you get to buy shares?
 } as const;
 
 export type ActionType = typeof ActionTypes[keyof typeof ActionTypes];

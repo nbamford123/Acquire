@@ -12,6 +12,9 @@ Deno.test('buySharesOrchestrator applies buySharesReducer then advances turn', (
     { row: 0, col: 0, location: 'bag' },
     { row: 0, col: 1, location: 'bag' },
     { row: 0, col: 2, location: 'bag' },
+    // Hands away from the board so every tile is playable
+    ...Array.from({ length: 5 }, (_, col) => ({ row: 8, col, location: 0 })),
+    ...Array.from({ length: 6 }, (_, col) => ({ row: 7, col, location: 1 })),
   ] as unknown as any[];
 
   const baseState = {

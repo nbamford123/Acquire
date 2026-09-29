@@ -1,6 +1,9 @@
 import {
+  CASH_TIER_LIMITS,
+  type CashTier,
   GameError,
   GameErrorCodes,
+  GamePhase,
   type GameState,
   type Hotel,
   type HOTEL_NAME,
@@ -9,9 +12,16 @@ import {
   type PlayerView,
 } from '../types/index.ts';
 import { boardTiles } from '../domain/tileOperations.ts';
+import { unplayableReason } from '../domain/analyzeTilePlacement.ts';
+import { getActivePlayer } from './getActivePlayer.ts';
 
 const getOrcCount = (amount: number): OrcCount =>
   amount >= 3 ? 'many' : amount === 2 ? '2' : amount === 1 ? '1' : '0';
+
+export const getCashTier = (money: number): CashTier => {
+  const tier = CASH_TIER_LIMITS.findIndex((limit) => money < limit);
+  return (tier === -1 ? CASH_TIER_LIMITS.length + 1 : tier + 1) as CashTier;
+};
 
 function getShares(playerId: number, hotels: Hotel[], orcCount: true): Record<HOTEL_NAME, OrcCount>;
 function getShares(playerId: number, hotels: Hotel[], orcCount?: false): Record<HOTEL_NAME, number>;
@@ -55,14 +65,16 @@ export const getPlayerView = (
     playerId,
     money: gameState.players[playerId].money,
     stocks: getShares(playerId, gameState.hotels),
-    tiles: gameState.tiles.filter((tile) => tile.location === playerId).map((tile) => ({
-      row: tile.row,
-      col: tile.col,
-    })),
+    tiles: gameState.tiles.filter((tile) => tile.location === playerId).map((tile) => {
+      const unplayable = unplayableReason(tile, gameState.tiles);
+      return { row: tile.row, col: tile.col, ...(unplayable ? { unplayable } : {}) };
+    }),
     currentPhase: gameState.currentPhase,
     currentTurn: gameState.currentTurn,
     currentPlayer: gameState.currentPlayer,
-    pendingMergePlayer: gameState.pendingMergePlayer,
+    pendingMergePlayer: gameState.currentPhase === GamePhase.RESOLVE_MERGER
+      ? getActivePlayer(gameState)
+      : undefined,
     lastUpdated: gameState.lastUpdated,
     players: gameState.players.map(
       (
@@ -70,7 +82,7 @@ export const getPlayerView = (
       ) => (
         {
           name: player.name,
-          money: getOrcCount(player.money),
+          money: getCashTier(player.money),
           shares: getShares(player.id, gameState.hotels, true),
         }
       ),
@@ -89,6 +101,11 @@ export const getPlayerView = (
     mergerTieContext: gameState.mergerTieContext,
     mergeContext: gameState.mergeContext,
     foundHotelContext: gameState.foundHotelContext,
+    finalStandings: gameState.currentPhase === GamePhase.GAME_OVER
+      ? gameState.players
+        .map(({ name, money }) => ({ name, money }))
+        .sort((a, b) => b.money - a.money)
+      : undefined,
     actions: viewableActions,
     error: gameState.error,
   };

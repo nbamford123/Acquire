@@ -12,7 +12,7 @@ import {
 import { initializeGame, processAction } from '@acquire/engine/core';
 
 import type { ServiceEnv } from './types.ts';
-import { getPlayerView } from '@acquire/engine/utils';
+import { getActivePlayer, getPlayerView } from '@acquire/engine/utils';
 import { requireAuth } from './middleware.ts';
 import { serveStatic } from 'hono/deno';
 import { setCookie } from 'hono/cookie';
@@ -113,7 +113,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
   app.get('/api/games', requireAuth, async (ctx) => {
     const gameList: GameInfo[] = Array.from((await getAllGames()).map((game) => ({
       id: game.gameId,
-      currentPlayer: game.players[game.pendingMergePlayer || game.currentPlayer].name,
+      currentPlayer: game.players[getActivePlayer(game)].name,
       owner: game.owner,
       players: game.players.map((player) => player.name),
       phase: game.currentPhase,

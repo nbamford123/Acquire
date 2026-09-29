@@ -3,7 +3,6 @@ import { getHotelByName, getMergeContext } from '../domain/index.ts';
 import { completeMergerReducer } from '../reducers/index.ts';
 import type { GameState, OrchestratorActionFunction, ResolveMergerAction } from '../types/index.ts';
 
-// What happens when a surviving hotel was picked, but there's another tie to be resolved?
 export const resolveMergerOrchestrator: OrchestratorActionFunction<ResolveMergerAction> = (
   gameState,
   action,
@@ -39,10 +38,10 @@ export const resolveMergerOrchestrator: OrchestratorActionFunction<ResolveMerger
   } else if (mergeContext.originalHotels.length) {
     // More mergers to perform
     const [newState, newActions] = processMergerOrchestrator(updatedState);
-    return [newState, [...newActions]];
+    return [newState, [...actions, ...newActions]];
   } else {
     // All done, move to buy shares
     const [newState, newActions] = proceedToBuySharesOrchestrator(updatedState);
-    return [newState, [...newActions]];
+    return [newState, [...actions, ...newActions]];
   }
 };

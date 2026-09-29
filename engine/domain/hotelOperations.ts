@@ -108,32 +108,39 @@ export const canBuyShares = (money: number, hotels: Hotel[], board: BoardTile[])
   return money >= lowestSharePrice;
 };
 
+// mergedSize is the merged hotel's size before the merger, since its tiles now belong to the survivor
 export const resolveShares = (
   playerId: number,
-  board: BoardTile[],
+  mergedSize: number,
   survivor: Hotel,
   merged: Hotel,
   shares: { sell: number; trade: number } | undefined,
 ): { survivorShares: Share[]; mergedShares: Share[]; income: number; action: string } => {
+  const { sell = 0, trade = 0 } = shares ?? {};
+  const held = merged.shares.filter((share) => share.location === playerId).length;
   let survivorShares = survivor.shares;
   let mergedShares = merged.shares;
-  let action = '';
+  const results: string[] = [];
   // Trade shares
-  if (shares && shares.trade) {
-    const tradedShares = shares.trade / 2;
+  if (trade) {
+    const tradedShares = trade / 2;
     survivorShares = assignSharesToPlayer(survivorShares, playerId, tradedShares);
-    mergedShares = returnSharesToBank(mergedShares, playerId, shares.trade);
-    action =
-      `traded ${shares.trade} shares of ${merged.name} for ${tradedShares} of ${survivor.name}`;
+    mergedShares = returnSharesToBank(mergedShares, playerId, trade);
+    results.push(
+      `traded ${trade} shares of ${merged.name} for ${tradedShares} of ${survivor.name}`,
+    );
   }
 
   // Sell shares
-  let income = 0;
-  if (shares && shares.sell) {
-    const shareValue = sharePrice(merged.name, board) * shares.sell;
-    income = shareValue;
-    mergedShares = returnSharesToBank(mergedShares, playerId, shares.sell);
-    action = `sold ${mergedShares.length} shares of ${merged.name} for $${income}`;
+  const income = sell * getHotelPrice(merged.name, mergedSize).price;
+  if (sell) {
+    mergedShares = returnSharesToBank(mergedShares, playerId, sell);
+    results.push(`sold ${sell} shares of ${merged.name} for $${income}`);
   }
-  return { survivorShares, mergedShares, income, action };
+
+  const kept = Math.max(held - trade - sell, 0);
+  if (kept || !results.length) {
+    results.push(`kept ${kept} shares of ${merged.name}`);
+  }
+  return { survivorShares, mergedShares, income, action: results.join(', ') };
 };

@@ -8,7 +8,7 @@ export const resolveMergerValidation = (
 ): { merged: Hotel; survivor: Hotel; stockholderIds: number[] } => {
   const mergeContext = getMergeContext(gameState);
   const { survivingHotel, mergedHotel, stockholderIds } = mergeContext;
-  if (!stockholderIds || !survivingHotel || !mergedHotel || !shares) {
+  if (!stockholderIds || !survivingHotel || !mergedHotel) {
     throw new GameError('Invalid hotel merger context', GameErrorCodes.GAME_PROCESSING_ERROR);
   }
   if (!stockholderIds.length || stockholderIds[0] !== playerId) {
@@ -22,21 +22,29 @@ export const resolveMergerValidation = (
       GameErrorCodes.GAME_PROCESSING_ERROR,
     );
   }
-  const playerMergedShares = merged.shares.filter((share) => share.location === playerId);
-  if (playerMergedShares.length < shares.trade + shares.sell) {
+  // No shares means the player keeps all of them
+  const { sell = 0, trade = 0 } = shares ?? {};
+  if (![sell, trade].every((count) => Number.isInteger(count) && count >= 0)) {
     throw new GameError(
-      `You don't have ${shares.trade + shares.sell} shares in ${mergedHotel} to trade/sell`,
+      'Share counts must be whole numbers of zero or more',
       GameErrorCodes.GAME_INVALID_ACTION,
     );
   }
-  if (shares.trade) {
-    if (shares.trade % 2 !== 0) {
+  const playerMergedShares = merged.shares.filter((share) => share.location === playerId);
+  if (playerMergedShares.length < trade + sell) {
+    throw new GameError(
+      `You don't have ${trade + sell} shares in ${mergedHotel} to trade/sell`,
+      GameErrorCodes.GAME_INVALID_ACTION,
+    );
+  }
+  if (trade) {
+    if (trade % 2 !== 0) {
       throw new GameError(
         `You can only trade an even number of shares`,
         GameErrorCodes.GAME_INVALID_ACTION,
       );
     }
-    const tradedShares = shares.trade / 2;
+    const tradedShares = trade / 2;
     if (remainingShares(survivor) < tradedShares) {
       throw new GameError(
         `${survivingHotel} doesn't have ${tradedShares} shares left to trade`,

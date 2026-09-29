@@ -121,7 +121,10 @@ Deno.test('endGameReducer', async (t) => {
       },
       {
         name: 'Luxor',
-        shares: Array.from({ length: 25 }, () => ({ location: 'bank' as const })) as unknown as Hotel['shares'],
+        shares: Array.from(
+          { length: 25 },
+          () => ({ location: 'bank' as const }),
+        ) as unknown as Hotel['shares'],
       },
     ];
 
@@ -214,7 +217,10 @@ Deno.test('endGameReducer', async (t) => {
     const hotels: Hotel[] = [
       {
         name: 'Tower',
-        shares: Array.from({ length: 25 }, () => ({ location: 'bank' as const })) as unknown as Hotel['shares'],
+        shares: Array.from(
+          { length: 25 },
+          () => ({ location: 'bank' as const }),
+        ) as unknown as Hotel['shares'],
       },
     ];
 
@@ -270,7 +276,53 @@ Deno.test('endGameReducer', async (t) => {
     assertEquals(updatedState.players![1].money >= initialMoney, true);
     assertEquals(updatedState.players![2].money >= initialMoney, true);
     // At least one player should have received a payout
-    const totalPayouts = updatedState.players!.reduce((sum, p) => sum + (p.money - initialMoney), 0);
+    const totalPayouts = updatedState.players!.reduce(
+      (sum, p) => sum + (p.money - initialMoney),
+      0,
+    );
     assertEquals(totalPayouts > 0, true);
+  });
+
+  await t.step('pays bonuses, sells shares at current prices, and ignores defunct hotels', () => {
+    const players: Player[] = [
+      { id: 0, name: 'P0', money: 1000 },
+      { id: 1, name: 'P1', money: 2000 },
+    ];
+    const owned = (...owners: number[]) =>
+      [
+        ...owners.map((location) => ({ location })),
+        ...Array.from({ length: 25 - owners.length }, () => ({ location: 'bank' })),
+      ] as unknown as Hotel['shares'];
+    const hotels: Hotel[] = [
+      { name: 'Tower', shares: owned(0, 0, 0, 1) },
+      { name: 'American', shares: owned(1, 1) },
+      // Not on the board, so these shares are worthless
+      { name: 'Festival', shares: owned(0, 0) },
+    ];
+    const row = (hotel: string, r: number, count: number) =>
+      Array.from({ length: count }, (_, col) => ({ row: r, col, location: 'board', hotel }));
+    const tiles = [...row('Tower', 0, 11), ...row('American', 1, 12)] as unknown as Tile[];
+
+    const [updatedState, actions] = endGameReducer(
+      createTestState({ players, hotels, tiles, currentTurn: 9 }),
+    );
+
+    // Tower (economy, 11 tiles): $700 a share, $7000 majority, $3500 minority
+    // American (standard, 12 tiles): $800 a share, sole holder gets both bonuses ($12000)
+    assertEquals(updatedState.players[0].money, 1000 + 7000 + 3 * 700);
+    assertEquals(updatedState.players[1].money, 2000 + 3500 + 700 + 12000 + 2 * 800);
+
+    const text = actions.map((action) => action.action);
+    assertEquals(text.includes('P0 was paid $7000 for Tower'), true);
+    assertEquals(text.includes('P1 sold 2 shares of American for $1600'), true);
+    assertEquals(text.slice(-2), ['P1 finished with $19800', 'P0 finished with $10100']);
+
+    // Sold shares go back to the bank; defunct hotel shares stay where they were
+    const heldBy = (name: string, playerId: number) =>
+      updatedState.hotels.find((hotel) => hotel.name === name)!.shares
+        .filter((share) => share.location === playerId).length;
+    assertEquals(heldBy('Tower', 0), 0);
+    assertEquals(heldBy('American', 1), 0);
+    assertEquals(heldBy('Festival', 0), 2);
   });
 });

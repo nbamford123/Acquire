@@ -2,6 +2,8 @@ import {
   boardTiles,
   calculateShareholderPayouts,
   getHotelByName,
+  getStockHolders,
+  hotelTiles,
   updateTiles,
 } from '../domain/index.ts';
 
@@ -13,15 +15,22 @@ export const prepareMergerReducer = (
   tiles: Tile[],
   hotels: Hotel[],
   result: Extract<MergeResult, { needsMergeOrder: false }>,
+  currentPlayer: number,
 ): [Partial<GameState>, string[]] => {
+  const gameBoard = boardTiles(tiles);
+  const mergedHotel = getHotelByName(hotels, result.mergedHotel);
   // pay the majority and minority shareholders
-  const [payouts, actions] = calculateShareholderPayouts(
-    getHotelByName(hotels, result.mergedHotel),
-    boardTiles(tiles),
-  );
-  actions.concat(
-    Array.from(payouts, ([playerId, payout]) => `${players[playerId]} was paid $${payout}`),
-  );
+  const [payouts, actions] = calculateShareholderPayouts(mergedHotel, gameBoard);
+  const playerName = (playerId: number) =>
+    players.find((player) => player.id === playerId)?.name ?? `Player ${playerId}`;
+
+  // Every stockholder resolves their shares in turn order, starting with the merging player
+  const stockholders = getStockHolders(mergedHotel);
+  const start = Math.max(players.findIndex((player) => player.id === currentPlayer), 0);
+  const stockholderIds = players
+    .map((_, i) => players[(start + i) % players.length].id)
+    .filter((playerId) => stockholders.has(playerId));
+
   return [{
     mergerTieContext: undefined,
     players: players.map((player) => {
@@ -33,12 +42,17 @@ export const prepareMergerReducer = (
     }),
     tiles: updateTiles(tiles, result.survivorTiles),
     mergeContext: {
-      stockholderIds: Array.from(payouts, (payout) => payout[0]),
+      stockholderIds,
       survivingHotel: result.survivingHotel,
       mergedHotel: result.mergedHotel,
+      // Captured before the merged hotel's tiles are absorbed by the survivor
+      mergedHotelSize: hotelTiles(result.mergedHotel, gameBoard).length,
       originalHotels: result.remainingHotels,
       // Remaining tiles have been absorbed into surviving hotel
       additionalTiles: [],
     },
-  }, actions];
+  }, [
+    ...actions,
+    ...Array.from(payouts, ([playerId, payout]) => `${playerName(playerId)} was paid $${payout}`),
+  ]];
 };

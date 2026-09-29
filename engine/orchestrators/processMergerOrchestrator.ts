@@ -6,6 +6,7 @@ import {
 } from '../types/index.ts';
 import { boardTiles, getMergeContext, mergeHotels } from '../domain/index.ts';
 import { prepareMergerReducer } from '../reducers/prepareMergerReducer.ts';
+import { proceedToBuySharesOrchestrator } from './proceedToBuySharesOrchestrator.ts';
 
 export const processMergerOrchestrator = (
   gameState: GameState,
@@ -20,13 +21,15 @@ export const processMergerOrchestrator = (
   );
   // Found a tie, send back to player for resolution
   if (result.needsMergeOrder) {
+    // Drop details of any previous merger so they aren't mistaken for the pending one
+    const { originalHotels, additionalTiles, survivingHotel } = result.mergeContext;
     return [{
       ...gameState,
       currentPhase: GamePhase.BREAK_MERGER_TIE,
       mergerTieContext: {
         tiedHotels: result.tiedHotels,
       },
-      mergeContext: { ...gameState.mergeContext, ...result.mergeContext },
+      mergeContext: { originalHotels, additionalTiles, survivingHotel },
     }, []];
   }
   const [updatedState, actions] = prepareMergerReducer(
@@ -34,17 +37,26 @@ export const processMergerOrchestrator = (
     gameState.tiles,
     gameState.hotels,
     result,
+    gameState.currentPlayer,
   );
-  return [
-    {
-      ...gameState,
-      currentPhase: GamePhase.RESOLVE_MERGER,
-      ...updatedState,
-    },
-    [{
-      turn: gameState.currentTurn,
-      action:
-        `${gameState.currentPlayer} merged ${result.mergedHotel} into ${result.survivingHotel}`,
-    }, ...actions.map((action) => ({ turn: gameState.currentTurn, action }))],
-  ];
+  const mergedState: GameState = {
+    ...gameState,
+    currentPhase: GamePhase.RESOLVE_MERGER,
+    ...updatedState,
+  };
+  const mergerActions = [{
+    turn: gameState.currentTurn,
+    action: `${
+      gameState.players[gameState.currentPlayer].name
+    } merged ${result.mergedHotel} into ${result.survivingHotel}`,
+  }, ...actions.map((action) => ({ turn: gameState.currentTurn, action }))];
+
+  if (mergedState.mergeContext?.stockholderIds?.length) {
+    return [mergedState, mergerActions];
+  }
+  // Nobody holds shares in the merged hotel, so there's nothing to resolve
+  const [nextState, nextActions] = mergedState.mergeContext?.originalHotels.length
+    ? processMergerOrchestrator(mergedState)
+    : proceedToBuySharesOrchestrator(mergedState);
+  return [nextState, [...mergerActions, ...nextActions]];
 };

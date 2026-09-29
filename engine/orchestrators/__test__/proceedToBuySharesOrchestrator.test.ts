@@ -32,6 +32,9 @@ Deno.test('proceedToBuySharesOrchestrator advances turn when player cannot buy',
   const tiles = [
     { row: 0, col: 0, location: 'board', hotel: 'Worldwide' },
     { row: 0, col: 1, location: 'bag' },
+    // Hands away from the board so every tile is playable
+    ...Array.from({ length: 5 }, (_, col) => ({ row: 8, col, location: 0 })),
+    ...Array.from({ length: 6 }, (_, col) => ({ row: 7, col, location: 1 })),
   ] as unknown as any[];
 
   const gameState = {

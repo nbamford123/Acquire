@@ -15,9 +15,12 @@ export interface MergeContext {
   additionalTiles: BoardTile[];
   survivingHotel?: HOTEL_NAME;
   mergedHotel?: HOTEL_NAME;
+  // Size of the merged hotel before its tiles were absorbed, used to price its shares
+  mergedHotelSize?: number;
   pendingTieBreaker?: {
     tiedHotels: HOTEL_NAME[];
   };
+  // Players who still need to sell/trade/keep merged shares, in turn order from the merging player
   stockholderIds?: number[];
 }
 

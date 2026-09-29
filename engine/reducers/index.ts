@@ -6,3 +6,4 @@ export { prepareMergerReducer } from './prepareMergerReducer.ts';
 export { buySharesReducer } from './buySharesReducer.ts';
 export { endGameReducer } from './endGameReducer.ts';
 export { drawAndReplaceTilesReducer } from './drawAndReplaceTilesReducer.ts';
+export { redrawHandReducer } from './redrawHandReducer.ts';

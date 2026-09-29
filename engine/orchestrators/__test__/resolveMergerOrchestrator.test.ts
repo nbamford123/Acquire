@@ -27,6 +27,7 @@ Deno.test('resolveMergerOrchestrator reduces stockholderIds when multiple remain
       stockholderIds: [1, 0],
       survivingHotel: 'Worldwide',
       mergedHotel: 'Luxor',
+      mergedHotelSize: 1,
       originalHotels: ['Worldwide', 'Luxor'],
       additionalTiles: [],
     },
@@ -60,6 +61,7 @@ Deno.test('resolveMergerOrchestrator proceeds to BUY_SHARES when done', () => {
       stockholderIds: [0],
       survivingHotel: 'Worldwide',
       mergedHotel: 'Luxor',
+      mergedHotelSize: 1,
       originalHotels: ['Worldwide'],
       additionalTiles: [],
     },
@@ -119,6 +121,7 @@ Deno.test('resolveMergerOrchestrator triggers processMergerOrchestrator when mor
       stockholderIds: [],
       survivingHotel: 'Worldwide',
       mergedHotel: 'Luxor',
+      mergedHotelSize: 1,
       originalHotels: ['Worldwide', 'Luxor'],
       additionalTiles: [],
     },
@@ -163,6 +166,7 @@ Deno.test('resolveMergerOrchestrator proceeds to proceedToBuyShares when no more
       stockholderIds: [],
       survivingHotel: 'Worldwide',
       mergedHotel: 'Luxor',
+      mergedHotelSize: 1,
       originalHotels: [],
       additionalTiles: [],
     },
@@ -211,6 +215,7 @@ Deno.test('resolveMergerOrchestrator applies sell and trade shares for stockhold
       stockholderIds: [0],
       survivingHotel: 'Worldwide',
       mergedHotel: 'Luxor',
+      mergedHotelSize: 1,
       originalHotels: [],
       additionalTiles: [],
     },
@@ -258,6 +263,7 @@ Deno.test('resolveMergerOrchestrator prefers stockholder path over cascading mer
       stockholderIds: [1, 2],
       survivingHotel: 'Worldwide',
       mergedHotel: 'Luxor',
+      mergedHotelSize: 1,
       originalHotels: ['Festival'],
       additionalTiles: [],
     },
@@ -303,6 +309,7 @@ Deno.test('resolveMergerOrchestrator multi-merge cascade completes to buy shares
       stockholderIds: [],
       survivingHotel: 'Worldwide',
       mergedHotel: 'Luxor',
+      mergedHotelSize: 1,
       originalHotels: ['Festival'],
       additionalTiles: [],
     },
@@ -385,7 +392,8 @@ Deno.test('resolveMergerOrchestrator throws for invalid hotel names', () => {
 Deno.test('resolveMergerOrchestrator handles undefined stockholderIds and proceeds to processMerger when originals exist', () => {
   const tiles = [
     { row: 0, col: 0, location: 'board', hotel: 'Worldwide' },
-    { row: 0, col: 1, location: 'board', hotel: 'Luxor' },
+    { row: 0, col: 1, location: 'board', hotel: 'Worldwide' },
+    { row: 0, col: 2, location: 'board', hotel: 'Festival' },
   ] as unknown as any[];
 
   const gameState = {
@@ -396,31 +404,33 @@ Deno.test('resolveMergerOrchestrator handles undefined stockholderIds and procee
     currentPlayer: 0,
     lastUpdated: Date.now(),
     players: [{ id: 0, name: 'P0', money: 0 }],
-    hotels: [makeHotel('Worldwide'), makeHotel('Luxor')],
+    hotels: [makeHotel('Worldwide'), makeHotel('Luxor'), {
+      ...makeHotel('Festival'),
+      shares: [{ location: 0 }, ...Array.from({ length: 24 }, () => ({ location: 'bank' }))],
+    }],
     tiles,
     mergeContext: {
       // stockholderIds omitted
       survivingHotel: 'Worldwide',
       mergedHotel: 'Luxor',
-      originalHotels: ['Luxor'],
+      mergedHotelSize: 1,
+      originalHotels: ['Festival'],
       additionalTiles: [],
     },
   } as unknown as any;
 
-  try {
-    const [state, actions] = resolveMergerOrchestrator(gameState, {
-      type: 'RESOLVE_MERGER',
-      payload: { player: 'P0', shares: undefined },
-    } as any);
-    const ok = [GamePhase.BREAK_MERGER_TIE, GamePhase.RESOLVE_MERGER].includes(state.currentPhase);
-    if (!ok) throw new Error(`Unexpected phase: ${String(state.currentPhase)}`);
-  } catch (err: any) {
-    const msg = (err && err.message) || String(err);
-    if (msg.includes('No price bracket found') || msg.includes('Need at least 2 hotels to merge')) {
-      return;
-    }
-    throw err;
-  }
+  const [state, actions] = resolveMergerOrchestrator(gameState, {
+    type: 'RESOLVE_MERGER',
+    payload: { player: 'P0', shares: undefined },
+  } as any);
+  // Festival merges into the surviving Worldwide
+  assertEquals(state.currentPhase, GamePhase.RESOLVE_MERGER);
+  assertEquals(state.mergeContext?.survivingHotel, 'Worldwide');
+  assertEquals(state.mergeContext?.mergedHotel, 'Festival');
+  assertEquals(state.mergeContext?.mergedHotelSize, 1);
+  assertEquals(state.mergeContext?.stockholderIds, [0]);
+  assertEquals(actions[0].action, 'P0 kept 0 shares of Luxor');
+  assertEquals(actions[1].action, 'P0 merged Festival into Worldwide');
 });
 
 Deno.test('resolveMergerOrchestrator handles undefined originalHotels and proceeds to buy when no stockholders', () => {
@@ -442,6 +452,7 @@ Deno.test('resolveMergerOrchestrator handles undefined originalHotels and procee
       stockholderIds: [],
       survivingHotel: 'Worldwide',
       mergedHotel: 'Luxor',
+      mergedHotelSize: 1,
       originalHotels: [],
       additionalTiles: [],
     },
@@ -481,6 +492,7 @@ Deno.test('resolveMergerOrchestrator handles sell-only shares and awards income'
       stockholderIds: [],
       survivingHotel: 'Worldwide',
       mergedHotel: 'Luxor',
+      mergedHotelSize: 1,
       originalHotels: [],
       additionalTiles: [],
     },
@@ -527,6 +539,7 @@ Deno.test('resolveMergerOrchestrator handles trade-only shares and reduces stock
       stockholderIds: [0, 1],
       survivingHotel: 'Worldwide',
       mergedHotel: 'Luxor',
+      mergedHotelSize: 1,
       originalHotels: [],
       additionalTiles: [],
     },
