@@ -85,7 +85,6 @@ export class DashboardView extends LightComponent {
   }
 
   private handleGameSelect(gameId: string) {
-    console.log('Game selected:', gameId);
     this.dispatchEvent(
       new CustomEvent<string>('game-select', {
         detail: gameId,

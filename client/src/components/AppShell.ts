@@ -240,7 +240,6 @@ export class AppShell extends LightComponent {
   };
 
   private closeConfirmDialog = () => {
-    console.log('closing dialog');
     this.querySelector<HTMLDialogElement>('.confirm-dialog')?.close();
   };
 

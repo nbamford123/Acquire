@@ -129,10 +129,10 @@ None of these change what players see; pick them up whenever.
       drop `--unstable-kv` from the `dev` task since `deno.json` already sets it, and exclude
       `client/dist` from `deno check`, which type-checks the bundle whenever a local build
       exists (S)
-- [ ] Small cleanups: the class in `GameCard.ts` is named `DashboardView`, GameBoardView imports
+- [x] Small cleanups: the class in `GameCard.ts` is named `DashboardView`, GameBoardView imports
       `GamePhase` by relative path instead of from `@acquire/engine/types`, and leftover debug
       `console.log`s remain in GameBoardView, AppShell, DashboardView, and ApiService (S)
-- [ ] Break merger ties by player id rather than name, and domain prefixes for error codes (from
+- [x] Break merger ties by player id rather than name, and domain prefixes for error codes (from
       `TODO(me)` comments) (S)
 - [ ] Server debug view of API requests and responses (M)
 
