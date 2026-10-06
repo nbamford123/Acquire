@@ -17,6 +17,13 @@ export async function saveGameState(state: GameState) {
   await kv.set(['games', state.gameId], state);
 }
 
+// Saves a new game, returning false if its id is already taken
+export async function createGame(state: GameState): Promise<boolean> {
+  const key = ['games', state.gameId];
+  const result = await kv.atomic().check({ key, versionstamp: null }).set(key, state).commit();
+  return result.ok;
+}
+
 export async function getGameState(gameId: string): Promise<GameState | null> {
   const result = await kv.get<GameState>(['games', gameId]);
   return result.value;

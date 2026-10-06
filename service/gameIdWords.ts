@@ -1,0 +1,48 @@
+// The words game ids are made from, as adjective-noun-number, e.g. "grand-harbor-42". Edit these
+// freely: words are lowercased and anything other than letters and digits becomes a hyphen, so
+// "Art Deco" works. Ids already in use keep working whatever changes here.
+export const adjectives = [
+  'grand',
+  'golden',
+  'quiet',
+  'royal',
+  'sunny',
+  'velvet',
+  'marble',
+  'crimson',
+  'silver',
+  'emerald',
+  'midnight',
+  'coastal',
+  'rooftop',
+  'lucky',
+  'bold',
+  'swift',
+  'hidden',
+  'gilded',
+  'neon',
+  'rustic',
+];
+
+export const nouns = [
+  'tower',
+  'luxor',
+  'worldwide',
+  'american',
+  'festival',
+  'imperial',
+  'continental',
+  'harbor',
+  'plaza',
+  'lobby',
+  'suite',
+  'atrium',
+  'terrace',
+  'ballroom',
+  'boulevard',
+  'skyline',
+  'merger',
+  'tycoon',
+  'penthouse',
+  'promenade',
+];

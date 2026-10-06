@@ -1,13 +1,14 @@
 import type { Context, Hono } from 'hono';
 import type { GameAction, GameInfo, GameState, PlayerAction } from '@acquire/engine/types';
 import { createToken, validateUser } from './auth.ts';
+import { newGameId } from './gameIds.ts';
 import {
+  createGame,
   deleteGame,
   getAllGames,
   getGameEntry,
   getGameState,
   getPlayerActions,
-  saveGameState,
   saveMove,
 } from './dataLayer.ts';
 import { initializeGame, processAction } from '@acquire/engine/core';
@@ -24,7 +25,8 @@ const isProduction = Deno.env.get('ENV') === 'production';
 // The built client, found from this file so the service can run from any directory
 const clientDist = `${import.meta.dirname}/../client/dist`;
 
-const uid = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
+// Tries for a new game before giving up; with the default words, ids rarely collide
+const GAME_ID_ATTEMPTS = 10;
 
 const parseJsonBody = async (ctx: Context) => {
   try {
@@ -68,10 +70,13 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
     try {
       const user = ctx.get('user') || '';
 
-      const gameId = uid();
-      const game = initializeGame(gameId, user);
-      await saveGameState(game);
-      return ctx.json({ gameId: gameId }, 201);
+      for (let attempt = 0; attempt < GAME_ID_ATTEMPTS; attempt++) {
+        const game = initializeGame(newGameId(), user);
+        if (await createGame(game)) {
+          return ctx.json({ gameId: game.gameId }, 201);
+        }
+      }
+      return ctx.json({ error: "Couldn't find a free game id; try again" }, 500);
     } catch (error) {
       return ctx.json({
         error: (error instanceof Error) ? error.message : String(error),
@@ -99,6 +104,10 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       return ctx.json({ error: 'Game not found' }, 404);
     }
     const user = ctx.get('user') || '';
+    // Each player sees their own view, so there's nothing to show anyone else
+    if (!game.players.some((player) => player.name === user)) {
+      return ctx.json({ error: "You're not in this game" }, 403);
+    }
     const actions = await getPlayerActions(gameId);
     return ctx.json({ game: getPlayerView(user, game, actions) });
   });
@@ -157,6 +166,10 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       const saved = await saveMove(updatedGame, versionstamp, previousActions.length, actions);
       if (!saved) {
         return ctx.json({ error: 'The game changed before your move was saved; try again' }, 409);
+      }
+      // A player who just left has no view of the game
+      if (!updatedGame.players.some((player) => player.name === user)) {
+        return ctx.json({ action: action.type });
       }
       const currentActions = previousActions.concat(actions);
       return ctx.json({

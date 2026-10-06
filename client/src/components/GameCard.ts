@@ -55,6 +55,10 @@ export class DashboardView extends StyledComponent {
         background-color: hsl(45, 100%, 90%);
         color: hsl(45, 100%, 30%);
       }
+      .status-full {
+        background-color: hsl(0, 70%, 92%);
+        color: hsl(0, 60%, 40%);
+      }
       .status-finished {
         background-color: hsl(205, 30%, 90%);
         color: hsl(205, 30%, 40%);
@@ -97,6 +101,9 @@ export class DashboardView extends StyledComponent {
       }
       .game-card h3 {
         margin: 0 0 0.5rem 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
         font-size: 1.25rem;
         color: var(--pico-color-azure-700);
       }
@@ -114,7 +121,8 @@ export class DashboardView extends StyledComponent {
         flex-wrap: wrap;
         gap: 0.5rem;
       }
-      .card-actions button {
+      .card-actions button,
+      .card-actions [role='button'] {
         flex: 1 1 auto;
         margin: 0;
       }
@@ -126,100 +134,94 @@ export class DashboardView extends StyledComponent {
     `,
   ];
 
+  private get isPlayer() {
+    return this.game.players.includes(this.user ?? '');
+  }
+
+  private get isFull() {
+    return this.game.players.length >= MAX_PLAYERS;
+  }
+
+  private get waiting() {
+    return this.game.phase === GamePhase.WAITING_FOR_PLAYERS;
+  }
+
   private getStatusClass(): string {
-    switch (this.game.phase) {
-      case GamePhase.WAITING_FOR_PLAYERS:
-        return 'status-waiting';
-      case GamePhase.GAME_OVER:
-        return 'status-finished';
-      default:
-        return 'status-active';
-    }
+    if (this.waiting) return this.isFull ? 'status-full' : 'status-waiting';
+    return this.game.phase === GamePhase.GAME_OVER ? 'status-finished' : 'status-active';
   }
 
   private getStatusMessage(): string {
-    switch (this.game.phase) {
-      case GamePhase.WAITING_FOR_PLAYERS:
-      case GamePhase.GAME_OVER:
-        return this.game.phase;
-      default:
-        return `${
-          this.game.currentPlayer === this.user ? 'Your' : `${this.game.currentPlayer}\'s`
-        } turn`;
-    }
+    if (this.waiting) return this.isFull ? 'Full' : this.game.phase;
+    if (this.game.phase === GamePhase.GAME_OVER) return this.game.phase;
+    return `${
+      this.game.currentPlayer === this.user ? 'Your' : `${this.game.currentPlayer}'s`
+    } turn`;
   }
 
-  private getPrimaryButton() {
-    const curPlayer = this.game.players.find((u) => u === this.user);
-    const isFull = this.game.players.length >= MAX_PLAYERS;
-    const canJoin = !curPlayer && !isFull && this.game.phase === GamePhase.WAITING_FOR_PLAYERS;
+  // The dashboard handles these, confirming first where needed
+  private emit(name: 'game-select' | 'game-join' | 'game-start' | 'game-leave' | 'game-delete') {
+    this.dispatchEvent(
+      new CustomEvent<string>(name, { detail: this.game.id, bubbles: true, composed: true }),
+    );
+  }
 
-    if (canJoin) {
-      return html`
-        <button @click="${() =>
-          this.dispatchEvent(
-            new CustomEvent<string>('game-join', {
-              detail: this.game.id,
-              bubbles: true,
-              composed: true,
-            }),
-          )}">Join Game</button>
-      `;
+  // A plain click opens the game in the app; modified clicks open a new tab or window as usual
+  private openGame(event: MouseEvent) {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
     }
+    event.preventDefault();
+    this.emit('game-select');
+  }
+
+  private renderActions() {
+    const isOwner = this.game.owner === this.user;
     return html`
-      <button @click="${() =>
-        this.dispatchEvent(
-          new CustomEvent<string>('game-select', {
-            detail: this.game.id,
-            bubbles: true,
-            composed: true,
-          }),
-        )}">${`${curPlayer ? 'Play' : 'View'} Game`}</button>
+      ${this.isPlayer
+        ? html`
+          <a
+            role="button"
+            href="/game/${encodeURIComponent(this.game.id)}"
+            @click="${this.openGame}"
+          >Play Game</a>
+        `
+        : this.waiting && !this.isFull
+        ? html`
+          <button @click="${() => this.emit('game-join')}">Join Game</button>
+        `
+        : ''} ${isOwner && this.waiting && this.game.players.length > 1
+        ? html`
+          <button class="secondary" @click="${() => this.emit('game-start')}">Start Game</button>
+        `
+        : ''} ${this.isPlayer && !isOwner && this.waiting
+        ? html`
+          <button class="secondary outline" @click="${() => this.emit('game-leave')}">
+            Leave Game
+          </button>
+        `
+        : ''} ${isOwner
+        ? html`
+          <button class="contrast" @click="${() => this.emit('game-delete')}">Delete Game</button>
+        `
+        : ''}
     `;
   }
 
   public override render() {
     const isOwner = this.game.owner === this.user;
-
     return html`
-      <article
-        class="game-card"
-      >
+      <article class="game-card">
         <header class="game-card-header">
-          <h3>${this.game.id.slice(0, 8)}</h3>
+          <h3 title="${this.game.id}">${this.game.id}</h3>
           <span class="${`game-status ${this.getStatusClass()}`}">${this.getStatusMessage()}</span>
         </header>
         <div class="game-meta">
-          <span>👥 ${`${this.game.players.length}/6 players`}</span>
+          <span>👥 ${`${this.game.players.length}/${MAX_PLAYERS} players`}</span>
+          <span>👤 ${isOwner ? 'Your game' : `Hosted by ${this.game.owner}`}</span>
           <span>🕐 ${updatedLabel(this.game.lastUpdated)}</span>
         </div>
-        <div class="card-actions">
-          ${this
-            .getPrimaryButton()} ${isOwner && this.game.phase === GamePhase.WAITING_FOR_PLAYERS &&
-              this.game.players.length > 1
-            ? html`
-              <button class="secondary" @click="${() =>
-                this.dispatchEvent(
-                  new CustomEvent<string>('game-start', {
-                    detail: this.game.id,
-                    bubbles: true,
-                    composed: true,
-                  }),
-                )}">Start Game</button>
-            `
-            : ''} ${isOwner
-            ? html`
-              <button class="contrast" @click="${() =>
-                this.dispatchEvent(
-                  new CustomEvent<string>('game-delete', {
-                    detail: this.game.id,
-                    bubbles: true,
-                    composed: true,
-                  }),
-                )}">Delete Game</button>
-            `
-            : ''}
-        </div>
+        <div class="card-actions">${this.renderActions()}</div>
       </article>
     `;
   }

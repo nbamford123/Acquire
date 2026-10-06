@@ -3,7 +3,13 @@ import { customElement, property, state } from 'lit/decorators.js';
 
 import { StyledComponent } from './StyledComponent.ts';
 import { deleteApi, getApi, postApi } from '../services/ApiService.ts';
-import { ActionTypes, AddPlayerAction, GameInfo, StartGameAction } from '@acquire/engine/types';
+import {
+  ActionTypes,
+  type AddPlayerAction,
+  type GameInfo,
+  type RemovePlayerAction,
+  type StartGameAction,
+} from '@acquire/engine/types';
 
 import './GameCard.ts';
 
@@ -101,7 +107,12 @@ export class DashboardView extends StyledComponent {
     this.handleGameSelect(newGame.gameId);
   }
 
+  private confirm(title: string, message: string) {
+    return this.showConfirmationDialog?.(title, message) ?? Promise.resolve(false);
+  }
+
   private handleGameJoin = async (event: CustomEvent<string>) => {
+    if (!await this.confirm('Join Game', `Join game ${event.detail}?`)) return;
     const action: AddPlayerAction = {
       type: ActionTypes.ADD_PLAYER,
       payload: { player: this.user || '' },
@@ -115,6 +126,11 @@ export class DashboardView extends StyledComponent {
   };
 
   private handleGameStart = async (event: CustomEvent<string>) => {
+    const confirmed = await this.confirm(
+      'Start Game',
+      `Start game ${event.detail}? No one else can join once it starts.`,
+    );
+    if (!confirmed) return;
     const action: StartGameAction = {
       type: ActionTypes.START_GAME,
       payload: { player: this.user || '' },
@@ -127,12 +143,22 @@ export class DashboardView extends StyledComponent {
     }
   };
 
+  private handleGameLeave = async (event: CustomEvent<string>) => {
+    if (!await this.confirm('Leave Game', `Leave game ${event.detail}?`)) return;
+    const action: RemovePlayerAction = {
+      type: ActionTypes.REMOVE_PLAYER,
+      payload: { player: this.user || '' },
+    };
+    await postApi(`/api/games/${event.detail}`, { action });
+    this.loadGames();
+  };
+
   private handleGameDelete = async (event: CustomEvent<string>) => {
-    const confirmation = this.showConfirmationDialog && await this.showConfirmationDialog(
+    const confirmed = await this.confirm(
       'Delete Game',
       `Are you sure you want to delete game ${event.detail}?`,
     );
-    if (confirmation) {
+    if (confirmed) {
       await deleteApi(`/api/games/${event.detail}`);
       this.loadGames();
     }
@@ -146,6 +172,7 @@ export class DashboardView extends StyledComponent {
         @game-join="${this.handleGameJoin}"
         @game-delete="${this.handleGameDelete}"
         @game-start="${this.handleGameStart}"
+        @game-leave="${this.handleGameLeave}"
       ></game-card>
     `;
 

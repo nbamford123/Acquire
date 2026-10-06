@@ -9,26 +9,56 @@ import { mount, settle } from './fixtures.ts';
 
 type Rendered = HTMLElement & { updateComplete: Promise<boolean> };
 
-const makeGame = (id: string): GameInfo => ({
+const makeGame = (id: string, overrides: Partial<GameInfo> = {}): GameInfo => ({
   id,
   currentPlayer: '',
   owner: 'nate',
   players: ['nate'],
   phase: GamePhase.WAITING_FOR_PLAYERS,
   lastUpdated: 100,
+  ...overrides,
 });
 
-// Serves GET /api/games from games, and DELETE /api/games/:id removes the game
+// Serves GET /api/games from games, DELETE /api/games/:id removes the game, and POSTed actions are
+// recorded
 const serve = (games: GameInfo[]) => {
+  const posted: unknown[] = [];
   const fetchStub = stub(globalThis, 'fetch', (input, init?: RequestInit) => {
     if (init?.method === 'DELETE') {
       const id = String(input).split('/').pop();
       games = games.filter((game) => game.id !== id);
       return Promise.resolve(new Response(null, { status: 204 }));
     }
+    if (init?.method === 'POST') {
+      posted.push(JSON.parse(String(init.body)).action);
+      return Promise.resolve(new Response(JSON.stringify({})));
+    }
     return Promise.resolve(new Response(JSON.stringify({ games })));
   });
-  return { [Symbol.dispose]: () => fetchStub.restore() };
+  return { posted, [Symbol.dispose]: () => fetchStub.restore() };
+};
+
+// What a card shows: its status and the label of each action
+const describeCard = (card: Rendered) => {
+  const root = card.shadowRoot!;
+  return {
+    status: root.querySelector('.game-status')?.textContent?.trim(),
+    actions: [...root.querySelectorAll('.card-actions button, .card-actions a')].map((el) =>
+      el.textContent?.trim()
+    ),
+  };
+};
+
+const mountDashboard = async (confirmed = true) => {
+  const asked: string[] = [];
+  const dashboard = await mount('dashboard-view', {
+    user: 'nate',
+    showConfirmationDialog: (title: string) => {
+      asked.push(title);
+      return Promise.resolve(confirmed);
+    },
+  }) as Rendered;
+  return { dashboard, asked, cards: await settleAll(dashboard) };
 };
 
 // Waits for the dashboard and each of its game cards to render
@@ -51,7 +81,10 @@ Deno.test('DashboardView - deleting a game removes its card', async () => {
   let cards = await settleAll(dashboard);
   assertEquals(cardIds(cards), ['game-a', 'game-b', 'game-c']);
 
-  (cards[0].shadowRoot!.querySelector('button.contrast') as HTMLButtonElement).click();
+  const deleteButton = [...cards[0].shadowRoot!.querySelectorAll('button')].find((button) =>
+    button.textContent?.trim() === 'Delete Game'
+  )!;
+  deleteButton.click();
   // The delete, then the reload
   await settle(dashboard);
   cards = await settleAll(dashboard);
@@ -67,4 +100,70 @@ Deno.test('updatedLabel - shows the date only for games not updated today', () =
   const earlier = new Date(2026, 8, 29, 16, 29);
   const day = earlier.toLocaleDateString([], { month: 'short', day: 'numeric' });
   assertEquals(updatedLabel(earlier.getTime(), now), `Updated ${day}, ${time(earlier)}`);
+});
+
+Deno.test('DashboardView - cards show what you can do in each game', async () => {
+  using _server = serve([
+    makeGame('mine', { players: ['nate', 'alice'] }),
+    makeGame('joined', { owner: 'alice', players: ['alice', 'nate'] }),
+    makeGame('open', { owner: 'alice', players: ['alice'] }),
+    makeGame('full', { owner: 'alice', players: ['a', 'b', 'c', 'd', 'e', 'f'] }),
+    makeGame('started', {
+      owner: 'alice',
+      players: ['alice', 'bob'],
+      phase: GamePhase.PLAY_TILE,
+      currentPlayer: 'bob',
+    }),
+  ]);
+  const { dashboard, cards } = await mountDashboard();
+  assertEquals(cards.map(describeCard), [
+    {
+      status: 'Waiting for players',
+      actions: ['Play Game', 'Start Game', 'Delete Game'],
+    },
+    { status: 'Waiting for players', actions: ['Play Game', 'Leave Game'] },
+    { status: 'Waiting for players', actions: ['Join Game'] },
+    { status: 'Full', actions: [] },
+    { status: "bob's turn", actions: [] },
+  ]);
+  const meta = (card: Rendered) => card.shadowRoot!.querySelector('.game-meta')?.textContent;
+  assertEquals(meta(cards[0])?.includes('Your game'), true);
+  assertEquals(meta(cards[1])?.includes('Hosted by alice'), true);
+  // Play is a real link, so it can open in a new tab
+  assertEquals(cards[0].shadowRoot!.querySelector('a')?.getAttribute('href'), '/game/mine');
+  dashboard.remove();
+});
+
+Deno.test('DashboardView - joining, starting, and leaving ask first', async () => {
+  using server = serve([
+    makeGame('mine', { players: ['nate', 'alice'] }),
+    makeGame('joined', { owner: 'alice', players: ['alice', 'nate'] }),
+    makeGame('open', { owner: 'alice', players: ['alice'] }),
+  ]);
+  const click = (card: Rendered, label: string) =>
+    ([...card.shadowRoot!.querySelectorAll('button')].find((button) =>
+      button.textContent?.trim() === label
+    ) as HTMLButtonElement).click();
+
+  // Cancelling does nothing
+  const declined = await mountDashboard(false);
+  click(declined.cards[2], 'Join Game');
+  click(declined.cards[0], 'Start Game');
+  click(declined.cards[1], 'Leave Game');
+  await settleAll(declined.dashboard);
+  assertEquals(declined.asked, ['Join Game', 'Start Game', 'Leave Game']);
+  assertEquals(server.posted, []);
+  declined.dashboard.remove();
+
+  const accepted = await mountDashboard(true);
+  click(accepted.cards[2], 'Join Game');
+  click(accepted.cards[0], 'Start Game');
+  click(accepted.cards[1], 'Leave Game');
+  await settleAll(accepted.dashboard);
+  assertEquals(server.posted, [
+    { type: 'ADD_PLAYER', payload: { player: 'nate' } },
+    { type: 'START_GAME', payload: { player: 'nate' } },
+    { type: 'REMOVE_PLAYER', payload: { player: 'nate' } },
+  ]);
+  accepted.dashboard.remove();
 });

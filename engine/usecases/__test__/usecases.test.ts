@@ -60,6 +60,19 @@ Deno.test('removePlayerUseCase: removes an existing player during waiting phase'
   assertEquals(result.players[0].name, 'Alice');
 });
 
+Deno.test("removePlayerUseCase: the owner can't leave", () => {
+  const state = makeBaseState({
+    owner: 'Alice',
+    players: [{ id: 0, name: 'Alice', money: 0 }, { id: 1, name: 'Bob', money: 0 }],
+  });
+  assertThrows(
+    () =>
+      removePlayerUseCase(state, { type: 'REMOVE_PLAYER', payload: { player: 'Alice' } } as any),
+    Error,
+    "The owner can't leave the game; delete it instead",
+  );
+});
+
 Deno.test('removePlayerUseCase: throws when not in waiting phase', () => {
   const state = makeBaseState({
     currentPhase: GamePhase.PLAY_TILE,

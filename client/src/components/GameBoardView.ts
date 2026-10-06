@@ -255,9 +255,12 @@ export class GameBoardView extends StyledComponent {
   }
 
   // Player who needs to act: the next stockholder while resolving a merger, otherwise the current
-  // player, and nobody once the game is over
+  // player, and nobody before the game starts or once it's over
   private get activePlayer() {
-    if (this.playerView?.finalStandings) return undefined;
+    if (
+      this.playerView?.finalStandings ||
+      this.playerView?.currentPhase === GamePhase.WAITING_FOR_PLAYERS
+    ) return undefined;
     return this.playerView?.pendingMergePlayer ?? this.playerView?.currentPlayer;
   }
 

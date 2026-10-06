@@ -16,12 +16,6 @@
 
 - leaderboard: total $ per player across finished games
   - final money is already computed at game over (`finalStandings`); it would need saving per player (e.g. a KV entry per player) when a game ends
-- make the join/etc. buttons styled links
-- create game states for 6/6 players, playing/other owner/etc
-  - a full game already shows "View Game" and only the owner sees Delete; a "Full" status is missing
-- join/start game confirmation dialog (delete has one)
-- before game has started, players can leave, confimation dialog
-  - the engine already handles `REMOVE_PLAYER`
 
 ## Game Board
 
@@ -46,9 +40,6 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
 
 - many of the actions have "player" as the payload, but the server could get that from the auth cookie. Is there really a need to send it? Maybe the service can add it? Of course then I can't really use the action type in the client, since it will be missing the proper payload...
 - root deno.json should have a task to run the client in dev mode, too
-- better game ids, something like they do for docker instances on desktop
-  - the game card shows only the first 8 characters of today's ids, which is why names look cut off
-- prompts on create/join game?
 - test request failures-- does client display an error?
   - rejected moves now return 400 and the client shows the reason as an error toast; there's no UI test for it yet
 - add at least a debug view where the api server logs requests and responses
