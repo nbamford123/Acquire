@@ -77,9 +77,10 @@ const getGameView = (
         [hotel.name]: {
           shares: hotel.shares.filter((share) => share.location === 'bank').length,
           size: board.filter((tile) => tile.hotel === hotel.name).length,
+          ...(hotel.marker ? { marker: hotel.marker } : {}),
         },
       }),
-      {} as Record<HOTEL_NAME, { shares: number; size: number }>,
+      {} as GameView['hotels'],
     ),
     board,
     mergerTieContext: gameState.mergerTieContext,

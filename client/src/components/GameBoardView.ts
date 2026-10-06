@@ -152,8 +152,30 @@ export class GameBoardView extends LightComponent {
     this.pendingAction = { action, description: desc };
   }
 
+  // Where each hotel's marker sits, like the physical game's: the tile that founded it while that's
+  // still in the hotel, otherwise its top-left tile (games from before markers were recorded)
+  private markerTiles(view: GameView) {
+    const markers = new Map<string, HOTEL_NAME>();
+    for (
+      const [hotel, { marker }] of Object.entries(view.hotels) as [
+        HOTEL_NAME,
+        GameView['hotels'][HOTEL_NAME],
+      ][]
+    ) {
+      const tiles = view.board.filter((tile) => tile.hotel === hotel);
+      if (!tiles.length) continue;
+      const at = tiles.find((tile) => tile.row === marker?.row && tile.col === marker?.col) ??
+        tiles.reduce((first, tile) =>
+          tile.row < first.row || (tile.row === first.row && tile.col < first.col) ? tile : first
+        );
+      markers.set(`${at.row},${at.col}`, hotel);
+    }
+    return markers;
+  }
+
   private renderBoard() {
     const cells: TemplateResult<1>[] = [];
+    const markers = this.playerView ? this.markerTiles(this.playerView) : new Map();
 
     for (let row = 0; row < ROWS; row++) {
       for (let col = 0; col < COLS; col++) {
@@ -161,21 +183,25 @@ export class GameBoardView extends LightComponent {
         const placedTile = this.playerView?.board.find((tile) =>
           tile.row === row && tile.col === col
         );
+        const marker = markers.get(`${row},${col}`);
         cells.push(html`
           <div
             class="board-cell ${placedTile
               ? 'placed'
               : ''} ${placedTile?.hotel?.toLocaleLowerCase() || ''}"
           >
-            ${placedTile?.hotel
+            ${marker
               ? html`
-                <span class="cell-icon" aria-hidden="true">${hotelIcons[placedTile.hotel]}</span>
+                <span class="cell-marker" aria-hidden="true">${hotelIcons[marker]}</span>
+                <span class="sr-only">${position}, ${marker}</span>
               `
-              : ''}${position}${placedTile
-              ? html`
-                <span class="sr-only">, ${placedTile.hotel ?? 'placed'}</span>
-              `
-              : ''}
+              : html`
+                ${position}${placedTile
+                  ? html`
+                    <span class="sr-only">, ${placedTile.hotel ?? 'placed'}</span>
+                  `
+                  : ''}
+              `}
           </div>
         `);
       }

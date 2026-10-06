@@ -153,3 +153,15 @@ Deno.test('foundHotelReducer: does not modify other hotels', () => {
   const unchanged = Luxor && Luxor.shares.some((s: any) => s.location === 2);
   assert(unchanged);
 });
+
+Deno.test('foundHotelReducer: marks the hotel at the tile played to found it', () => {
+  const hotels = [{ name: 'Tower', shares: [{ location: 'bank' }] }] as unknown as Hotel[];
+  // The played tile comes first, then the tile it joined
+  const context = { tiles: [{ row: 2, col: 3 }, { row: 2, col: 2 }] } as unknown as FoundHotelContext;
+  const tiles = [
+    { row: 2, col: 3, location: 'board' },
+    { row: 2, col: 2, location: 'board' },
+  ] as unknown as Tile[];
+  const result = foundHotelReducer(0, hotels, 'Tower' as HOTEL_NAME, context, tiles);
+  assertEquals(result.hotels?.[0].marker, { row: 2, col: 3 });
+});

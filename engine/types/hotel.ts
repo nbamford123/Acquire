@@ -34,6 +34,9 @@ export const HOTEL_CONFIG = {
 export type Hotel = {
   name: HOTEL_NAME;
   shares: Share[];
+  // The tile played to found it, where the board shows its marker. Games from before markers don't
+  // have one, and it's left in place after the hotel is merged away until it's founded again.
+  marker?: { row: number; col: number };
 };
 
 export const SharePrices: Record<

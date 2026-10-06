@@ -170,7 +170,6 @@ export const styles = css`
     box-shadow: var(--slot-shadow);
     border-radius: 4px;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     line-height: 1;
@@ -181,10 +180,9 @@ export const styles = css`
     aspect-ratio: 1;
   }
 
-  /* A founded hotel's icon, above the tile's label; it scales with the board like the label */
-  .cell-icon {
-    font-size: clamp(0.65rem, 3.2cqi, 1.5rem);
-    margin-bottom: 0.15em;
+  /* A hotel's marker fills one of its tiles in place of the label; it scales with the board */
+  .cell-marker {
+    font-size: clamp(0.9rem, 5.5cqi, 3rem);
   }
 
   /* Tiles in a hotel take its color; others use Pico's primary */

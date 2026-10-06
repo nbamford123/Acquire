@@ -939,3 +939,12 @@ Deno.test('getSpectatorView - the log shows the last full round', () => {
   const roundTwo = createGameState({ currentTurn: 2, currentPlayer: 0 });
   assertEquals(getSpectatorView(roundTwo, twoRounds).actions, twoRounds.slice(1));
 });
+
+Deno.test("getPlayerView - passes on where each hotel's marker is", () => {
+  const base = createGameState();
+  const [first, ...rest] = base.hotels;
+  const gameState = { ...base, hotels: [{ ...first, marker: { row: 1, col: 2 } }, ...rest] };
+  const view = getPlayerView('player1', gameState);
+  assertEquals(view.hotels[first.name].marker, { row: 1, col: 2 });
+  assertEquals('marker' in view.hotels[rest[0].name], false);
+});

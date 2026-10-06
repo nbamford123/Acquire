@@ -32,6 +32,8 @@ export const foundHotelReducer = (
             shares: hotel.shares.map((share, idx) =>
               idx === awardedShare ? { ...share, location: playerId } : share
             ),
+            // The played tile comes first in the context
+            marker: { row: context.tiles[0].row, col: context.tiles[0].col },
           }
           : hotel
       ),
