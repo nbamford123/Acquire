@@ -2,10 +2,10 @@
 
 ## Client general
 
-1. fix light/dark mode over every screen
+1. fix light/dark mode over every screen (only the app shell and game card handle it)
 2. improve layout
 
-- Put the unicode characters for hotels on the tiles when they are founded?
+- Put the unicode characters for hotels on the tiles when they are founded? (the bank cards have them)
 - we need to enforce types on the api calls
 
 ## Action Card
@@ -14,26 +14,27 @@
 
 ## Dashboard
 
-- make the time calculation work right, and add "updated" or "created".
-  - `lastUpdated` now changes on every move (it was only set at creation), so this may already work
-- long game names are cut off, and the game card's three buttons overflow it on narrow screens
+- label the time on the game card, e.g. "Updated"; it already shows the last move's time
+- the game card's three buttons overflow it on narrow screens
 - leaderboard: total $ per player across finished games
   - final money is already computed at game over (`finalStandings`); it would need saving per player (e.g. a KV entry per player) when a game ends
 - make the join/etc. buttons styled links
 - create game states for 6/6 players, playing/other owner/etc
-- join/delete/start game -confirmation dialog
+  - a full game already shows "View Game" and only the owner sees Delete; a "Full" status is missing
+- join/start game confirmation dialog (delete has one)
 - before game has started, players can leave, confimation dialog
+  - the engine already handles `REMOVE_PLAYER`
 
 ## Game Board
 
-- put the hotel type (economy, standard, luxury) on the bank card as well as the lowest price when inactive
+- put the hotel type (economy, standard, luxury) on the bank card (the price already shows, including when inactive)
 - make the board squares more 3D? They look very flat right now.
 - game card somewhere on screen? Could make it collapsible/hidable.
 - a game status somewhere, e.g. "Waiting for players", "Player X's turn", "Waiting for player X to sell/trade stocks", "Game over"
   - partly there: the action card shows waiting messages and game over shows the winner, but there's no single status line
-- Submit reads "Submit" (disabled) while waiting for players; "Waiting…" would be clearer
 - polling pauses in background tabs, so returning to a tab can take up to 3 seconds to catch up; poll immediately on `visibilitychange`
 - the game log includes engine detail lines like "Minority bonus paid to single minority shareholder"
+- the game log is a `<select>`; a real list would read better
 - each player's log starts from their own first action, so the moves just before it are hidden
 - give players unique colors?
 
@@ -54,6 +55,7 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
 - many of the actions have "player" as the payload, but the server could get that from the auth cookie. Is there really a need to send it? Maybe the service can add it? Of course then I can't really use the action type in the client, since it will be missing the proper payload...
 - root deno.json should have a task to run the client in dev mode, too
 - better game ids, something like they do for docker instances on desktop
+  - the game card shows only the first 8 characters of today's ids, which is why names look cut off
 - prompts on create/join game?
 - test request failures-- does client display an error?
   - rejected moves now return 400 and the client shows the reason as an error toast; there's no UI test for it yet
@@ -62,6 +64,11 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
 - import Pico and Toastify's CSS from npm instead of the copies
 - light DOM for the top-level views, so one Pico stylesheet applies?
 - stale member lockfiles, duplicate `hono`/`@std/testing` entries, and client `preview`/`deploy` tasks for files that don't exist
+- `deno check` type-checks `client/dist/bundle.js` whenever a local build exists
+- the class in `GameCard.ts` is named `DashboardView`
+- GameBoardView imports `GamePhase` by relative path instead of from `@acquire/engine/types`
+- leftover debug `console.log`s in GameBoardView, AppShell, DashboardView, and ApiService
+- set `ALLOWED_EMAILS` and `JWT_SECRET` in the Development context on Deno Deploy so previews can log in
 
 ## Eventual blog post
 
