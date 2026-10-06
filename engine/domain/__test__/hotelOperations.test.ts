@@ -1,6 +1,7 @@
 import { assertEquals, assertThrows } from 'jsr:@std/assert';
 import {
   assignSharesToPlayer,
+  getAvailableHotelNames,
   getHotelsByNames,
   getTiedHotels,
   hotelSafe,
@@ -18,6 +19,7 @@ import {
   type Hotel,
   HOTEL_CONFIG,
   type HOTEL_NAME,
+  HOTEL_NAMES,
   type HOTEL_TYPE,
   SAFE_HOTEL_SIZE,
   type Share,
@@ -276,6 +278,33 @@ Deno.test('hotelTiles', async (t) => {
   await t.step('handles empty tiles array', () => {
     const result = hotelTiles('Worldwide', []);
     assertEquals(result.length, 0);
+  });
+});
+
+Deno.test('getAvailableHotelNames', async (t) => {
+  await t.step('returns every hotel when none are on the board', () => {
+    assertEquals(getAvailableHotelNames([]), [...HOTEL_NAMES]);
+    assertEquals(getAvailableHotelNames([createBoardTile(0, 0), createBoardTile(0, 1)]), [
+      ...HOTEL_NAMES,
+    ]);
+  });
+
+  await t.step('leaves out hotels with tiles on the board', () => {
+    const board = [
+      createBoardTile(0, 0, 'Tower'),
+      createBoardTile(0, 1, 'Tower'),
+      createBoardTile(5, 5, 'Imperial'),
+      createBoardTile(8, 8),
+    ];
+    assertEquals(
+      getAvailableHotelNames(board),
+      HOTEL_NAMES.filter((name) => name !== 'Tower' && name !== 'Imperial'),
+    );
+  });
+
+  await t.step('returns nothing when every hotel is on the board', () => {
+    const board = HOTEL_NAMES.map((name, i) => createBoardTile(i, 0, name));
+    assertEquals(getAvailableHotelNames(board), []);
   });
 });
 

@@ -4,6 +4,7 @@ import { stub } from '@std/testing/mock';
 
 import { GamePhase, type GameView, type PlayerView } from '@acquire/engine/types';
 import '../GameBoardView.ts';
+import { bus } from '../../services/EventBus.ts';
 import { hotelsWith, makePlayerView, mount, settle } from './fixtures.ts';
 
 type Board = Awaited<ReturnType<typeof mount>> & { pollGameState(): Promise<void> };
@@ -75,6 +76,36 @@ Deno.test('GameBoardView - submitting posts the action and shows the result', as
   assertEquals(server.posted, [{ type: 'BUY_SHARES', payload: { shares: {} } }]);
   assertEquals(submit().textContent?.trim(), 'Waiting…');
   board.remove();
+});
+
+Deno.test('GameBoardView - a rejected move shows the reason and keeps the selection', async () => {
+  const view = makePlayerView({ currentPhase: GamePhase.BUY_SHARES, hotels: hotelsWith() });
+  const fetchStub = stub(globalThis, 'fetch', (_input, init?: RequestInit) =>
+    Promise.resolve(
+      init?.method === 'POST'
+        ? new Response(JSON.stringify({ error: 'The game changed; try again' }), { status: 409 })
+        : new Response(JSON.stringify({ game: view })),
+    ));
+  const errors: string[] = [];
+  const onError = (event: Event) => errors.push((event as CustomEvent<string>).detail);
+  bus.addEventListener('app-error', onError);
+  try {
+    const { board, submit, text } = await mountBoard();
+    const status = text('.game-status');
+    submit().click();
+    await settle(board);
+    await settle(board);
+
+    assertEquals(errors, ['The game changed; try again']);
+    assertEquals(text('.game-status'), status);
+    // The same move can be sent again
+    assertEquals(submit().textContent?.trim(), 'Skip buying');
+    assertEquals(submit().disabled, false);
+    board.remove();
+  } finally {
+    bus.removeEventListener('app-error', onError);
+    fetchStub.restore();
+  }
 });
 
 Deno.test('GameBoardView - unplayable tiles are disabled with the reason', async () => {

@@ -117,8 +117,8 @@ None of these change what players see; pick them up whenever.
       need `Object.entries` plus a cast) and include each hotel's price and type in the view (the
       client recalculates prices in four places). An array would simplify the loops but make the
       four lookups by name clumsier (S–M)
-- [ ] Add the missing `getAvailableHotelNames` test (S)
-- [ ] A GameBoardView test for a rejected move showing its error; the ApiService tests check that
+- [x] Add the missing `getAvailableHotelNames` test (S)
+- [x] A GameBoardView test for a rejected move showing its error; the ApiService tests check that
       the error event is sent, but nothing checks the board (S)
 - [x] Root task to run the client in dev mode, and fix local hot reload: `deno bundle --watch` next
       to the service's `--watch` can replace `client/dev-server.ts`, and the live-reload script in
