@@ -6,6 +6,7 @@ import type {
   CreateGameResponse,
   GameResponse,
   GamesResponse,
+  LeaderboardResponse,
   LoginRequest,
   LoginResponse,
 } from '@acquire/engine/types';
@@ -58,6 +59,8 @@ export const login = (email: string) =>
   postJson<LoginResponse>('/api/login', { email } satisfies LoginRequest);
 
 export const listGames = () => getJson<GamesResponse>('/api/games');
+
+export const getLeaderboard = () => getJson<LeaderboardResponse>('/api/leaderboard');
 
 export const createGame = () => postJson<CreateGameResponse>('/api/games');
 
