@@ -1,5 +1,7 @@
 import { create, getNumericDate, verify } from 'jsr:@zaubrik/djwt@3';
 
+import { onDenoDeploy } from './env.ts';
+
 let keyCache: CryptoKey | null = null;
 let allowedUsersCache: Record<string, string> | null = null;
 
@@ -8,9 +10,9 @@ let allowedUsersCache: Record<string, string> | null = null;
 const getKey = async (): Promise<CryptoKey> => {
   if (!keyCache) {
     const JWT_SECRET = Deno.env.get('JWT_SECRET');
-    // A default secret is public, so anyone could sign a token; only allow one outside production
-    if (!JWT_SECRET && Deno.env.get('ENV') === 'production') {
-      throw new Error('JWT_SECRET must be set in production');
+    // A default secret is public, so anyone could sign a token; only allow one locally
+    if (!JWT_SECRET && onDenoDeploy()) {
+      throw new Error('JWT_SECRET must be set on Deno Deploy');
     }
     keyCache = await crypto.subtle.importKey(
       'raw',

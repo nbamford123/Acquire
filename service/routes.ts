@@ -12,6 +12,7 @@ import type {
   LoginResponse,
 } from '@acquire/engine/types';
 import { createToken, validateUser } from './auth.ts';
+import { onDenoDeploy } from './env.ts';
 import { newGameId } from './gameIds.ts';
 import {
   createGame,
@@ -29,9 +30,6 @@ import { getActivePlayer, getPlayerView, getSpectatorView } from '@acquire/engin
 import { requireAuth } from './middleware.ts';
 import { serveStatic } from 'hono/deno';
 import { setCookie } from 'hono/cookie';
-
-// Only force https when in production
-const isProduction = Deno.env.get('ENV') === 'production';
 
 // The built client, found from this file so the service can run from any directory
 export const clientDist = `${import.meta.dirname}/../client/dist`;
@@ -65,7 +63,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       const token = await createToken(email);
       setCookie(ctx, 'auth', token, {
         httpOnly: true,
-        secure: isProduction, // HTTPS only
+        secure: onDenoDeploy(), // HTTPS only; local development is plain http
         sameSite: 'strict',
         maxAge: 60 * 60 * 24 * 365, // 1 year in milliseconds
       });

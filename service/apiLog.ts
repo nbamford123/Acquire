@@ -1,8 +1,9 @@
 import type { Hono } from 'hono';
 import type { ServiceEnv } from './types.ts';
+import { onDenoDeploy } from './env.ts';
 
 // Local development only: records API requests and responses, shown newest first at /dev/requests.
-// Bodies include login emails and game state, so this never runs in production.
+// Bodies include login emails and game state, so this never runs on Deno Deploy.
 
 // How many requests the page keeps
 const KEEP = 100;
@@ -71,7 +72,7 @@ export const renderLog = (log: LoggedRequest[]) =>
 </html>`;
 
 export const addApiLog = (app: Hono<ServiceEnv>) => {
-  if (Deno.env.get('ENV') === 'production') {
+  if (onDenoDeploy()) {
     throw new Error('API_LOG is for local development and would expose request bodies');
   }
   const log: LoggedRequest[] = [];
