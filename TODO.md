@@ -11,9 +11,6 @@
 - is it really worth it to have playerview hotels as a map? It seems like all I do on the client is convert it to an array for manipulation/display
   - the client looks hotels up by name in four places (merge pickers, your holdings) and iterates them in two (bank cards, buy picker), which need `Object.entries` plus a cast; it also recalculates share prices in four places. Keep the map, add a typed iteration helper, and include each hotel's price and type in the view
 - add at least a debug view where the api server logs requests and responses
-- the class in `GameCard.ts` is named `DashboardView`
-- GameBoardView imports `GamePhase` by relative path instead of from `@acquire/engine/types`
-- leftover debug `console.log`s in GameBoardView, AppShell, DashboardView, and ApiService
 
 ## Eventual blog post
 

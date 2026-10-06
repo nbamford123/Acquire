@@ -34,7 +34,6 @@ export class RouterService {
   }
 
   parseRoute(path: string): Route | null {
-    console.log({ path });
     const segments = path.split('/').filter(Boolean);
     if (segments.length === 0) {
       return { view: 'login' };

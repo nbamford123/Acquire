@@ -7,6 +7,7 @@ import {
   type ClientAction,
   COLS,
   createAction,
+  GamePhase,
   type GameView,
   HOTEL_CONFIG,
   type HOTEL_NAME,
@@ -22,7 +23,6 @@ import './ActionCard.ts';
 
 import { hotelIcons, styles } from './gameBoardView.styles.ts';
 import { gameStatus } from './gameStatus.ts';
-import { GamePhase } from '../../../engine/types/gameState.ts';
 
 // How often to check for other players' moves
 const POLL_INTERVAL_MS = 3000;
@@ -111,7 +111,6 @@ export class GameBoardView extends LightComponent {
     this.loading = true;
     try {
       this.playerView = this.gameId ? (await getGame(this.gameId))?.game ?? null : null;
-      console.log({ playerView: this.playerView });
     } finally {
       this.loading = false;
     }
@@ -135,7 +134,6 @@ export class GameBoardView extends LightComponent {
   }
 
   private handleSetAction(e: CustomEvent) {
-    console.log('handling action', e.detail);
     // A null action means the current selection isn't complete yet
     if (!e.detail) {
       this.pendingAction = undefined;

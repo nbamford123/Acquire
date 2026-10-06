@@ -13,7 +13,7 @@ export const updatedLabel = (timestamp: number, now = Date.now()) => {
 };
 
 @customElement('game-card')
-export class DashboardView extends LightComponent {
+export class GameCard extends LightComponent {
   @property({ attribute: false })
   accessor game: GameInfo = {
     id: '',
