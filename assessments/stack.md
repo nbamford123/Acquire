@@ -1,7 +1,113 @@
 # Stack assessment: full-stack Deno with a Lit client
 
 Written 2026-09-29 against `main` at `c780668`, with Deno 2.9.7, Lit 3.3.1 (locked), and happy-dom
-20.14.5.
+20.14.5. Rechecked 2026-10-06 against `main` at `551c767`; the recheck comes first, and everything
+after it is the original assessment, kept as the record of what was true then.
+
+## Recheck, 2026-10-06
+
+### Bottom line
+
+The recommendation stands: keep Deno, Lit, `deno bundle`, KV, and Deploy. Every item in the original
+recommendation is done, and nothing in the platform changed in the week since. Three things are new:
+
+1. **Upgrade Hono.** 4.13.11 fixes a `serveStatic` advisory, and 4.13.10 deprecated the `hono/deno`
+   import the service uses. This app isn't exploitable, but it's a small, worthwhile PR.
+2. **The bundle grew from 159 KB to 276 KB minified** (34 KB to 50 KB gzipped), and 75 KB of that
+   is `pico.colors.min.css`, of which the client uses 8 variables.
+3. **Some test hygiene was missed:** 21 engine test files import `assert` from
+   `https://deno.land/std@0.203.0`, and the lock file carries entries nothing uses.
+
+### The original recommendation, done
+
+| Recommendation (2026-09-29)                                                 | Status                                                                                                                                                       |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1. Fix Lit reactivity with standard decorators and `accessor`               | Done in #27. No `experimentalDecorators` anywhere, 23 `accessor` fields, 0 manual `requestUpdate()` calls (was 12), and a dashboard test that deletes a game |
+| 2. Point the tests at `KV_PATH=:memory:` and un-ignore the two route tests  | Done in #28; #30 fixed two flaky service tests afterwards                                                                                                    |
+| 3. Replace the `deploy` block and remove the dead CORS setup                | Done in #28. `deploy` is `install`, `build: deno task build`, and `runtime.entrypoint`; no CORS code remains                                                 |
+| 4. One atomic commit with a versionstamp check per move                     | Done in #28. The leaderboard (#53) adds its counters to the same commit                                                                                      |
+| 5. Pico and Toastify from npm, `--minify`, light DOM, `deno bundle --watch` | Done: minify in #28, npm CSS and light DOM in #36, the dev loop in #47                                                                                       |
+| 6. Delete the member lockfiles, duplicate entries, and dead client tasks    | Done in #47                                                                                                                                                  |
+
+### What changed outside the repo
+
+**Verified**
+
+- **Deno:** 2.9.7 (2026-09-17) is still the latest release, so every Deno claim below still holds. I
+  rechecked the two that matter: `useDefineForClassFields` is still reported as ignored, and
+  `Deno.openKv` is still undefined without the unstable flag. `deno bundle` still prints that it's
+  experimental. The Deno blog has nothing newer than 2.9 (2026-06-25).
+- **Deno Deploy:** the changelog has no entries after 2026-03-12. Two details matter for the code:
+  - `DENO_DEPLOYMENT_ID` is documented on new Deploy, at runtime and during builds, so #54's check
+    holds. `DENO_DEPLOY=true` is the more direct flag, if the check is ever touched again.
+  - `DENO_TIMELINE` (`production`, `git-branch/<name>`, or `preview/<id>`) can tell production from
+    previews, should anything ever need to.
+- **Lit:** 3.3.2 (2025-12-23) and 3.3.3 (2026-05-14) are patch releases; the lock still has 3.3.1.
+  No Lit 4 has been announced, and nothing about decorators or `accessor` changed.
+- **happy-dom:** 20.14.5 is still the latest, so the `dom.ts` workaround is unchanged.
+- **Hono:** 4.13.13 is the latest; the lock has 4.13.9.
+  - [GHSA-5r4p-p66f-jhc7](https://github.com/honojs/hono/security/advisories/GHSA-5r4p-p66f-jhc7)
+    (moderate, published 2026-09-29, fixed in 4.13.11): `serveStatic` decodes the path a second
+    time, so a crafted path can route as one path and be served as another, getting past middleware
+    mounted on part of the static directory. **This app isn't exploitable:** `client/dist` is all
+    public, and no middleware guards any part of it.
+  - In 4.13.13, `hono/deno` (where `serveStatic` comes from) is marked deprecated, to be removed in
+    Hono 5, in favor of the new `@hono/deno` package.
+- `deno outdated` also lists `@std/testing` 1.0.15 (latest 1.0.21).
+
+### What changed in the repo
+
+**Verified**
+
+| Measure                        | 2026-09-29                                          | 2026-10-06                                                     |
+| ------------------------------ | --------------------------------------------------- | -------------------------------------------------------------- |
+| Tests                          | 234: engine 194, service 15 (+2 ignored), client 25 | 280: engine 201 (0.8 s), service 32 (0.2 s), client 47 (0.9 s) |
+| Engine source / tests (lines)  | about 2,750 / 6,800                                 | 2,802 / 6,877                                                  |
+| Service source / tests         | about 400 / not counted                             | 773 / 1,315                                                    |
+| Client source / tests          | about 2,900 / 1,400                                 | 3,298 / 1,826                                                  |
+| Bundle, minified (gzipped)     | 159 KB (34 KB)                                      | 276 KB (50 KB)                                                 |
+| Manual `requestUpdate()` calls | 12                                                  | 0                                                              |
+
+- **Why the bundle grew:** Pico's color file (`pico.colors.min.css`, 75 KB) used to be a separate
+  file in `client/public`. Since #36 it's imported as text and lands in the bundle. Bundling once
+  without it gave 201 KB (41 KB gzipped). The client uses 8 of its variables
+  (`--pico-color-azure-600`, `blue-600`, `green-550`, `pink-550`, `red-500`, `red-550`, `sand-550`,
+  and `yellow-200`). The other 42 KB of growth: the lowered decorators the original assessment
+  predicted took it to 182 KB (#27, measured in #28), and features since added about 19 KB. Pico
+  itself is still 83 KB of the bundle.
+- **Test imports:** assertions come from four places. 21 engine test files use
+  `https://deno.land/std@0.203.0/assert/mod.ts` (a 2023 release, by URL), 18 use
+  `jsr:@std/assert` inline, 22 use the mapped `@std/assert`, and 2 use `@std/expect`.
+- **The lock file carries dead entries:** `jsr:@hono/hono@^4.9.2`, `deno.land/std@0.224.0`, and
+  `jspm.dev` modules that nothing imports. A lock regenerated from scratch is 236 lines instead of
+  417, with every test passing, but it also moves Lit to 3.3.3, so it belongs with a deliberate
+  dependency update.
+- The service imports `jsr:@zaubrik/djwt@3` inline in `auth.ts` instead of through the import map.
+
+### Updated recommendation
+
+In order, all small:
+
+1. **Hono:** update to 4.13.13 and import `serveStatic` from `@hono/deno`. Also update Lit to 3.3.3
+   and `@std/testing` to 1.0.21, and let the lock regenerate (S).
+2. **Bundle:** define the 8 Pico colors the client uses instead of importing all of
+   `pico.colors.min.css`. That brings the bundle to about 201 KB (41 KB gzipped) (S).
+3. **Test imports:** point every assertion at the mapped `@std/assert`, and add `@zaubrik/djwt` to
+   the import map (S).
+
+**What would change the recommendation** is the same list as before. None of those conditions
+happened, and nothing announced (Deno 2.10, Lit 4, a Deploy pricing change) is in sight yet.
+
+### Sources for the recheck
+
+- [Deno releases](https://github.com/denoland/deno/releases) and the [Deno blog](https://deno.com/blog)
+- [Deno Deploy changelog](https://docs.deno.com/deploy/changelog/) and
+  [environment variables and contexts](https://docs.deno.com/deploy/reference/env_vars_and_contexts/)
+- [GHSA-5r4p-p66f-jhc7](https://github.com/honojs/hono/security/advisories/GHSA-5r4p-p66f-jhc7) and
+  [Hono releases](https://github.com/honojs/hono/releases)
+- npm registry release dates for `lit` and `happy-dom`; JSR metadata for `@hono/hono` and `@hono/deno`
+
+# Original assessment, 2026-09-29
 
 ## Bottom line
 
