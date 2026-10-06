@@ -207,3 +207,43 @@ Deno.test('GameBoardView - spectators watch without a hand or controls', async (
   assertEquals(root.querySelectorAll('.player-card').length, 2);
   board.remove();
 });
+
+Deno.test('GameBoardView - what color shows is also in text for screen readers', async () => {
+  using _server = serve([makePlayerView({
+    currentPlayer: 1,
+    board: [
+      { row: 0, col: 0, location: 'board', hotel: 'Tower' },
+      { row: 0, col: 1, location: 'board' },
+    ],
+    players: [
+      { name: 'nate', money: 3, shares: {} as PlayerView['players'][number]['shares'] },
+      {
+        name: 'alice',
+        money: 2,
+        shares: { Tower: 'many', Luxor: '1' } as PlayerView['players'][number]['shares'],
+      },
+    ],
+  })]);
+  const { board, text } = await mountBoard();
+  const cells = [...board.querySelectorAll('.board-cell')].slice(0, 3).map((cell) =>
+    cell.textContent?.replace(/\s+/g, ' ').trim()
+  );
+  assertEquals(cells, ['1A , Tower', '2A , placed', '3A']);
+  const chips = [...board.querySelectorAll('.share-chip')].map((chip) =>
+    chip.textContent?.replace(/\s+/g, ' ').trim()
+  );
+  assertEquals(chips, ['Tower : 3 or more shares +', 'Luxor : 1 shares']);
+  assertEquals(text('.cash-meter[role="img"]') !== undefined, true);
+  board.remove();
+});
+
+Deno.test('GameBoardView - the selected tile is marked pressed', async () => {
+  using _server = serve([makePlayerView({ tiles: [{ row: 0, col: 0 }, { row: 1, col: 1 }] })]);
+  const { board } = await mountBoard();
+  const tiles = () => [...board.querySelectorAll('.tile')] as HTMLButtonElement[];
+  assertEquals(tiles().map((tile) => tile.getAttribute('aria-pressed')), ['false', 'false']);
+  tiles()[1].click();
+  await settle(board);
+  assertEquals(tiles().map((tile) => tile.getAttribute('aria-pressed')), ['false', 'true']);
+  board.remove();
+});

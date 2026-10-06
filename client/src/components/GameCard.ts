@@ -48,19 +48,19 @@ export class DashboardView extends LightComponent {
       }
       .status-active {
         background-color: hsl(120, 60%, 90%);
-        color: hsl(120, 60%, 30%);
+        color: hsl(120, 60%, 25%);
       }
       .status-waiting {
         background-color: hsl(45, 100%, 90%);
-        color: hsl(45, 100%, 30%);
+        color: hsl(45, 100%, 25%);
       }
       .status-full {
         background-color: hsl(0, 70%, 92%);
-        color: hsl(0, 60%, 40%);
+        color: hsl(0, 60%, 25%);
       }
       .status-finished {
         background-color: hsl(205, 30%, 90%);
-        color: hsl(205, 30%, 40%);
+        color: hsl(205, 30%, 25%);
       }
       .loading-container {
         text-align: center;
@@ -104,14 +104,14 @@ export class DashboardView extends LightComponent {
         text-overflow: ellipsis;
         white-space: nowrap;
         font-size: 1.25rem;
-        color: var(--pico-color-azure-700);
+        color: var(--pico-primary);
       }
       .game-meta {
         display: flex;
         flex-wrap: wrap;
         gap: 0.25rem 1rem;
         font-size: 0.875rem;
-        color: hsl(205, 20%, 50%);
+        color: var(--pico-muted-color);
         margin-bottom: 1rem;
       }
       /* Wraps on narrow cards instead of squeezing the labels */
@@ -215,9 +215,11 @@ export class DashboardView extends LightComponent {
           <span class="${`game-status ${this.getStatusClass()}`}">${this.getStatusMessage()}</span>
         </header>
         <div class="game-meta">
-          <span>👥 ${`${this.game.players.length}/${MAX_PLAYERS} players`}</span>
-          <span>👤 ${isOwner ? 'Your game' : `Hosted by ${this.game.owner}`}</span>
-          <span>🕐 ${updatedLabel(this.game.lastUpdated)}</span>
+          <span><span aria-hidden="true">👥</span> ${`${this.game.players.length}/${MAX_PLAYERS} players`}</span>
+          <span><span aria-hidden="true">👤</span> ${isOwner
+            ? 'Your game'
+            : `Hosted by ${this.game.owner}`}</span>
+          <span><span aria-hidden="true">🕐</span> ${updatedLabel(this.game.lastUpdated)}</span>
         </div>
         <div class="card-actions">${this.renderActions()}</div>
       </article>

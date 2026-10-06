@@ -71,6 +71,42 @@ export const styles = css`
     list-style: none;
   }
 
+  /* One color per hotel, used by everything colored by hotel, including the action card inside
+    the board. --hotel-text is readable on solid --hotel (WCAG AA); cards and chips use a tint of
+    --hotel instead, so they follow the theme and keep Pico's text colors. */
+  .tower {
+    --hotel: var(--pico-color-yellow-200);
+    --hotel-text: #13171f;
+  }
+  .luxor {
+    --hotel: var(--pico-color-red-550);
+    --hotel-text: #fff;
+  }
+  .american {
+    --hotel: var(--pico-color-blue-600);
+    --hotel-text: #fff;
+  }
+  .worldwide {
+    --hotel: var(--pico-color-sand-550);
+    --hotel-text: #fff;
+  }
+  .festival {
+    --hotel: var(--pico-color-green-550);
+    --hotel-text: #fff;
+  }
+  .imperial {
+    --hotel: var(--pico-color-pink-550);
+    --hotel-text: #fff;
+  }
+  .continental {
+    --hotel: var(--pico-color-azure-600);
+    --hotel-text: #fff;
+  }
+  .hotel-tint {
+    border-color: var(--hotel);
+    background: color-mix(in srgb, var(--hotel) 20%, var(--pico-card-background-color));
+  }
+
   .game-board {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
@@ -91,51 +127,16 @@ export const styles = css`
     justify-content: center;
     font-size: 0.75rem;
     font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
     /* Square cells size the board; a fixed board aspect ratio let rows overflow when narrow */
     aspect-ratio: 1;
     min-height: 40px;
   }
 
-  .board-cell.placed.tower {
-    background: var(--pico-color-yellow-200);
-  }
-
-  .board-cell.placed.luxor {
-    background: var(--pico-color-red-500);
-  }
-
-  .board-cell.placed.american {
-    background: var(--pico-color-blue-700);
-  }
-
-  .board-cell.placed.festival {
-    background: var(--pico-color-green-500);
-  }
-
-  .board-cell.placed.imperial {
-    background: var(--pico-color-pink-500);
-  }
-
-  .board-cell.placed.continental {
-    background: var(--pico-color-azure-700);
-  }
-
-  .board-cell.placed.worldwide {
-    background: var(--pico-color-sand-500);
-  }
-
-  .board-cell:hover {
-    background: var(--pico-primary-hover);
-    border-color: var(--pico-primary);
-    transform: scale(1.05);
-  }
-
+  /* Tiles in a hotel take its color; others use Pico's primary */
   .board-cell.placed {
-    background: var(--pico-primary);
-    color: white;
-    border-color: var(--pico-primary);
+    background: var(--hotel, var(--pico-primary-background));
+    color: var(--hotel-text, var(--pico-primary-inverse));
+    border-color: var(--hotel, var(--pico-primary-background));
   }
 
   .current-player-view {
@@ -211,13 +212,13 @@ export const styles = css`
 
   .tile {
     padding: 0.5rem 0.75rem;
-    background: var(--pico-secondary);
+    background: var(--pico-secondary-background);
     border-radius: 4px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
     border: none;
-    color: var(--pico-contrast);
+    color: var(--pico-secondary-inverse);
   }
 
   .tile:disabled {
@@ -228,7 +229,7 @@ export const styles = css`
 
   /* tiles should not shift when selected */
   .tile:not(.selected):not(:disabled):hover {
-    background: var(--pico-secondary-hover);
+    background: var(--pico-secondary-hover-background);
     transform: translateY(-2px);
   }
 
@@ -253,7 +254,7 @@ export const styles = css`
     border: 1px solid var(--pico-muted-border-color);
   }
 
-  .bank-card h4 {
+  .bank-card h3 {
     margin-top: 0;
     margin-bottom: 0.75rem;
     font-size: 1.1rem;
@@ -273,35 +274,6 @@ export const styles = css`
     border: 2px solid;
   }
 
-  .hotel-chain.tower {
-    border-color: var(--pico-color-yellow-100);
-    background: var(--pico-color-yellow-800);
-  }
-  .hotel-chain.luxor {
-    border-color: var(--pico-color-red-500);
-    background: var(--pico-color-red-800);
-  }
-  .hotel-chain.american {
-    border-color: var(--pico-color-blue-500);
-    background: var(--pico-color-blue-800);
-  }
-  .hotel-chain.worldwide {
-    border-color: var(--pico-color-sand-500);
-    background: var(--pico-color-sand-800);
-  }
-  .hotel-chain.festival {
-    border-color: var(--pico-color-green-500);
-    background: var(--pico-color-green-800);
-  }
-  .hotel-chain.imperial {
-    border-color: var(--pico-color-pink-500);
-    background: var(--pico-color-pink-800);
-  }
-  .hotel-chain.continental {
-    border-color: var(--pico-color-azure-500);
-    background: var(--pico-color-azure-800);
-  }
-
   .hotel-header {
     display: flex;
     justify-content: space-between;
@@ -314,19 +286,17 @@ export const styles = css`
     font-size: 0.95rem;
   }
 
+  /* Muted and primary colors aren't readable on every hotel tint, so these use the text color */
   .hotel-size {
     font-size: 0.85rem;
-    color: var(--pico-muted-color);
   }
 
   .hotel-stock {
     font-size: 0.85rem;
-    color: var(--pico-muted-color);
   }
 
   .hotel-price {
     font-weight: 600;
-    color: var(--pico-primary);
     font-size: 0.9rem;
   }
 
@@ -349,7 +319,7 @@ export const styles = css`
 
   .player-card.active {
     border: 2px solid var(--pico-primary);
-    background: var(--pico-primary-focus);
+    background: color-mix(in srgb, var(--pico-primary) 10%, var(--pico-card-background-color));
   }
 
   .player-header {
@@ -382,35 +352,6 @@ export const styles = css`
     vertical-align: middle;
   }
 
-  .hotel-color.tower {
-    --hotel-color: var(--pico-color-yellow-100);
-    --hotel-bg: var(--pico-color-yellow-800);
-  }
-  .hotel-color.luxor {
-    --hotel-color: var(--pico-color-red-500);
-    --hotel-bg: var(--pico-color-red-800);
-  }
-  .hotel-color.american {
-    --hotel-color: var(--pico-color-blue-500);
-    --hotel-bg: var(--pico-color-blue-800);
-  }
-  .hotel-color.worldwide {
-    --hotel-color: var(--pico-color-sand-500);
-    --hotel-bg: var(--pico-color-sand-800);
-  }
-  .hotel-color.festival {
-    --hotel-color: var(--pico-color-green-500);
-    --hotel-bg: var(--pico-color-green-800);
-  }
-  .hotel-color.imperial {
-    --hotel-color: var(--pico-color-pink-500);
-    --hotel-bg: var(--pico-color-pink-800);
-  }
-  .hotel-color.continental {
-    --hotel-color: var(--pico-color-azure-500);
-    --hotel-bg: var(--pico-color-azure-800);
-  }
-
   .holding-row {
     display: flex;
     justify-content: space-between;
@@ -437,7 +378,7 @@ export const styles = css`
     height: 0.6rem;
     margin-right: 0.4rem;
     border-radius: 2px;
-    background: var(--hotel-color);
+    background: var(--hotel);
   }
 
   .cash-meter {
@@ -467,9 +408,8 @@ export const styles = css`
     align-items: center;
     gap: 0.35rem;
     padding: 0.1rem 0.5rem;
-    border: 1px solid var(--hotel-color);
+    border: 1px solid;
     border-radius: 4px;
-    background: var(--hotel-bg);
     font-size: 0.8rem;
   }
 
@@ -591,7 +531,7 @@ export const styles = css`
       padding: 0.75rem;
     }
 
-    .bank-card h4 {
+    .bank-card h3 {
       margin-bottom: 0.5rem;
       font-size: 1rem;
     }

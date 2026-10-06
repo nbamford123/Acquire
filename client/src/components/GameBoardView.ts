@@ -115,10 +115,6 @@ export class GameBoardView extends LightComponent {
     }
   }
 
-  private handleCellClick(position: string) {
-    console.log(position);
-  }
-
   // The user's view when they're in the game, otherwise undefined
   private get seat() {
     return this.playerView && isPlayerView(this.playerView) ? this.playerView : undefined;
@@ -168,9 +164,12 @@ export class GameBoardView extends LightComponent {
             class="board-cell ${placedTile
               ? 'placed'
               : ''} ${placedTile?.hotel?.toLocaleLowerCase() || ''}"
-            @click="${() => this.handleCellClick(position)}"
           >
-            ${position}
+            ${position}${placedTile
+              ? html`
+                <span class="sr-only">, ${placedTile.hotel ?? 'placed'}</span>
+              `
+              : ''}
           </div>
         `);
       }
@@ -201,7 +200,7 @@ export class GameBoardView extends LightComponent {
           ${holdings.map(({ hotel, count, value }) =>
             html`
               <div class="holding-row">
-                <span><span class="hotel-dot hotel-color ${hotel
+                <span><span class="hotel-dot ${hotel
                   .toLocaleLowerCase()}"></span>${hotel}</span>
                 <span>${count} <span class="holding-value">· ${value === undefined
                   ? 'inactive'
@@ -239,12 +238,10 @@ export class GameBoardView extends LightComponent {
           <div class="share-chips">
             ${shares.map(([hotel, count]) =>
               html`
-                <span
-                  class="share-chip hotel-color ${hotel.toLocaleLowerCase()}"
-                  aria-label="${hotel}: ${count === 'many' ? '3 or more' : count} shares"
-                >
+                <span class="share-chip hotel-tint ${hotel.toLocaleLowerCase()}">
                   ${hotel}
-                  <span class="share-pips">
+                  <span class="sr-only">: ${count === 'many' ? '3 or more' : count} shares</span>
+                  <span class="share-pips" aria-hidden="true">
                     ${Array.from({ length: count === 'many' ? 3 : Number(count) }, () =>
                       html`
                         <span class="share-pip"></span>
@@ -283,6 +280,7 @@ export class GameBoardView extends LightComponent {
               html`
                 <button
                   class="tile ${this.playedTile({ row, col }) ? 'selected' : ''}"
+                  aria-pressed="${!!this.playedTile({ row, col })}"
                   ?disabled="${!!unplayable}"
                   title="${unplayable ? `Can't be played: ${unplayable}` : ''}"
                   @click="${() => this.handleTileClick({ row, col })}"
@@ -415,12 +413,15 @@ export class GameBoardView extends LightComponent {
 
         <div class="bank-section">
           <article class="bank-card">
-            <h4>Hotel Chains</h4>
+            <h3>Hotel Chains</h3>
             ${Object.entries(this.playerView.hotels).map(([name, { size, shares }]) =>
               html`
-                <div class="hotel-chain ${name.toLocaleLowerCase()}">
+                <div class="hotel-chain hotel-tint ${name.toLocaleLowerCase()}">
                   <div class="hotel-header">
-                    <span class="hotel-name ${name}">${hotelIcons[name]} ${name}</span>
+                    <span
+                      class="hotel-name ${name}"><span aria-hidden="true">${hotelIcons[
+                        name
+                      ]}</span> ${name}</span>
                     <span class="hotel-size">${size > 0 ? `Size: ${size}` : 'Inactive'}</span>
                   </div>
                   <div style="display: flex; justify-content: space-between; align-items: center;">

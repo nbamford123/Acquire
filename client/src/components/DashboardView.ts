@@ -44,7 +44,7 @@ export class DashboardView extends LightComponent {
       }
       .section-header h2 {
         margin: 0;
-        color: var(--pico-color-azure-600);
+        color: var(--pico-primary);
       }
       .game-list {
         display: flex;

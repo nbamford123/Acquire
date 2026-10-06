@@ -5,8 +5,8 @@ import { hotelIcons } from './gameBoardView.styles.ts';
 
 export const hotelChip = (hotel: HOTEL_NAME, detail?: string) =>
   html`
-    <span class="hotel-chip ${hotel.toLocaleLowerCase()}">
-      ${hotelIcons[hotel]} ${hotel}${detail
+    <span class="hotel-chip hotel-tint ${hotel.toLocaleLowerCase()}">
+      <span aria-hidden="true">${hotelIcons[hotel]}</span> ${hotel}${detail
         ? html`
           <span class="chip-detail">${detail}</span>
         `
@@ -92,40 +92,13 @@ export const actionCardStyles = css`
     font-size: 0.85rem;
     font-weight: 600;
     white-space: nowrap;
+    /* Readable on the hotel tint, including inside buttons, which redefine --pico-color for their
+      own background */
+    color: var(--page-color);
   }
 
   .chip-detail {
     font-weight: 400;
-    color: var(--pico-muted-color);
-  }
-
-  .hotel-chip.tower {
-    border-color: var(--pico-color-yellow-100);
-    background: var(--pico-color-yellow-800);
-  }
-  .hotel-chip.luxor {
-    border-color: var(--pico-color-red-500);
-    background: var(--pico-color-red-800);
-  }
-  .hotel-chip.american {
-    border-color: var(--pico-color-blue-500);
-    background: var(--pico-color-blue-800);
-  }
-  .hotel-chip.worldwide {
-    border-color: var(--pico-color-sand-500);
-    background: var(--pico-color-sand-800);
-  }
-  .hotel-chip.festival {
-    border-color: var(--pico-color-green-500);
-    background: var(--pico-color-green-800);
-  }
-  .hotel-chip.imperial {
-    border-color: var(--pico-color-pink-500);
-    background: var(--pico-color-pink-800);
-  }
-  .hotel-chip.continental {
-    border-color: var(--pico-color-azure-500);
-    background: var(--pico-color-azure-800);
   }
 
   .hotel-option {

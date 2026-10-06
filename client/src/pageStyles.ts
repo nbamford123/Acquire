@@ -13,10 +13,46 @@ const toasts = `
 }
 `;
 
+// Pico's dark muted text is just short of WCAG AA (4.5:1) on dark cards, so lighten it a little
+const mutedText = `
+@media only screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --pico-muted-color: #8891a3;
+  }
+}
+[data-theme="dark"] {
+  --pico-muted-color: #8891a3;
+}
+`;
+
+// The page's text color, for text that sits on its own background inside a button, where Pico
+// redefines --pico-color. Custom properties resolve where they're declared, so this keeps the
+// root's value.
+const pageColor = `
+:root {
+  --page-color: var(--pico-color);
+}
+`;
+
+// Visually hidden, but read by screen readers
+const srOnly = `
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+`;
+
 // Adds them ahead of the components' styles, which are added as each component first appears
 export const addPageStyles = () => {
   const style = document.createElement('style');
   style.dataset.page = '';
-  style.textContent = [pico, picoColors, toastify, toasts].join('\n');
+  style.textContent = [pico, picoColors, toastify, toasts, mutedText, pageColor, srOnly].join('\n');
   document.head.append(style);
 };

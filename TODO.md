@@ -3,8 +3,7 @@
 ## Client general
 
 1. light/dark toggle in the header, defaulting to the system preference (only the app shell and game card handle themes today)
-2. accessibility pass: in light mode, hotel names on the bank cards and the share chips on other players' cards are dark text on dark backgrounds; check contrast for every hotel color in both themes, keyboard use, and focus
-3. layout at phone and tablet sizes: on an iPhone 13 in portrait the header wraps and the board page scrolls sideways; in landscape your tiles and Submit are below the board, off screen
+2. layout at phone and tablet sizes: on an iPhone 13 in portrait the header wraps and the board page scrolls sideways; in landscape your tiles and Submit are below the board, off screen
 
 - Put the unicode characters for hotels on the tiles when they are founded? (the bank cards have them)
 - we need to enforce types on the api calls
