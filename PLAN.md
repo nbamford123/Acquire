@@ -155,3 +155,5 @@ Its own PR, done last.
 - A database layer abstraction: little benefit at this size
 - Switching the API client to ky: plain `fetch` plus the polling timer already covers what it would
   add
+- Player colors: the highlighted card for the player who needs to act, and the status line, already
+  show whose move it is
