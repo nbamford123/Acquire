@@ -228,7 +228,9 @@ Deno.test('GameBoardView - what color shows is also in text for screen readers',
   const cells = [...board.querySelectorAll('.board-cell')].slice(0, 3).map((cell) =>
     cell.textContent?.replace(/\s+/g, ' ').trim()
   );
-  assertEquals(cells, ['1A , Tower', '2A , placed', '3A']);
+  // The icon is for sighted players; screen readers get the name
+  assertEquals(cells, ['♜ 1A , Tower', '2A , placed', '3A']);
+  assertEquals(board.querySelector('.cell-icon')?.getAttribute('aria-hidden'), 'true');
   const chips = [...board.querySelectorAll('.share-chip')].map((chip) =>
     chip.textContent?.replace(/\s+/g, ' ').trim()
   );

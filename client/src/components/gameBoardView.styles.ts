@@ -170,13 +170,21 @@ export const styles = css`
     box-shadow: var(--slot-shadow);
     border-radius: 4px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    line-height: 1;
     /* About a quarter of a cell, whatever the board's size */
     font-size: clamp(0.5rem, 2.2cqi, 0.85rem);
     font-weight: 600;
     /* Square cells size the board; a fixed board aspect ratio let rows overflow when narrow */
     aspect-ratio: 1;
+  }
+
+  /* A founded hotel's icon, above the tile's label; it scales with the board like the label */
+  .cell-icon {
+    font-size: clamp(0.65rem, 3.2cqi, 1.5rem);
+    margin-bottom: 0.15em;
   }
 
   /* Tiles in a hotel take its color; others use Pico's primary */

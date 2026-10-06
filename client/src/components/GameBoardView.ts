@@ -167,7 +167,11 @@ export class GameBoardView extends LightComponent {
               ? 'placed'
               : ''} ${placedTile?.hotel?.toLocaleLowerCase() || ''}"
           >
-            ${position}${placedTile
+            ${placedTile?.hotel
+              ? html`
+                <span class="cell-icon" aria-hidden="true">${hotelIcons[placedTile.hotel]}</span>
+              `
+              : ''}${position}${placedTile
               ? html`
                 <span class="sr-only">, ${placedTile.hotel ?? 'placed'}</span>
               `
