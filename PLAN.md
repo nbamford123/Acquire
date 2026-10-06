@@ -120,10 +120,10 @@ None of these change what players see; pick them up whenever.
 - [ ] Add the missing `getAvailableHotelNames` test (S)
 - [ ] A GameBoardView test for a rejected move showing its error; the ApiService tests check that
       the error event is sent, but nothing checks the board (S)
-- [ ] Root task to run the client in dev mode, and fix local hot reload: `deno bundle --watch` next
+- [x] Root task to run the client in dev mode, and fix local hot reload: `deno bundle --watch` next
       to the service's `--watch` can replace `client/dev-server.ts`, and the live-reload script in
       `index.html` is commented out (S–M)
-- [ ] Config cleanup: delete the stale `client/deno.lock` and `service/deno.lock` (a workspace only
+- [x] Config cleanup: delete the stale `client/deno.lock` and `service/deno.lock` (a workspace only
       uses the root lock), drop the duplicate `hono` and `@std/testing` entries in the member
       `deno.json` files, remove the client's `preview` and `deploy` tasks (their files don't exist),
       drop `--unstable-kv` from the `dev` task since `deno.json` already sets it, and exclude

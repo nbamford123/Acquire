@@ -1,12 +1,17 @@
 import { Hono } from 'hono';
 
-import { setRoutes } from './routes.ts';
+import { clientDist, setRoutes } from './routes.ts';
+import { addDevReload } from './devReload.ts';
 import { deleteGamesUpdatedBefore } from './dataLayer.ts';
 import { seedTestGames } from './seed.ts';
 import type { ServiceEnv } from './types.ts';
 
 // Application setup
 export const app = new Hono<ServiceEnv>();
+// Local development only (`deno task dev`)
+if (Deno.env.get('DEV_RELOAD') === 'true') {
+  addDevReload(app, clientDist);
+}
 setRoutes(app);
 
 // Games nobody has touched in this long are deleted by the daily sweep

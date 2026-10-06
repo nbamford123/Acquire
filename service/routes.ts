@@ -34,7 +34,7 @@ import { setCookie } from 'hono/cookie';
 const isProduction = Deno.env.get('ENV') === 'production';
 
 // The built client, found from this file so the service can run from any directory
-const clientDist = `${import.meta.dirname}/../client/dist`;
+export const clientDist = `${import.meta.dirname}/../client/dist`;
 
 // Tries for a new game before giving up; with the default words, ids rarely collide
 const GAME_ID_ATTEMPTS = 10;
