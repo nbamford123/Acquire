@@ -33,7 +33,8 @@ deno task dev
 
 This serves the app on http://localhost:8000 with the service's settings from `service/.env`. It
 rebuilds the client bundle and restarts the service as their code changes, and open pages reload
-after either. Changes to `client/public` need a restart.
+after either. Changes to `client/public` need a restart. http://localhost:8000/dev/requests shows
+the last 100 API requests with their bodies, and the terminal logs each change and failure.
 
 Run `deno task hooks` once per clone to check formatting, lint, types, and tests before each commit
 (the same `deno task check` CI runs). `deno task validate` does the same but fixes formatting instead

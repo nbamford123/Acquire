@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 
 import { clientDist, setRoutes } from './routes.ts';
 import { addDevReload } from './devReload.ts';
+import { addApiLog } from './apiLog.ts';
 import { deleteGamesUpdatedBefore } from './dataLayer.ts';
 import { seedTestGames } from './seed.ts';
 import type { ServiceEnv } from './types.ts';
@@ -11,6 +12,9 @@ export const app = new Hono<ServiceEnv>();
 // Local development only (`deno task dev`)
 if (Deno.env.get('DEV_RELOAD') === 'true') {
   addDevReload(app, clientDist);
+}
+if (Deno.env.get('API_LOG') === 'true') {
+  addApiLog(app);
 }
 setRoutes(app);
 

@@ -134,7 +134,7 @@ None of these change what players see; pick them up whenever.
       `console.log`s remain in GameBoardView, AppShell, DashboardView, and ApiService (S)
 - [x] Break merger ties by player id rather than name, and domain prefixes for error codes (from
       `TODO(me)` comments) (S)
-- [ ] Server debug view of API requests and responses (M)
+- [x] Server debug view of API requests and responses (M)
 
 ## Phase 6: Leaderboard
 
