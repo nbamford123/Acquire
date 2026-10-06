@@ -71,10 +71,11 @@ Do the first two before the rest, since they change how every component gets its
 accessibility pass, the light/dark toggle, and the layout pass, in that order: the toggle needs the
 colors fixed for both themes, and the layout pass is easier with both themes working.
 
-- [ ] Import Pico and Toastify's CSS from npm instead of `client/src/pico-styles.ts` and the copies
+- [x] Import Pico and Toastify's CSS from npm instead of `client/src/pico-styles.ts` and the copies
       in `client/public` (`with { type: 'text' }` works in `deno bundle` now), and build the Pico
       stylesheet once instead of once per component (S)
-- [ ] Decide whether the top-level views (login, dashboard, board) render without shadow DOM
+- [x] Decide whether the top-level views (login, dashboard, board) render without shadow DOM:
+      yes, and every component does now, via `LightComponent`
       (`createRenderRoot() { return this; }`), so one page-level Pico stylesheet applies and
       `StyledComponent` goes away. That makes light/dark mode and the layout pass simpler; the cost
       is prefixing component selectors and updating the tests that use `shadowRoot`. Pico's theme

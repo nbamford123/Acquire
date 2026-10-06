@@ -1,7 +1,7 @@
 import { css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { StyledComponent } from './StyledComponent.ts';
+import { LightComponent } from './LightComponent.ts';
 import { GameInfo, GamePhase, MAX_PLAYERS } from '@acquire/engine/types';
 
 // When the game last changed: just the time if it was today, otherwise the date too
@@ -13,7 +13,7 @@ export const updatedLabel = (timestamp: number, now = Date.now()) => {
 };
 
 @customElement('game-card')
-export class DashboardView extends StyledComponent {
+export class DashboardView extends LightComponent {
   @property({ attribute: false })
   accessor game: GameInfo = {
     id: '',
@@ -28,15 +28,14 @@ export class DashboardView extends StyledComponent {
   accessor user: string | null = null;
 
   static override styles = [
-    super.styles,
     css`
-      /* The host is the dashboard's flex item. It fits a phone screen, otherwise it's wide enough
-        for the buttons in one row. */
-      :host {
+      /* The card's own element is the dashboard's flex item. It fits a phone screen, otherwise
+        it's wide enough for the buttons in one row. */
+      & {
         background-color: transparent;
         flex: 1 1 300px;
-        min-width: min(400px, 100%);
-        max-width: 520px;
+        min-width: min(25rem, 100%);
+        max-width: 32.5rem;
       }
       .game-status {
         display: inline-block;
@@ -76,14 +75,14 @@ export class DashboardView extends StyledComponent {
       }
 
       @media (prefers-color-scheme: light) {
-        :host:not([data-theme="dark"]) .game-card {
+        &:not([data-theme="dark"]) .game-card {
           background-color: #fafbfc;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
       }
 
       @media (prefers-color-scheme: dark) {
-        :host:not([data-theme="light"]) .game-card {
+        &:not([data-theme="light"]) .game-card {
           background-color: rgb(26, 30.5, 40.25);
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }

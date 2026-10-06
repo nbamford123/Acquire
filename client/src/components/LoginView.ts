@@ -1,12 +1,12 @@
-import { css, type CSSResultGroup, html } from 'lit';
+import { css, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
-import { StyledComponent } from './StyledComponent.ts';
+import { LightComponent } from './LightComponent.ts';
 import { postApi } from '../services/ApiService.ts';
 import { getUser } from '../services/UserService.ts';
 
 @customElement('login-view')
-export class LoginView extends StyledComponent {
+export class LoginView extends LightComponent {
   private email = '';
 
   @state()
@@ -20,19 +20,14 @@ export class LoginView extends StyledComponent {
     }
   }
 
-  static override get styles(): CSSResultGroup {
-    return [
-      super.styles,
-      css`
-        .form-wrapper {
-          margin-bottom: 0;
-          max-width: 28rem;
-          width: 100%;
-          padding: 2rem;
-        }
-      `,
-    ];
-  }
+  static override styles = css`
+    .form-wrapper {
+      margin-bottom: 0;
+      max-width: 28rem;
+      width: 100%;
+      padding: 2rem;
+    }
+  `;
 
   private async handleSubmit(e: Event) {
     e.preventDefault();

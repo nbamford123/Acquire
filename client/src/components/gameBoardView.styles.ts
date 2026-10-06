@@ -11,7 +11,7 @@ export const hotelIcons: Record<string, string> = {
 };
 
 export const styles = css`
-  :host {
+  & {
     align-self: stretch;
     display: block;
     padding: 1rem;
@@ -502,7 +502,7 @@ export const styles = css`
 
   /* Tablet: <1200px - Board spans full width above, bank and players side-by-side below */
   @media (max-width: 1200px) {
-    :host {
+    & {
       padding: 1rem;
       width: 100%;
     }
@@ -546,7 +546,7 @@ export const styles = css`
 
   /* Mobile: <768px - Everything stacks in single column */
   @media (max-width: 768px) {
-    :host {
+    & {
       padding: 0.5rem;
     }
 

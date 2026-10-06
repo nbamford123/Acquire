@@ -27,7 +27,7 @@ const mountBoard = async () => {
   const board = await mount('game-board-view', { gameId: 'test-game', user: 'nate' }) as Board;
   // Let the initial load land
   await settle(board);
-  const root = board.shadowRoot!;
+  const root = board;
   return {
     board,
     root,
@@ -56,7 +56,7 @@ Deno.test('GameBoardView - skip buying until a share is picked', async () => {
   assertEquals(submit().disabled, false);
 
   const card = root.querySelector('action-card')! as HTMLElement & { updateComplete: Promise<boolean> };
-  (card.shadowRoot!.querySelector('button[aria-label="Tower more"]') as HTMLButtonElement).click();
+  (card.querySelector('button[aria-label="Tower more"]') as HTMLButtonElement).click();
   await settle(card);
   await settle(board);
   assertEquals(submit().textContent?.trim(), 'Submit');

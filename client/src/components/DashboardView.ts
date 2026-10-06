@@ -1,7 +1,7 @@
 import { css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
-import { StyledComponent } from './StyledComponent.ts';
+import { LightComponent } from './LightComponent.ts';
 import { deleteApi, getApi, postApi } from '../services/ApiService.ts';
 import {
   ActionTypes,
@@ -14,7 +14,7 @@ import {
 import './GameCard.ts';
 
 @customElement('dashboard-view')
-export class DashboardView extends StyledComponent {
+export class DashboardView extends LightComponent {
   @property({ type: String })
   accessor user: string | null = null;
 
@@ -30,9 +30,8 @@ export class DashboardView extends StyledComponent {
   private accessor loading = false;
 
   static override styles = [
-    super.styles,
     css`
-      :host {
+      & {
         background-color: transparent;
         width: 100%;
       }
