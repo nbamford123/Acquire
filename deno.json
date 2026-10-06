@@ -3,11 +3,11 @@
   "workspace": ["./engine", "./service", "./client"],
   "tasks": {
     "build": "deno task --cwd client build",
-    "dev": "deno task build && cd service && deno run -A --env-file --unstable-kv --watch main.ts",
+    "dev": "deno task build --dev && cd service && deno run -A --env-file --unstable-kv --watch main.ts",
     "fmt:check": "deno fmt --check",
-    "check": "deno fmt --check && deno lint && deno check && deno test --no-check --allow-all",
+    "check": "deno fmt --check && deno lint && deno check && KV_PATH=:memory: deno test --no-check --allow-all",
     "hooks": "git config core.hooksPath .githooks",
-    "validate": "deno fmt && deno lint && deno check && deno test --no-check --allow-all"
+    "validate": "deno fmt && deno lint && deno check && KV_PATH=:memory: deno test --no-check --allow-all"
   },
   "compilerOptions": {
     "lib": ["deno.window", "deno.unstable"],
@@ -43,11 +43,12 @@
     "proseWrap": "preserve",
     "useTabs": false
   },
-  "unstable": ["kv"],
+  "unstable": ["kv", "cron"],
   "deploy": {
-    "project": "acquire",
-    "entrypoint": "./service/main.ts",
-    "include": ["main.ts", "engine/"],
-    "exclude": ["__test__/", "*.test.ts"]
+    "install": "deno install",
+    "build": "deno task build",
+    "runtime": {
+      "entrypoint": "./service/main.ts"
+    }
   }
 }

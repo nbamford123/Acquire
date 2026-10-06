@@ -22,12 +22,26 @@ export async function getGameState(gameId: string): Promise<GameState | null> {
   return result.value;
 }
 
-// Each action is its own entry, keyed by its position in the log, so a long game doesn't run into
-// the KV value size limit. start is the number of actions already saved.
-export async function addPlayerActions(gameId: string, start: number, actions: PlayerAction[]) {
-  const operation = kv.atomic();
-  actions.forEach((action, i) => operation.set(['actions', gameId, start + i], action));
-  await operation.commit();
+// The state along with its versionstamp, which saveMove checks
+export async function getGameEntry(gameId: string) {
+  return await kv.get<GameState>(['games', gameId]);
+}
+
+// Saves the state and appends the move's actions in one commit. It fails, returning false, if the
+// game changed since it was read at versionstamp, so two moves can't overwrite each other. Each
+// action is its own entry, keyed by its position in the log, so a long game doesn't run into the KV
+// value size limit. start is the number of actions already saved.
+export async function saveMove(
+  state: GameState,
+  versionstamp: string,
+  start: number,
+  actions: PlayerAction[],
+): Promise<boolean> {
+  const key = ['games', state.gameId];
+  const operation = kv.atomic().check({ key, versionstamp }).set(key, state);
+  actions.forEach((action, i) => operation.set(['actions', state.gameId, start + i], action));
+  const result = await operation.commit();
+  return result.ok;
 }
 
 export async function getPlayerActions(gameId: string): Promise<PlayerAction[]> {
@@ -51,6 +65,15 @@ export async function deleteGame(gameId: string) {
   for await (const entry of iter) {
     await kv.delete(entry.key);
   }
+}
+
+// Deletes every game last updated before cutoff (a timestamp), returning their ids
+export async function deleteGamesUpdatedBefore(cutoff: number): Promise<string[]> {
+  const stale = (await getAllGames()).filter((game) => game.lastUpdated < cutoff);
+  for (const game of stale) {
+    await deleteGame(game.gameId);
+  }
+  return stale.map((game) => game.gameId);
 }
 
 export async function deleteAllData() {
