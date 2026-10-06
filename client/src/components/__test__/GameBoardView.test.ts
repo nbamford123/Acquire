@@ -175,6 +175,8 @@ Deno.test('GameBoardView - the log lists recent moves in order', async () => {
     ],
   })]);
   const { board, root } = await mountBoard();
+  // Closed until the player opens it
+  assertEquals((root.querySelector('.game-log') as HTMLDetailsElement).open, false);
   assertEquals(
     [...root.querySelectorAll('.game-log li')].map((li) => li.textContent?.trim()),
     ['nate played 1A', 'alice played 2B'],

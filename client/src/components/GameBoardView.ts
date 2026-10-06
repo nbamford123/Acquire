@@ -393,7 +393,7 @@ export class GameBoardView extends StyledComponent {
             `}
           </div>
 
-          <details class="game-log" open>
+          <details class="game-log">
             <summary>Recent moves</summary>
             <ul>
               ${this.playerView.actions.map((action) =>
