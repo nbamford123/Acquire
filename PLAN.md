@@ -104,7 +104,7 @@ colors fixed for both themes, and the layout pass is easier with both themes wor
 - [x] Hotel markers on the board: one tile per hotel, the one that founded it, shows its icon
       in place of the label, like the physical game's chain markers (S)
 - [x] Less flat, more 3D-looking board squares (S)
-- [ ] Move the inline styles into CSS: six in the action card and its templates (exported from the
+- [x] Move the inline styles into CSS: six in the action card and its templates (exported from the
       template files), and a few in GameBoardView (S)
 
 ## Phase 5: Code health and developer experience

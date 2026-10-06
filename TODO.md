@@ -4,10 +4,6 @@
 
 - we need to enforce types on the api calls
 
-## Action Card
-
-- export css parameterized strings from the template files rather than the inline styles
-
 ## Dashboard
 
 - leaderboard: total $ per player across finished games

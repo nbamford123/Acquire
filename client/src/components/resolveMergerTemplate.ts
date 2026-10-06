@@ -1,4 +1,4 @@
-import { html } from 'lit';
+import { css, html } from 'lit';
 
 import type { HOTEL_NAME, PlayerView } from '@acquire/engine/types';
 import { getHotelPrice } from '@acquire/engine/utils';
@@ -78,6 +78,17 @@ const mergeHeader = (playerView: PlayerView, limits: MergerLimits) =>
     </div>
   `;
 
+// Added to the action card's styles
+export const resolveMergerStyles = css`
+  .picker-row.merger-heading {
+    justify-content: space-between;
+  }
+
+  .picker-row.merger-steppers {
+    gap: 1.25rem;
+  }
+`;
+
 export const resolveMergerTemplate = (
   playerView: PlayerView,
   shares: MergerShares,
@@ -113,13 +124,13 @@ export const resolveMergerTemplate = (
   const price = getHotelPrice(limits.merged, playerView.mergeContext?.mergedHotelSize ?? 0).price;
   return html`
     <div class="picker">
-      <div class="picker-row" style="justify-content: space-between;">
+      <div class="picker-row merger-heading">
         ${mergeHeader(playerView, limits)}
         <span class="picker-summary">
           You hold ${shareCount(limits.held, limits.merged)}, selling at $${price} each
         </span>
       </div>
-      <div class="picker-row" style="gap: 1.25rem;">
+      <div class="picker-row merger-steppers">
         ${stepper('Sell', shares.sell, 1, (sell) => onChange({ ...shares, sell }))}
         ${stepper('Trade', shares.trade, 2, (trade) => onChange({ ...shares, trade }))}
         <div class="stepper">
