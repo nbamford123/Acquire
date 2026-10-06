@@ -37,6 +37,28 @@ const themes = `
 :root[data-theme="dark"] {
   --pico-muted-color: #8891a3;
 }
+/* Board squares look recessed and tiles raised. Shadows only, so tile colors and their text
+   contrast don't change; dark mode needs stronger ones, and a light top edge on tiles. */
+:root {
+  --slot-shadow: inset 0 2px 5px rgb(0 0 0 / 0.24), inset 0 -1px 0 rgb(255 255 255 / 0.6);
+  --tile-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.4), inset 0 -3px 0 rgb(0 0 0 / 0.22),
+    0 2px 3px rgb(0 0 0 / 0.25);
+}
+@media only screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --slot-shadow: inset 0 2px 4px rgb(0 0 0 / 0.55), inset 0 -1px 0 rgb(255 255 255 / 0.04);
+    --tile-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.3), inset 0 -3px 0 rgb(0 0 0 / 0.35),
+      0 2px 4px rgb(0 0 0 / 0.6);
+  }
+}
+:root[data-theme="dark"] {
+  --slot-shadow: inset 0 2px 4px rgb(0 0 0 / 0.55), inset 0 -1px 0 rgb(255 255 255 / 0.04);
+  --tile-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.3), inset 0 -3px 0 rgb(0 0 0 / 0.35),
+    0 2px 4px rgb(0 0 0 / 0.6);
+}
 `;
 
 // The page's text color, for text that sits on its own background inside a button, where Pico

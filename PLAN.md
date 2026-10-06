@@ -102,7 +102,7 @@ colors fixed for both themes, and the layout pass is easier with both themes wor
       provide the type. This replaces a separate reference card: the only thing that card adds is
       the full price ladder, and a "next price at size N" line could cover that if it's missed (S)
 - [ ] Hotel icons on founded tiles; the bank cards already have them (S)
-- [ ] Less flat, more 3D-looking board squares (S)
+- [x] Less flat, more 3D-looking board squares (S)
 - [ ] Move the inline styles into CSS: six in the action card and its templates (exported from the
       template files), and a few in GameBoardView (S)
 
