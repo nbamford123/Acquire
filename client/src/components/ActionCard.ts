@@ -3,7 +3,8 @@ import { customElement, property, state } from 'lit/decorators.js';
 
 import {
   ActionTypes,
-  type GameAction,
+  type ClientAction,
+  createAction,
   GamePhase,
   type HOTEL_NAME,
   type PlayerView,
@@ -35,9 +36,6 @@ import { actionCardStyles } from './actionCardStyles.ts';
 export class ActionCard extends LightComponent {
   @property({ attribute: false })
   accessor playerView: PlayerView | null = null;
-
-  @property({ type: String })
-  accessor user: string | null = null;
 
   @state()
   private accessor selectedShares: ShareSelection = {};
@@ -90,7 +88,7 @@ export class ActionCard extends LightComponent {
     `,
   ];
 
-  private setAction(action: GameAction | null) {
+  private setAction(action: ClientAction | null) {
     this.dispatchEvent(
       new CustomEvent('set-action', {
         detail: action,
@@ -141,13 +139,11 @@ export class ActionCard extends LightComponent {
   }
 
   private dispatchPurchase() {
-    this.setAction({
-      type: ActionTypes.BUY_SHARES,
-      payload: {
-        player: this.user || '',
+    this.setAction(
+      createAction(ActionTypes.BUY_SHARES, {
         shares: this.selectedShares as Record<HOTEL_NAME, number>,
-      },
-    });
+      }),
+    );
   }
 
   private handleShareChange(hotel: HOTEL_NAME, count: number) {
@@ -176,10 +172,7 @@ export class ActionCard extends LightComponent {
     );
     this.setAction(
       survivor && merged
-        ? {
-          type: ActionTypes.BREAK_MERGER_TIE,
-          payload: { player: this.user || '', resolvedTie: { survivor, merged } },
-        }
+        ? createAction(ActionTypes.BREAK_MERGER_TIE, { resolvedTie: { survivor, merged } })
         : null,
     );
   }
@@ -190,10 +183,7 @@ export class ActionCard extends LightComponent {
     const { shares, error } = updateMergerShares(this.mergerShares, next, limits);
     this.mergerShares = shares;
     this.mergerError = error;
-    this.setAction({
-      type: ActionTypes.RESOLVE_MERGER,
-      payload: { player: this.user || '', shares },
-    });
+    this.setAction(createAction(ActionTypes.RESOLVE_MERGER, { shares }));
   }
 
   private getActionTemplate() {
@@ -201,7 +191,6 @@ export class ActionCard extends LightComponent {
       case GamePhase.FOUND_HOTEL:
         return foundHotelTemplate(
           this.playerView.foundHotelContext?.availableHotels || [],
-          this.user || '',
           this,
         );
       case GamePhase.BUY_SHARES:

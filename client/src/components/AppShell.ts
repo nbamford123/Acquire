@@ -3,6 +3,7 @@ import { css, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import Toastify from 'toastify-js';
 
+import type { LoginResponse } from '@acquire/engine/types';
 import type { AppState, Route } from '../types.ts';
 import { RouterService } from '../services/RouterService.ts';
 import { bus } from '../services/EventBus.ts';
@@ -163,7 +164,7 @@ export class AppShell extends LightComponent {
   }
 
   private handleLogin = (
-    event: CustomEvent<{ success: boolean; user: string }>,
+    event: CustomEvent<LoginResponse>,
   ) => {
     this.updateAppState({
       user: event.detail.user,

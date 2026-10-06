@@ -1,11 +1,12 @@
 import { html, type TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
-import { getApi, postApi } from '../services/ApiService.ts';
+import { getGame, sendAction } from '../services/ApiService.ts';
 import {
   ActionTypes,
+  type ClientAction,
   COLS,
-  type GameAction,
+  createAction,
   type GameView,
   HOTEL_CONFIG,
   type HOTEL_NAME,
@@ -42,7 +43,7 @@ export class GameBoardView extends LightComponent {
   private accessor loading = false;
 
   @state()
-  private accessor pendingAction: { action: GameAction; description: string } | undefined;
+  private accessor pendingAction: { action: ClientAction; description: string } | undefined;
 
   private pollTimer?: ReturnType<typeof setInterval>;
   private polling = false;
@@ -84,8 +85,8 @@ export class GameBoardView extends LightComponent {
     if (document.hidden || this.polling || this.submitting || this.loading) return;
     this.polling = true;
     try {
-      const response = await getApi(`/api/games/${this.gameId}`, { silent: true });
-      const game: PlayerView | undefined = response?.game;
+      if (!this.gameId) return;
+      const game = (await getGame(this.gameId, { silent: true }))?.game;
       if (
         game && !this.submitting &&
         game.lastUpdated > (this.playerView?.lastUpdated ?? 0)
@@ -109,8 +110,7 @@ export class GameBoardView extends LightComponent {
   private async loadGameState() {
     this.loading = true;
     try {
-      const playerViewResponse = await getApi(`/api/games/${this.gameId}`);
-      this.playerView = playerViewResponse.game;
+      this.playerView = this.gameId ? (await getGame(this.gameId))?.game ?? null : null;
       console.log({ playerView: this.playerView });
     } finally {
       this.loading = false;
@@ -128,10 +128,7 @@ export class GameBoardView extends LightComponent {
       this.seat?.currentPhase === GamePhase.PLAY_TILE
     ) {
       this.pendingAction = {
-        action: {
-          type: ActionTypes.PLAY_TILE,
-          payload: { player: this.user || '', tile },
-        },
+        action: createAction(ActionTypes.PLAY_TILE, { tile }),
         description: `Play tile ${getTileLabel(tile)}`,
       };
     }
@@ -144,7 +141,7 @@ export class GameBoardView extends LightComponent {
       this.pendingAction = undefined;
       return;
     }
-    const action = e.detail as GameAction;
+    const action = e.detail as ClientAction;
     const desc = action.type === ActionTypes.FOUND_HOTEL
       ? `Found hotel ${action.payload.hotelName}`
       : `${action.type}`;
@@ -356,7 +353,6 @@ export class GameBoardView extends LightComponent {
         </div>
         <action-card
           .playerView="${view}"
-          .user="${this.user}"
           @set-action="${(e: CustomEvent) => this.handleSetAction(e)}"
         ></action-card>
         <button
@@ -414,11 +410,10 @@ export class GameBoardView extends LightComponent {
   }
 
   private async submitAction() {
+    if (!this.gameId || !this.pendingAction) return;
     this.submitting = true;
     try {
-      const resp = await postApi(`/api/games/${this.gameId}`, {
-        action: this.pendingAction?.action,
-      });
+      const resp = await sendAction(this.gameId, this.pendingAction.action);
       this.pendingAction = undefined;
       if (resp?.game) {
         this.playerView = resp.game;

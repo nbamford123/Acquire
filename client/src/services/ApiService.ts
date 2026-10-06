@@ -1,5 +1,14 @@
 import { dispatchAppError, dispatchAuthError } from './EventBus.ts';
-import type { GameAction } from '@acquire/engine/types';
+import type {
+  ActionRequest,
+  ActionResponse,
+  ClientAction,
+  CreateGameResponse,
+  GameResponse,
+  GamesResponse,
+  LoginRequest,
+  LoginResponse,
+} from '@acquire/engine/types';
 
 // silent skips the app error for failures the user doesn't need to hear about, like a background
 // poll; an expired session still sends them to login
@@ -16,7 +25,6 @@ const checkResult = async (res: Response, silent = false) => {
       // ignore JSON parse errors
     }
     if (!silent) {
-      console.log('dispatching app error', errorMessage);
       dispatchAppError(errorMessage);
     }
     return false;
@@ -24,29 +32,41 @@ const checkResult = async (res: Response, silent = false) => {
   return true;
 };
 
-export const getApi = async (path: string, { silent = false } = {}) => {
-  const getResponse = await fetch(path);
-  if (await checkResult(getResponse, silent)) {
-    return await getResponse.json();
-  }
-  return null;
+// The response when the request succeeded, otherwise null after reporting the error
+const send = async (path: string, init?: RequestInit, silent = false) => {
+  const response = await fetch(path, init);
+  return await checkResult(response, silent) ? response : null;
 };
 
-export const postApi = async (path: string, body?: Record<string, unknown>) => {
-  const postResponse = await fetch(path, {
+const getJson = async <T>(path: string, silent = false) => {
+  const response = await send(path, undefined, silent);
+  return response ? await response.json() as T : null;
+};
+
+const postJson = async <T>(path: string, body?: unknown) => {
+  const response = await send(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined,
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
-  if (await checkResult(postResponse)) {
-    return await postResponse.json();
-  }
-  return null;
+  return response ? await response.json() as T : null;
 };
 
-export const deleteApi = async (path: string) => {
-  const deleteResponse = await fetch(path, {
-    method: 'DELETE',
-  });
-  await checkResult(deleteResponse);
-};
+const gamePath = (gameId: string) => `/api/games/${encodeURIComponent(gameId)}`;
+
+export const login = (email: string) =>
+  postJson<LoginResponse>('/api/login', { email } satisfies LoginRequest);
+
+export const listGames = () => getJson<GamesResponse>('/api/games');
+
+export const createGame = () => postJson<CreateGameResponse>('/api/games');
+
+export const getGame = (gameId: string, { silent = false } = {}) =>
+  getJson<GameResponse>(gamePath(gameId), silent);
+
+export const sendAction = (gameId: string, action: ClientAction) =>
+  postJson<ActionResponse>(gamePath(gameId), { action } satisfies ActionRequest);
+
+// Whether the game was deleted
+export const deleteGame = async (gameId: string) =>
+  (await send(gamePath(gameId), { method: 'DELETE' })) !== null;

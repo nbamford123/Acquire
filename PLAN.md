@@ -111,7 +111,7 @@ colors fixed for both themes, and the layout pass is easier with both themes wor
 
 None of these change what players see; pick them up whenever.
 
-- [ ] API client: typed API calls, a `createAction` helper instead of setting `type` by hand, and
+- [x] API client: typed API calls, a `createAction` helper instead of setting `type` by hand, and
       taking the player from the login rather than the action payload (M)
 - [ ] Player view hotels: keep the map, but add a typed helper for iterating it (today two places
       need `Object.entries` plus a cast) and include each hotel's price and type in the view (the

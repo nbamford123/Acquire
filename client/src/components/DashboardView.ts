@@ -2,14 +2,8 @@ import { css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
 import { LightComponent } from './LightComponent.ts';
-import { deleteApi, getApi, postApi } from '../services/ApiService.ts';
-import {
-  ActionTypes,
-  type AddPlayerAction,
-  type GameInfo,
-  type RemovePlayerAction,
-  type StartGameAction,
-} from '@acquire/engine/types';
+import { createGame, deleteGame, listGames, sendAction } from '../services/ApiService.ts';
+import { ActionTypes, createAction, type GameInfo } from '@acquire/engine/types';
 
 import './GameCard.ts';
 
@@ -83,8 +77,8 @@ export class DashboardView extends LightComponent {
   private async loadGames() {
     this.loading = true;
     try {
-      const gamesResponse = await getApi('/api/games');
-      this.games = gamesResponse.games || [];
+      const gamesResponse = await listGames();
+      this.games = gamesResponse?.games ?? [];
     } finally {
       this.loading = false;
     }
@@ -102,8 +96,8 @@ export class DashboardView extends LightComponent {
   }
 
   private async handleCreateGame() {
-    const newGame = await postApi('/api/games');
-    this.handleGameSelect(newGame.gameId);
+    const newGame = await createGame();
+    if (newGame) this.handleGameSelect(newGame.gameId);
   }
 
   private confirm(title: string, message: string) {
@@ -112,13 +106,7 @@ export class DashboardView extends LightComponent {
 
   private handleGameJoin = async (event: CustomEvent<string>) => {
     if (!await this.confirm('Join Game', `Join game ${event.detail}?`)) return;
-    const action: AddPlayerAction = {
-      type: ActionTypes.ADD_PLAYER,
-      payload: { player: this.user || '' },
-    };
-    const response = await postApi(`/api/games/${event.detail}`, {
-      action,
-    });
+    const response = await sendAction(event.detail, createAction(ActionTypes.ADD_PLAYER, {}));
     if (response) { // a null here means the join failed and hopefully error handling showed a toast error
       this.handleGameSelect(event.detail);
     }
@@ -130,13 +118,7 @@ export class DashboardView extends LightComponent {
       `Start game ${event.detail}? No one else can join once it starts.`,
     );
     if (!confirmed) return;
-    const action: StartGameAction = {
-      type: ActionTypes.START_GAME,
-      payload: { player: this.user || '' },
-    };
-    const response = await postApi(`/api/games/${event.detail}`, {
-      action,
-    });
+    const response = await sendAction(event.detail, createAction(ActionTypes.START_GAME, {}));
     if (response) { // a null here means the join failed and hopefully error handling showed a toast error
       this.handleGameSelect(event.detail);
     }
@@ -144,11 +126,7 @@ export class DashboardView extends LightComponent {
 
   private handleGameLeave = async (event: CustomEvent<string>) => {
     if (!await this.confirm('Leave Game', `Leave game ${event.detail}?`)) return;
-    const action: RemovePlayerAction = {
-      type: ActionTypes.REMOVE_PLAYER,
-      payload: { player: this.user || '' },
-    };
-    await postApi(`/api/games/${event.detail}`, { action });
+    await sendAction(event.detail, createAction(ActionTypes.REMOVE_PLAYER, {}));
     this.loadGames();
   };
 
@@ -158,7 +136,7 @@ export class DashboardView extends LightComponent {
       `Are you sure you want to delete game ${event.detail}?`,
     );
     if (confirmed) {
-      await deleteApi(`/api/games/${event.detail}`);
+      await deleteGame(event.detail);
       this.loadGames();
     }
   };
