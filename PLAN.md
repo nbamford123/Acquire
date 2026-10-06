@@ -113,7 +113,7 @@ None of these change what players see; pick them up whenever.
 
 - [x] API client: typed API calls, a `createAction` helper instead of setting `type` by hand, and
       taking the player from the login rather than the action payload (M)
-- [ ] Player view hotels: keep the map, but add a typed helper for iterating it (today two places
+- [x] Player view hotels: keep the map, but add a typed helper for iterating it (today two places
       need `Object.entries` plus a cast) and include each hotel's price and type in the view (the
       client recalculates prices in four places). An array would simplify the loops but make the
       four lookups by name clumsier (S–M)

@@ -14,6 +14,7 @@ import {
   updateMergerShares,
 } from '../resolveMergerTemplate.ts';
 import type { PlayerView } from '@acquire/engine/types';
+import { hotelsWith, makePlayerView } from './fixtures.ts';
 
 Deno.test('completeTieSelection', async (t) => {
   await t.step('fills in the merged hotel when two hotels are tied', () => {
@@ -187,13 +188,13 @@ Deno.test('selectionCost adds up the selected shares', () => {
 });
 
 Deno.test('buyableHotels only lists hotels on the board with shares left', () => {
-  const view = {
-    hotels: {
+  const view = makePlayerView({
+    hotels: hotelsWith({
       Tower: { shares: 20, size: 3 },
       Luxor: { shares: 25, size: 0 },
       American: { shares: 0, size: 8 },
-    },
-  } as unknown as PlayerView;
+    }),
+  });
   assertEquals(buyableHotels(view), [{ name: 'Tower', available: 20, price: 300 }]);
 });
 

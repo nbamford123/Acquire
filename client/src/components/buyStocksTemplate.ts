@@ -1,7 +1,6 @@
 import { css, html } from 'lit';
 
-import type { HOTEL_NAME, PlayerView } from '@acquire/engine/types';
-import { getHotelPrice } from '@acquire/engine/utils';
+import { type HOTEL_NAME, hotelList, type PlayerView } from '@acquire/engine/types';
 import { hotelChip, stepper } from './actionCardStyles.ts';
 
 export const MAX_SHARES_PER_TURN = 3;
@@ -17,13 +16,9 @@ export interface BuyableHotel {
 
 // Hotels on the board with shares left to buy
 export const buyableHotels = (playerView: PlayerView): BuyableHotel[] =>
-  (Object.entries(playerView.hotels) as [HOTEL_NAME, { shares: number; size: number }][])
-    .filter(([, { shares, size }]) => size > 0 && shares > 0)
-    .map(([name, { shares, size }]) => ({
-      name,
-      available: shares,
-      price: getHotelPrice(name, size).price,
-    }));
+  hotelList(playerView.hotels)
+    .filter(({ shares, size }) => size > 0 && shares > 0)
+    .map(({ name, shares, price }) => ({ name, available: shares, price }));
 
 const countOf = (selection: ShareSelection) =>
   Object.values(selection).reduce((total, count) => total + (count ?? 0), 0);

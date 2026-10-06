@@ -507,6 +507,27 @@ Deno.test('getPlayerView - returns correct hotel shares available in bank', () =
   assertEquals(playerView.hotels['Luxor'].shares, 1);
 });
 
+Deno.test("getPlayerView - each hotel has its type, and its prices at its size", () => {
+  const base = createGameState();
+  const luxor = (col: number) => ({ ...createTile(5, col), hotel: 'Luxor' as const });
+  const gameState = { ...base, tiles: [...base.tiles, luxor(0), luxor(1), luxor(2)] };
+  const playerView = getPlayerView('player1', gameState);
+
+  // Luxor is economy: $300 at size 3, with bonuses of 10x and 5x the price
+  const { shares: _, ...luxorView } = playerView.hotels['Luxor'];
+  assertEquals(luxorView, {
+    size: 3,
+    type: 'economy',
+    price: 300,
+    majority: 3000,
+    minority: 1500,
+  });
+  // Worldwide is off the board, so it shows its founding price
+  assertEquals(playerView.hotels['Worldwide'].type, 'standard');
+  assertEquals(playerView.hotels['Worldwide'].size, 0);
+  assertEquals(playerView.hotels['Worldwide'].price, 300);
+});
+
 Deno.test('getPlayerView - includes board tiles', () => {
   const gameState = createGameState();
   const playerView = getPlayerView('player1', gameState);
