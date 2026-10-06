@@ -49,6 +49,12 @@ export const styles = css`
     color: var(--pico-primary);
   }
 
+  .spectating {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--pico-muted-color);
+  }
+
   .game-log {
     margin: 0;
   }

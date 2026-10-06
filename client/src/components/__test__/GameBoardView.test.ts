@@ -2,14 +2,14 @@ import './dom.ts';
 import { assertEquals } from '@std/assert';
 import { stub } from '@std/testing/mock';
 
-import { GamePhase, type PlayerView } from '@acquire/engine/types';
+import { GamePhase, type GameView, type PlayerView } from '@acquire/engine/types';
 import '../GameBoardView.ts';
 import { hotelsWith, makePlayerView, mount, settle } from './fixtures.ts';
 
 type Board = Awaited<ReturnType<typeof mount>> & { pollGameState(): Promise<void> };
 
 // Serves GET /api/games/:id from views (the last one repeats) and records POSTed actions
-const serve = (views: PlayerView[], postResponse?: PlayerView) => {
+const serve = (views: GameView[], postResponse?: PlayerView) => {
   const posted: unknown[] = [];
   let next = 0;
   const fetchStub = stub(globalThis, 'fetch', (_input, init?: RequestInit) => {
@@ -188,5 +188,20 @@ Deno.test("GameBoardView - nobody's move before the game starts", async () => {
   assertEquals(text('.game-status'), 'Waiting for the game to start');
   assertEquals(root.querySelector('.game-status.your-move'), null);
   assertEquals(root.querySelector('.player-card.active'), null);
+  board.remove();
+});
+
+Deno.test('GameBoardView - spectators watch without a hand or controls', async () => {
+  const { playerId: _, money: _money, stocks: _stocks, tiles: _tiles, ...game } = makePlayerView({
+    currentPlayer: 1,
+  });
+  using _server = serve([game]);
+  const { board, root, text } = await mountBoard();
+  assertEquals(text('.game-status'), 'Waiting for alice to play a tile');
+  assertEquals(text('.spectating'), "You're watching this game");
+  assertEquals(root.querySelector('.current-player-view'), null);
+  assertEquals(root.querySelector('action-card'), null);
+  assertEquals(root.querySelector('.you-badge'), null);
+  assertEquals(root.querySelectorAll('.player-card').length, 2);
   board.remove();
 });

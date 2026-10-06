@@ -123,8 +123,8 @@ Deno.test('DashboardView - cards show what you can do in each game', async () =>
     },
     { status: 'Waiting for players', actions: ['Play Game', 'Leave Game'] },
     { status: 'Waiting for players', actions: ['Join Game'] },
-    { status: 'Full', actions: [] },
-    { status: "bob's turn", actions: [] },
+    { status: 'Full', actions: ['View Game'] },
+    { status: "bob's turn", actions: ['View Game'] },
   ]);
   const meta = (card: Rendered) => card.shadowRoot!.querySelector('.game-meta')?.textContent;
   assertEquals(meta(cards[0])?.includes('Your game'), true);

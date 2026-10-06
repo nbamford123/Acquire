@@ -14,7 +14,7 @@ import {
 import { initializeGame, processAction } from '@acquire/engine/core';
 
 import type { ServiceEnv } from './types.ts';
-import { getActivePlayer, getPlayerView } from '@acquire/engine/utils';
+import { getActivePlayer, getPlayerView, getSpectatorView } from '@acquire/engine/utils';
 import { requireAuth } from './middleware.ts';
 import { serveStatic } from 'hono/deno';
 import { setCookie } from 'hono/cookie';
@@ -104,12 +104,12 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       return ctx.json({ error: 'Game not found' }, 404);
     }
     const user = ctx.get('user') || '';
-    // Each player sees their own view, so there's nothing to show anyone else
-    if (!game.players.some((player) => player.name === user)) {
-      return ctx.json({ error: "You're not in this game" }, 403);
-    }
     const actions = await getPlayerActions(gameId);
-    return ctx.json({ game: getPlayerView(user, game, actions) });
+    // Anyone not in the game can watch it
+    const isPlayer = game.players.some((player) => player.name === user);
+    return ctx.json({
+      game: isPlayer ? getPlayerView(user, game, actions) : getSpectatorView(game, actions),
+    });
   });
   // Get list of games
   app.get('/api/games', requireAuth, async (ctx) => {
