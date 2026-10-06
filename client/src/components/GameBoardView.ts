@@ -414,8 +414,10 @@ export class GameBoardView extends LightComponent {
     this.submitting = true;
     try {
       const resp = await sendAction(this.gameId, this.pendingAction.action);
+      // A rejected move keeps the selection, so the player can change it or send it again
+      if (!resp) return;
       this.pendingAction = undefined;
-      if (resp?.game) {
+      if (resp.game) {
         this.playerView = resp.game;
       }
     } finally {
