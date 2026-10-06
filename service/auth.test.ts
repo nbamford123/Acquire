@@ -279,15 +279,15 @@ Deno.test('Auth Service - Caching Behavior', async (t) => {
   });
 });
 
-Deno.test('Auth Service - production needs a JWT_SECRET', async () => {
+Deno.test('Auth Service - Deno Deploy needs a JWT_SECRET', async () => {
   const secret = Deno.env.get('JWT_SECRET');
   Deno.env.delete('JWT_SECRET');
-  Deno.env.set('ENV', 'production');
+  Deno.env.set('DENO_DEPLOYMENT_ID', 'test');
   clearCache();
   try {
     await assertRejects(() => createToken('test@example.com'), Error, 'JWT_SECRET');
   } finally {
-    Deno.env.delete('ENV');
+    Deno.env.delete('DENO_DEPLOYMENT_ID');
     if (secret !== undefined) Deno.env.set('JWT_SECRET', secret);
     clearCache();
   }

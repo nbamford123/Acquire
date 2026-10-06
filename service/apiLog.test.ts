@@ -55,11 +55,11 @@ Deno.test('API log - escapes what it shows', async () => {
   assertStringIncludes(html, '&lt;script&gt;alert(1)&lt;/script&gt;');
 });
 
-Deno.test('API log - refuses to run in production', () => {
-  Deno.env.set('ENV', 'production');
+Deno.test('API log - refuses to run on Deno Deploy', () => {
+  Deno.env.set('DENO_DEPLOYMENT_ID', 'test');
   try {
     assertThrows(() => addApiLog(new Hono<ServiceEnv>()));
   } finally {
-    Deno.env.delete('ENV');
+    Deno.env.delete('DENO_DEPLOYMENT_ID');
   }
 });

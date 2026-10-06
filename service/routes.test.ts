@@ -50,6 +50,27 @@ Deno.test('POST /api/login logs in', async () => {
   assertEquals((data as { user: string }).user, 'TestUser');
 });
 
+Deno.test('POST /api/login sets an HTTPS-only cookie on Deno Deploy', async () => {
+  const cookie = async () =>
+    (await app.fetch(
+      new Request('http://localhost/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'test@example.com' }),
+      }),
+    )).headers.get('set-cookie') ?? '';
+
+  // Local development is plain http, where a Secure cookie would never come back
+  assertEquals(/;\s*Secure/i.test(await cookie()), false);
+  // The first login cached the signing key, so this doesn't also need a JWT_SECRET
+  Deno.env.set('DENO_DEPLOYMENT_ID', 'test');
+  try {
+    assertEquals(/;\s*Secure/i.test(await cookie()), true);
+  } finally {
+    Deno.env.delete('DENO_DEPLOYMENT_ID');
+  }
+});
+
 Deno.test('POST /login invalid email does not log in', async () => {
   const response = await app.fetch(
     new Request('http://localhost/api/login', {
