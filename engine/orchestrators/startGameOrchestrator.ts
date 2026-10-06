@@ -11,10 +11,5 @@ export const startGameOrchestrator: OrchestratorFunction = (
     currentPhase: GamePhase.PLAY_TILE,
     currentPlayer: 0,
     currentTurn: 1,
-  }, [
-    ...actions.map((action) => ({ turn: 1, action }), {
-      turn: 1,
-      action: `${gameState.players[0]}'s turn'`,
-    }),
-  ]];
+  }, actions.map((action) => ({ turn: 1, action }))];
 };

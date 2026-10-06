@@ -35,6 +35,36 @@ export const styles = css`
     grid-column: 1;
   }
 
+  .board-section h2 {
+    margin-bottom: 0.25rem;
+  }
+
+  .game-status {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  .game-status.your-move {
+    color: var(--pico-primary);
+  }
+
+  .game-log {
+    margin: 0;
+  }
+
+  .game-log ul {
+    max-height: 12rem;
+    overflow-y: auto;
+    margin: 0;
+    padding-left: 0;
+    font-size: 0.875rem;
+  }
+
+  .game-log li {
+    list-style: none;
+  }
+
   .game-board {
     display: grid;
     grid-template-columns: repeat(12, 1fr);

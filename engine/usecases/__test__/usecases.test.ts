@@ -125,7 +125,7 @@ Deno.test('buySharesUseCase: logs the purchase before the next turn', async (t) 
       type: 'BUY_SHARES',
       payload: { player: 'Alice', shares: { Tower: 2, Luxor: 1 } as any },
     });
-    assertEquals(actions[0], { turn: 3, action: 'Alice bought 2 Tower, 1 Luxor' });
+    assertEquals(actions[0], { turn: 3, player: 0, action: 'Alice bought 2 Tower, 1 Luxor' });
   });
 
   await t.step('says when nothing was bought', () => {

@@ -28,6 +28,7 @@ export const playTileOrchestrator: OrchestratorActionFunction<PlayTileAction> = 
   };
   const action = {
     turn: gameState.currentTurn,
+    player: gameState.currentPlayer,
     action: `${gameState.players[gameState.currentPlayer].name} played ${getTileLabel(tile)}`,
   };
   const placement = analyzeTilePlacement(tile, gameState.tiles);

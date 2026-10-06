@@ -4,6 +4,14 @@ import { customElement, property } from 'lit/decorators.js';
 import { StyledComponent } from './StyledComponent.ts';
 import { GameInfo, GamePhase, MAX_PLAYERS } from '@acquire/engine/types';
 
+// When the game last changed: just the time if it was today, otherwise the date too
+export const updatedLabel = (timestamp: number, now = Date.now()) => {
+  const date = new Date(timestamp);
+  const time = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  if (date.toDateString() === new Date(now).toDateString()) return `Updated ${time}`;
+  return `Updated ${date.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${time}`;
+};
+
 @customElement('game-card')
 export class DashboardView extends StyledComponent {
   @property({ attribute: false })
@@ -22,8 +30,13 @@ export class DashboardView extends StyledComponent {
   static override styles = [
     super.styles,
     css`
+      /* The host is the dashboard's flex item. It fits a phone screen, otherwise it's wide enough
+        for the buttons in one row. */
       :host {
         background-color: transparent;
+        flex: 1 1 300px;
+        min-width: min(400px, 100%);
+        max-width: 520px;
       }
       .game-status {
         display: inline-block;
@@ -51,9 +64,7 @@ export class DashboardView extends StyledComponent {
         padding: 2rem 0;
       }
       .game-card {
-        flex: 1 1 300px;
-        min-width: 400px;
-        max-width: 520px;
+        height: 100%;
         margin: 0;
         padding: 1.5rem;
         border-radius: 8px;
@@ -91,10 +102,21 @@ export class DashboardView extends StyledComponent {
       }
       .game-meta {
         display: flex;
-        gap: 1rem;
+        flex-wrap: wrap;
+        gap: 0.25rem 1rem;
         font-size: 0.875rem;
         color: hsl(205, 20%, 50%);
         margin-bottom: 1rem;
+      }
+      /* Wraps on narrow cards instead of squeezing the labels */
+      .card-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .card-actions button {
+        flex: 1 1 auto;
+        margin: 0;
       }
       .game-meta span {
         display: flex;
@@ -169,11 +191,9 @@ export class DashboardView extends StyledComponent {
         </header>
         <div class="game-meta">
           <span>👥 ${`${this.game.players.length}/6 players`}</span>
-          <span>🕐 ${new Date(this.game.lastUpdated).toLocaleDateString()} ${new Date(
-            this.game.lastUpdated,
-          ).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>
+          <span>🕐 ${updatedLabel(this.game.lastUpdated)}</span>
         </div>
-        <div role="group">
+        <div class="card-actions">
           ${this
             .getPrimaryButton()} ${isOwner && this.game.phase === GamePhase.WAITING_FOR_PLAYERS &&
               this.game.players.length > 1

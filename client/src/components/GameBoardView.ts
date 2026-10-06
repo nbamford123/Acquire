@@ -16,6 +16,7 @@ import { StyledComponent } from './StyledComponent.ts';
 import './ActionCard.ts';
 
 import { hotelIcons, styles } from './gameBoardView.styles.ts';
+import { gameStatus } from './gameStatus.ts';
 import { GamePhase } from '../../../engine/types/gameState.ts';
 
 // How often to check for other players' moves
@@ -50,12 +51,19 @@ export class GameBoardView extends StyledComponent {
     super.connectedCallback();
     this.loadGameState();
     this.pollTimer = setInterval(() => this.pollGameState(), POLL_INTERVAL_MS);
+    document.addEventListener('visibilitychange', this.handleVisibilityChange);
   }
 
   public override disconnectedCallback() {
     super.disconnectedCallback();
     this.stopPolling();
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
   }
+
+  // Polling skips hidden tabs, so catch up as soon as the tab is back
+  private handleVisibilityChange = () => {
+    if (!document.hidden) this.pollGameState();
+  };
 
   private stopPolling() {
     clearInterval(this.pollTimer);
@@ -364,16 +372,23 @@ export class GameBoardView extends StyledComponent {
     return html`
       <div class="game-container">
         <div class="board-section">
-          <h2>${this.gameId}</h2>
+          <div>
+            <h2>${this.gameId}</h2>
+            <p class="game-status ${this.activePlayer === this.playerView.playerId
+              ? 'your-move'
+              : ''}">${gameStatus(this.playerView)}</p>
+          </div>
 
-          <select style="width: 100%; margin-bottom: 1rem; cursor: default;">
-            <option>Recent Actions</option>
-            ${this.playerView.actions.map((action) =>
-              html`
-                <option>${action.action}</option>
-              `
-            )}
-          </select>
+          <details class="game-log" open>
+            <summary>Recent moves</summary>
+            <ul>
+              ${this.playerView.actions.map((action) =>
+                html`
+                  <li>${action.action}</li>
+                `
+              )}
+            </ul>
+          </details>
           <div class="game-board">
             ${this.renderBoard()}
           </div>

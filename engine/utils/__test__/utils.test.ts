@@ -868,96 +868,53 @@ Deno.test('sortTiles - handles tiles with different locations', () => {
 // PlayerAction test data helpers
 const createPlayerAction = (
   turn: number,
+  player: number | undefined,
   action: string,
-): PlayerAction => ({
-  turn,
-  action,
-});
+): PlayerAction => ({ turn, player, action });
+
+// Two rounds of a two-player game, with player2 resolving shares during player1's merger
+const twoRounds: PlayerAction[] = [
+  createPlayerAction(0, undefined, 'Player player2 joined'),
+  createPlayerAction(1, 0, 'player1 played 1A'),
+  createPlayerAction(1, 0, 'player1 merged Luxor into Tower'),
+  createPlayerAction(1, 0, 'player2 sold 2 Luxor'),
+  createPlayerAction(1, 0, 'player1 bought 1 Tower'),
+  createPlayerAction(1, 1, 'player2 played 2B'),
+  createPlayerAction(1, 1, "player2 didn't buy any shares"),
+  createPlayerAction(2, 0, 'player1 played 3C'),
+];
 
 // getPlayerView with actions tests
-Deno.test('getPlayerView - filters actions to show only those since player last turn', () => {
-  const gameState = createGameState({ currentTurn: 3 });
-  const actions: PlayerAction[] = [
-    createPlayerAction(1, 'player1 played tile'),
-    createPlayerAction(2, 'player2 bought stock'),
-    createPlayerAction(2, 'player1 passed'),
-    createPlayerAction(3, 'player2 played tile'),
-  ];
-
-  const playerView = getPlayerView('player1', gameState, actions);
-
-  // Should include actions from player1's first action onward, filtered to turn >= 2
-  // Slice from index 0 (first player1), then filter by turn >= 2 gives indices 1, 2, 3
-  assertEquals(playerView.actions.length, 3);
-  assertEquals(playerView.actions[0].action, 'player2 bought stock');
+Deno.test('getPlayerView - the log starts at the player\'s last finished turn', () => {
+  // player1 is partway through their second turn
+  const gameState = createGameState({ currentTurn: 2, currentPlayer: 0 });
+  const playerView = getPlayerView('player1', gameState, twoRounds);
+  assertEquals(playerView.actions, twoRounds.slice(1));
 });
 
-Deno.test('getPlayerView - filters actions starting from player action index', () => {
-  const gameState = createGameState({ currentTurn: 2 });
-  const actions: PlayerAction[] = [
-    createPlayerAction(1, 'player1 played tile'),
-    createPlayerAction(1, 'player2 played tile'),
-    createPlayerAction(1, 'player1 bought stock'),
-    createPlayerAction(2, 'player2 played tile'),
-  ];
-
-  const playerView = getPlayerView('player1', gameState, actions);
-
-  // Should start from the first action containing player1's name and filter by turn >= 1
-  // Slice from index 0, filter turn >= 1 gives all 4 actions
-  assertEquals(playerView.actions.length, 4);
-  assertEquals(playerView.actions[0].action, 'player1 played tile');
+Deno.test('getPlayerView - the log includes moves other players made during your turn', () => {
+  // player2's last turn was round 1, and they also sold shares during player1's turn before it
+  const gameState = createGameState({ currentTurn: 2, currentPlayer: 0 });
+  const playerView = getPlayerView('player2', gameState, twoRounds);
+  assertEquals(playerView.actions, twoRounds.slice(5));
 });
 
-Deno.test('getPlayerView - returns empty actions array when no actions match', () => {
-  const gameState = createGameState({ currentTurn: 5 });
-  const actions: PlayerAction[] = [
-    createPlayerAction(1, 'player1 played tile'),
-    createPlayerAction(2, 'player2 played tile'),
-  ];
-
+Deno.test('getPlayerView - on your turn, the log starts at your previous turn', () => {
+  const actions = twoRounds.slice(0, 7);
+  const gameState = createGameState({ currentTurn: 2, currentPlayer: 0 });
   const playerView = getPlayerView('player1', gameState, actions);
-
-  // No actions match turn >= 4 or contain player1
-  assertEquals(playerView.actions.length, 0);
+  assertEquals(playerView.actions, actions.slice(1));
 });
 
-Deno.test('getPlayerView - includes all recent actions for player', () => {
-  const gameState = createGameState({ currentTurn: 2 });
-  const actions: PlayerAction[] = [
-    createPlayerAction(1, 'player1 played tile'),
-    createPlayerAction(1, 'player2 played tile'),
-    createPlayerAction(2, 'player1 bought stock'),
-    createPlayerAction(2, 'player2 passed'),
-    createPlayerAction(2, 'player1 passed'),
-  ];
-
-  const playerView = getPlayerView('player1', gameState, actions);
-
-  // Should include all actions from player1's first action onwards filtered by turn >= 1
-  // Slice from index 0, then all pass the turn filter, giving all 5 actions
-  assertEquals(playerView.actions.length, 5);
-  assertEquals(playerView.actions[0].action, 'player1 played tile');
+Deno.test('getPlayerView - before your first finished turn, the log shows the whole game', () => {
+  const actions = twoRounds.slice(0, 3);
+  const gameState = createGameState({ currentTurn: 1, currentPlayer: 0 });
+  assertEquals(getPlayerView('player1', gameState, actions).actions, actions);
+  assertEquals(getPlayerView('player2', gameState, actions).actions, actions);
 });
 
 Deno.test('getPlayerView - handles empty actions array', () => {
   const gameState = createGameState();
-  const actions: PlayerAction[] = [];
-
-  const playerView = getPlayerView('player1', gameState, actions);
-
-  assertEquals(playerView.actions.length, 0);
-});
-
-Deno.test('getPlayerView - handles actions with no player name matches', () => {
-  const gameState = createGameState({ currentTurn: 2 });
-  const actions: PlayerAction[] = [
-    createPlayerAction(1, 'player2 played tile'),
-    createPlayerAction(2, 'player2 bought stock'),
-  ];
-
-  const playerView = getPlayerView('player1', gameState, actions);
-
-  // No actions contain player1, so should return empty
+  const playerView = getPlayerView('player1', gameState, []);
   assertEquals(playerView.actions.length, 0);
 });

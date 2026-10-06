@@ -44,12 +44,19 @@ export const processMergerOrchestrator = (
     currentPhase: GamePhase.RESOLVE_MERGER,
     ...updatedState,
   };
-  const mergerActions = [{
+  const log = (action: string) => ({
     turn: gameState.currentTurn,
-    action: `${
-      gameState.players[gameState.currentPlayer].name
-    } merged ${result.mergedHotel} into ${result.survivingHotel}`,
-  }, ...actions.map((action) => ({ turn: gameState.currentTurn, action }))];
+    player: gameState.currentPlayer,
+    action,
+  });
+  const mergerActions = [
+    log(
+      `${
+        gameState.players[gameState.currentPlayer].name
+      } merged ${result.mergedHotel} into ${result.survivingHotel}`,
+    ),
+    ...actions.map(log),
+  ];
 
   if (mergedState.mergeContext?.stockholderIds?.length) {
     return [mergedState, mergerActions];

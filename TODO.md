@@ -14,8 +14,6 @@
 
 ## Dashboard
 
-- label the time on the game card, e.g. "Updated"; it already shows the last move's time
-- the game card's three buttons overflow it on narrow screens
 - leaderboard: total $ per player across finished games
   - final money is already computed at game over (`finalStandings`); it would need saving per player (e.g. a KV entry per player) when a game ends
 - make the join/etc. buttons styled links
@@ -30,12 +28,6 @@
 - put the hotel type (economy, standard, luxury) on the bank card (the price already shows, including when inactive)
 - make the board squares more 3D? They look very flat right now.
 - game card somewhere on screen? Could make it collapsible/hidable.
-- a game status somewhere, e.g. "Waiting for players", "Player X's turn", "Waiting for player X to sell/trade stocks", "Game over"
-  - partly there: the action card shows waiting messages and game over shows the winner, but there's no single status line
-- polling pauses in background tabs, so returning to a tab can take up to 3 seconds to catch up; poll immediately on `visibilitychange`
-- the game log includes engine detail lines like "Minority bonus paid to single minority shareholder"
-- the game log is a `<select>`; a real list would read better
-- the log is meant to show what happened since your last turn, but it shows the current and previous rounds (about two rounds, however many players); actions need to record whose turn they belong to
 - give players unique colors?
 
 ## Misc
@@ -68,7 +60,6 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
 - the class in `GameCard.ts` is named `DashboardView`
 - GameBoardView imports `GamePhase` by relative path instead of from `@acquire/engine/types`
 - leftover debug `console.log`s in GameBoardView, AppShell, DashboardView, and ApiService
-- set `ALLOWED_EMAILS` and `JWT_SECRET` in the Development context on Deno Deploy so previews can log in
 
 ## Eventual blog post
 

@@ -49,16 +49,17 @@ export const getPlayerView = (
     );
   }
   const board = boardTiles(gameState.tiles);
-  // Filter actions: only include actions from the player's first action onward that are from recent turns
-  const viewableActions = actions.length > 0
-    ? (() => {
-      const playerActionIndex = actions.findIndex((action) => action.action.includes(playerName));
-      if (playerActionIndex === -1) return [];
-      return actions
-        .slice(playerActionIndex)
-        .filter((action) => action.turn >= gameState.currentTurn - 1);
-    })()
-    : [];
+  // The log starts at the player's last finished turn, so they see what they did and everything
+  // since. Until they've finished a turn, it shows the whole game.
+  const sameTurn = (a: PlayerAction, b: { turn: number; player?: number }) =>
+    a.turn === b.turn && a.player === b.player;
+  const current = { turn: gameState.currentTurn, player: gameState.currentPlayer };
+  const lastTurn = actions.findLast((action) =>
+    action.player === playerId && !sameTurn(action, current)
+  );
+  const viewableActions = lastTurn
+    ? actions.slice(actions.findIndex((action) => sameTurn(action, lastTurn)))
+    : actions;
   return {
     gameId: gameState.gameId,
     owner: gameState.owner,

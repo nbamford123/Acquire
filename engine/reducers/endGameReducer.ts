@@ -31,8 +31,7 @@ export const endGameReducer = (
     income.set(playerId, amount + (income.get(playerId) || 0));
   const actions: string[] = [];
   for (const [hotel] of activeHotels) {
-    const [payouts, payoutActions] = calculateShareholderPayouts(hotel, gameBoard);
-    actions.push(...payoutActions);
+    const payouts = calculateShareholderPayouts(hotel, gameBoard);
     payouts.forEach((payout, playerId) => {
       addIncome(playerId, payout);
       actions.push(`${playerName(playerId)} was paid $${payout} for ${hotel.name}`);
@@ -55,12 +54,19 @@ export const endGameReducer = (
     .forEach((player) => actions.push(`${player.name} finished with $${player.money}`));
 
   const soldHotels = new Set(activeHotels.map(([hotel]) => hotel.name));
-  return [{
-    players: finalPlayers,
-    hotels: gameState.hotels.map((hotel) =>
-      soldHotels.has(hotel.name)
-        ? { ...hotel, shares: hotel.shares.map(() => ({ location: 'bank' as const })) }
-        : hotel
-    ),
-  }, actions.map((action) => ({ turn: gameState.currentTurn, action }))];
+  return [
+    {
+      players: finalPlayers,
+      hotels: gameState.hotels.map((hotel) =>
+        soldHotels.has(hotel.name)
+          ? { ...hotel, shares: hotel.shares.map(() => ({ location: 'bank' as const })) }
+          : hotel
+      ),
+    },
+    actions.map((action) => ({
+      turn: gameState.currentTurn,
+      player: gameState.currentPlayer,
+      action,
+    })),
+  ];
 };

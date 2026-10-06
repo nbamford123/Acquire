@@ -17,7 +17,7 @@ days, and minified the production bundle.
 
 Done in #27 and #28, except one dashboard setting:
 
-- [ ] Set `ALLOWED_EMAILS` and `JWT_SECRET` in the Development context on Deno Deploy, so you can
+- [x] Set `ALLOWED_EMAILS` and `JWT_SECRET` in the Development context on Deno Deploy, so you can
       log in on preview and branch deploys. Use a different `JWT_SECRET` from production. Preview
       timelines get their own KV database, so testing there doesn't touch production games (S)
 
@@ -25,12 +25,12 @@ Done in #27 and #28, except one dashboard setting:
 
 One PR.
 
-- [ ] A game status line: "Alice's turn", "Waiting for Bob to sell or trade", "Game over". Parts
+- [x] A game status line: "Alice's turn", "Waiting for Bob to sell or trade", "Game over". Parts
       exist (the active player's card is highlighted, the action card shows waiting messages, and
       game over has a headline), but nothing says it in one place (M)
-- [ ] Poll immediately when a tab becomes visible, instead of up to 3 seconds later; today polling
+- [x] Poll immediately when a tab becomes visible, instead of up to 3 seconds later; today polling
       only skips while the tab is hidden (S)
-- [ ] Game log: show what happened since the player's last turn, since that's what it's for in an
+- [x] Game log: show what happened since the player's last turn, since that's what it's for in an
       asynchronous game. Today `getPlayerView.ts` keeps the current and previous rounds
       (`currentTurn` counts rounds, not player turns), so it shows about two rounds whatever the
       player count. Actions are plain text with a round number, so the view can't tell whose turn
@@ -39,7 +39,7 @@ One PR.
       detail lines like "Minority bonus paid to single minority shareholder" (from
       `calculateShareholderPayoutsOperation.ts`). The log is a `<select>` today, so consider a
       real list while you're there (M)
-- [ ] Dashboard game card: the buttons overflow on narrow screens (the card has
+- [x] Dashboard game card: the buttons overflow on narrow screens (the card has
       `min-width: 400px`), and label the time, e.g. "Updated 4:29 PM"; it already shows the last
       move's time (S)
 

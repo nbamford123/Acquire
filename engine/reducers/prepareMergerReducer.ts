@@ -20,7 +20,7 @@ export const prepareMergerReducer = (
   const gameBoard = boardTiles(tiles);
   const mergedHotel = getHotelByName(hotels, result.mergedHotel);
   // pay the majority and minority shareholders
-  const [payouts, actions] = calculateShareholderPayouts(mergedHotel, gameBoard);
+  const payouts = calculateShareholderPayouts(mergedHotel, gameBoard);
   const playerName = (playerId: number) =>
     players.find((player) => player.id === playerId)?.name ?? `Player ${playerId}`;
 
@@ -51,8 +51,5 @@ export const prepareMergerReducer = (
       // Remaining tiles have been absorbed into surviving hotel
       additionalTiles: [],
     },
-  }, [
-    ...actions,
-    ...Array.from(payouts, ([playerId, payout]) => `${playerName(playerId)} was paid $${payout}`),
-  ]];
+  }, Array.from(payouts, ([playerId, payout]) => `${playerName(playerId)} was paid $${payout}`)];
 };

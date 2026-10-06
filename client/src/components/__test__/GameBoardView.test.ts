@@ -130,3 +130,54 @@ Deno.test('GameBoardView - polling only applies newer states', async () => {
   assertEquals(submit().textContent?.trim(), 'Submit');
   board.remove();
 });
+
+Deno.test('GameBoardView - the status line says whose move it is', async () => {
+  using _server = serve([
+    makePlayerView({ currentPlayer: 1 }),
+    makePlayerView({ currentPlayer: 0, lastUpdated: 150 }),
+  ]);
+  const { board, root, text } = await mountBoard();
+  assertEquals(text('.game-status'), 'Waiting for alice to play a tile');
+  assertEquals(root.querySelector('.game-status.your-move'), null);
+
+  await board.pollGameState();
+  await settle(board);
+  assertEquals(text('.game-status.your-move'), 'Your turn: play a tile');
+  board.remove();
+});
+
+Deno.test('GameBoardView - polls as soon as the tab is visible again', async () => {
+  using _server = serve([
+    makePlayerView({ currentPlayer: 1, lastUpdated: 100 }),
+    makePlayerView({ currentPlayer: 0, lastUpdated: 150 }),
+  ]);
+  const { board, text } = await mountBoard();
+
+  // Hidden tabs don't poll
+  Object.defineProperty(document, 'hidden', { value: true, configurable: true });
+  document.dispatchEvent(new Event('visibilitychange'));
+  await settle(board);
+  assertEquals(text('.game-status'), 'Waiting for alice to play a tile');
+
+  Object.defineProperty(document, 'hidden', { value: false, configurable: true });
+  document.dispatchEvent(new Event('visibilitychange'));
+  await settle(board);
+  await settle(board);
+  assertEquals(text('.game-status'), 'Your turn: play a tile');
+  board.remove();
+});
+
+Deno.test('GameBoardView - the log lists recent moves in order', async () => {
+  using _server = serve([makePlayerView({
+    actions: [
+      { turn: 1, player: 0, action: 'nate played 1A' },
+      { turn: 1, player: 1, action: 'alice played 2B' },
+    ],
+  })]);
+  const { board, root } = await mountBoard();
+  assertEquals(
+    [...root.querySelectorAll('.game-log li')].map((li) => li.textContent?.trim()),
+    ['nate played 1A', 'alice played 2B'],
+  );
+  board.remove();
+});
