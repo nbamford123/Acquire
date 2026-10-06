@@ -4,6 +4,7 @@ import { stub } from '@std/testing/mock';
 
 import { GamePhase, type GameInfo } from '@acquire/engine/types';
 import '../DashboardView.ts';
+import { updatedLabel } from '../GameCard.ts';
 import { mount, settle } from './fixtures.ts';
 
 type Rendered = HTMLElement & { updateComplete: Promise<boolean> };
@@ -56,4 +57,14 @@ Deno.test('DashboardView - deleting a game removes its card', async () => {
   cards = await settleAll(dashboard);
   assertEquals(cardIds(cards), ['game-b', 'game-c']);
   dashboard.remove();
+});
+
+Deno.test('updatedLabel - shows the date only for games not updated today', () => {
+  const now = new Date(2026, 9, 5, 20, 0).getTime();
+  const time = (date: Date) => date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const today = new Date(2026, 9, 5, 16, 29);
+  assertEquals(updatedLabel(today.getTime(), now), `Updated ${time(today)}`);
+  const earlier = new Date(2026, 8, 29, 16, 29);
+  const day = earlier.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  assertEquals(updatedLabel(earlier.getTime(), now), `Updated ${day}, ${time(earlier)}`);
 });

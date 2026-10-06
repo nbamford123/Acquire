@@ -37,5 +37,10 @@ export const completeMergerReducer = (
         ? { ...hotel, shares: mergedShares }
         : hotel
     ),
-  }, [{ turn: gameState.currentTurn, action: `${gameState.players[playerId].name} ${action}` }]];
+  }, [{
+    // Stockholders resolve their shares during the merging player's turn
+    turn: gameState.currentTurn,
+    player: gameState.currentPlayer,
+    action: `${gameState.players[playerId].name} ${action}`,
+  }]];
 };

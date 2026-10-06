@@ -45,7 +45,8 @@ const advanceTurn = (gameState: GameState, skipped: number): [GameState, PlayerA
   }
   const nextPlayerId = (currentPlayer + 1) % players.length;
   const turn = nextPlayerId === 0 ? currentTurn + 1 : currentTurn;
-  const log = (action: string) => ({ turn, action });
+  // What happens at the start of the next turn is logged as part of it
+  const log = (action: string) => ({ turn, player: nextPlayerId, action });
   let nextState: GameState = {
     ...gameState,
     currentPhase: GamePhase.PLAY_TILE,

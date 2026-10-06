@@ -38,7 +38,11 @@ export const buySharesUseCase: UseCaseFunction<BuySharesAction> = (
   const [buySharesState, actions] = buySharesOrchestrator(gameState, action);
   // The purchase comes before whatever the turn change logs (next turn, or end of game)
   return [buySharesState, [
-    { turn: gameState.currentTurn, action: `${player.name} ${purchase}` },
+    {
+      turn: gameState.currentTurn,
+      player: gameState.currentPlayer,
+      action: `${player.name} ${purchase}`,
+    },
     ...actions,
   ]];
 };

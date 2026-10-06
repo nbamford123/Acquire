@@ -24,11 +24,10 @@ Deno.test('calculateShareholderPayouts', async (t) => {
       { row: 0, col: 4, location: 'board', hotel: 'Worldwide' },
     ] as unknown as BoardTile[];
 
-    const [payouts, explanation] = calculateShareholderPayouts(hotel, gameBoard);
+    const payouts = calculateShareholderPayouts(hotel, gameBoard);
 
     // Verify payouts is a Map and returns results
     assertEquals(payouts instanceof Map, true);
-    assertEquals(typeof explanation, 'object');
   });
 
   await t.step('handles clear majority and minority winners', () => {
@@ -49,11 +48,10 @@ Deno.test('calculateShareholderPayouts', async (t) => {
       { row: 0, col: 2, location: 'board', hotel: 'Luxor' },
     ] as unknown as BoardTile[];
 
-    const [payouts, explanation] = calculateShareholderPayouts(hotel, gameBoard);
+    const payouts = calculateShareholderPayouts(hotel, gameBoard);
 
     // Verify payouts structure
     assertEquals(payouts instanceof Map, true);
-    assertEquals(typeof explanation, 'object');
   });
 
   await t.step('handles single hotel with multiple shareholders', () => {
@@ -74,36 +72,9 @@ Deno.test('calculateShareholderPayouts', async (t) => {
       { row: 0, col: 1, location: 'board', hotel: 'American' },
     ] as unknown as BoardTile[];
 
-    const [payouts, explanation] = calculateShareholderPayouts(hotel, gameBoard);
+    const payouts = calculateShareholderPayouts(hotel, gameBoard);
 
     assertEquals(payouts instanceof Map, true);
-    assertEquals(typeof explanation, 'object');
-  });
-
-  await t.step('returns explanation array with details', () => {
-    const hotel: Hotel = {
-      name: 'Continental',
-      shares: [
-        { location: 0 },
-        { location: 0 },
-        { location: 0 },
-        { location: 1 },
-        ...Array.from({ length: 21 }, () => ({ location: 'bank' })),
-      ],
-    } as unknown as Hotel;
-
-    const gameBoard: BoardTile[] = [
-      { row: 0, col: 0, location: 'board', hotel: 'Continental' },
-      { row: 0, col: 1, location: 'board', hotel: 'Continental' },
-      { row: 0, col: 2, location: 'board', hotel: 'Continental' },
-      { row: 0, col: 3, location: 'board', hotel: 'Continental' },
-    ] as unknown as BoardTile[];
-
-    const [payouts, explanation] = calculateShareholderPayouts(hotel, gameBoard);
-
-    // Explanation should be an array
-    assertEquals(Array.isArray(explanation), true);
-    assertEquals(explanation.length > 0, true);
   });
 
   await t.step('handles hotel with only bank shares', () => {
@@ -116,10 +87,9 @@ Deno.test('calculateShareholderPayouts', async (t) => {
       { row: 0, col: 0, location: 'board', hotel: 'Festival' },
     ] as unknown as BoardTile[];
 
-    const [payouts, explanation] = calculateShareholderPayouts(hotel, gameBoard);
+    const payouts = calculateShareholderPayouts(hotel, gameBoard);
 
     assertEquals(payouts instanceof Map, true);
-    assertEquals(typeof explanation, 'object');
   });
 
   await t.step('handles hotel with mixed shareholder distribution', () => {
@@ -146,7 +116,7 @@ Deno.test('calculateShareholderPayouts', async (t) => {
       { row: 0, col: 5, location: 'board', hotel: 'Worldwide' },
     ] as unknown as BoardTile[];
 
-    const [payouts, explanation] = calculateShareholderPayouts(hotel, gameBoard);
+    const payouts = calculateShareholderPayouts(hotel, gameBoard);
 
     assertEquals(payouts instanceof Map, true);
   });
@@ -169,7 +139,7 @@ Deno.test('calculateShareholderPayouts', async (t) => {
       { row: 1, col: 1, location: 'board', hotel: 'Worldwide' },
     ] as unknown as BoardTile[];
 
-    const [payouts, explanation] = calculateShareholderPayouts(hotel, gameBoard);
+    const payouts = calculateShareholderPayouts(hotel, gameBoard);
 
     assertEquals(payouts instanceof Map, true);
   });
@@ -198,7 +168,7 @@ Deno.test('calculateShareholderPayouts', async (t) => {
       }),
     ) as unknown as BoardTile[];
 
-    const [payouts, explanation] = calculateShareholderPayouts(hotel, gameBoard);
+    const payouts = calculateShareholderPayouts(hotel, gameBoard);
 
     assertEquals(payouts instanceof Map, true);
   });
@@ -220,8 +190,8 @@ Deno.test('calculateShareholderPayouts', async (t) => {
       { row: 0, col: 2, location: 'board', hotel: 'American' },
     ] as unknown as BoardTile[];
 
-    const [payouts1, explanation1] = calculateShareholderPayouts(hotel, gameBoard);
-    const [payouts2, explanation2] = calculateShareholderPayouts(hotel, gameBoard);
+    const payouts1 = calculateShareholderPayouts(hotel, gameBoard);
+    const payouts2 = calculateShareholderPayouts(hotel, gameBoard);
 
     // Same inputs should produce same outputs
     assertEquals(payouts1.size, payouts2.size);

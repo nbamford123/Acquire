@@ -1,4 +1,4 @@
-import { getStockHolders, hotelTiles, majorityMinorityValue } from '../domain/index.ts';
+import { getStockHolders, majorityMinorityValue } from '../domain/index.ts';
 import { getStockholderMap, roundUpToNearestHundred } from '../utils/index.ts';
 import type { BoardTile, Hotel } from '../types/index.ts';
 
@@ -7,24 +7,17 @@ import type { BoardTile, Hotel } from '../types/index.ts';
 export const calculateShareholderPayouts = (
   hotel: Hotel,
   gameBoard: BoardTile[],
-): [Map<number, number>, string[]] => {
+): Map<number, number> => {
   // pay the majority and minority shareholders
   const stockholders = getStockHolders(hotel);
   const playerStockCounts = getStockholderMap(stockholders);
-  const mergedSize = hotelTiles(hotel.name, gameBoard).length;
   const [majorityBonus, minorityBonus] = majorityMinorityValue(hotel, gameBoard);
 
   const payouts: Map<number, number> = new Map();
-  let payoutResult = '';
 
-  // Handle case where there are no shareholders (all shares in bank)
+  // No shareholders: all shares are in the bank
   if (playerStockCounts.length === 0) {
-    payoutResult = 'No shareholders - all shares held by bank';
-    const actions = [
-      `Hotel ${hotel.name} with ${mergedSize} tiles has majority bonus of ${majorityBonus} and minority bonus of ${minorityBonus}`,
-      payoutResult,
-    ];
-    return [payouts, actions];
+    return payouts;
   }
 
   // Group players by stock count to handle ties
@@ -48,9 +41,6 @@ export const calculateShareholderPayouts = (
     stockGroups[0].forEach(({ playerId }) => {
       payouts.set(playerId, perPlayer);
     });
-    payoutResult = `Majority plus minority ${
-      stockGroups[0].length === 1 ? 'single shareholder' : 'split between tied shareholders'
-    }`;
   } else if (stockGroups[0].length > 1) {
     // Tie for majority - combine and split majority + minority among tied players
     const totalBonus = majorityBonus + minorityBonus;
@@ -58,12 +48,10 @@ export const calculateShareholderPayouts = (
     stockGroups[0].forEach(({ playerId }) => {
       payouts.set(playerId, perPlayer);
     });
-    payoutResult = 'Majority plus minority split between tied majority shareholders';
     // No minority bonus paid to anyone else
   } else {
     // No tie for majority - single majority winner
     payouts.set(stockGroups[0][0].playerId, majorityBonus);
-    payoutResult = 'Majority bonus paid to single majority shareholder';
     if (stockGroups.length > 1) {
       // Handle minority shareholders
       if (stockGroups[1].length > 1) {
@@ -72,18 +60,12 @@ export const calculateShareholderPayouts = (
         stockGroups[1].forEach(({ playerId }) => {
           payouts.set(playerId, perPlayer);
         });
-        payoutResult = 'Minority bonus split between tied shareholders';
       } else {
         // Single minority winner
         payouts.set(stockGroups[1][0].playerId, minorityBonus);
-        payoutResult = 'Minority bonus paid to single minority shareholder';
       }
     }
   }
 
-  const actions = [
-    `Hotel ${hotel.name} with ${mergedSize} tiles has majority bonus of ${majorityBonus} and minority bonus of ${minorityBonus}`,
-    payoutResult,
-  ];
-  return [payouts, actions];
+  return payouts;
 };
