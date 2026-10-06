@@ -35,7 +35,7 @@
 - polling pauses in background tabs, so returning to a tab can take up to 3 seconds to catch up; poll immediately on `visibilitychange`
 - the game log includes engine detail lines like "Minority bonus paid to single minority shareholder"
 - the game log is a `<select>`; a real list would read better
-- each player's log starts from their own first action, so the moves just before it are hidden
+- the log is meant to show what happened since your last turn, but it shows the current and previous rounds (about two rounds, however many players); actions need to record whose turn they belong to
 - give players unique colors?
 
 ## Misc
