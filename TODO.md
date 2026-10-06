@@ -19,6 +19,7 @@
 
 ## Game Board
 
+- let non-players view a game (spectator view: no hand or controls, the last full round in the log)
 - put the hotel type (economy, standard, luxury) on the bank card (the price already shows, including when inactive)
 - make the board squares more 3D? They look very flat right now.
 - game card somewhere on screen? Could make it collapsible/hidable.

@@ -56,6 +56,14 @@ One PR.
       game card shows only the first 8 characters of today's ids (S)
 - [x] Decide whether creating or joining needs a prompt: no, the join and start confirmations
       cover it (S)
+- [ ] Let anyone view a game they're not in. Spectators see what players see about each other
+      (cash tiers, rough share counts, the board), so nothing hidden leaks. `getPlayerView` throws
+      for non-players and `PlayerView` assumes a seat (`playerId`, `money`, `stocks`, `tiles`), so
+      add a spectator view with no seat and every player shown as another player. Its log can use
+      the same filter with the current player in place of "you", which shows the last full round.
+      On the board, skip the hand, action card, and Submit, and show every player card as another
+      player. Then drop the 403 on `GET /api/games/:id` for non-players and bring back a View Game
+      link on their dashboard cards (M)
 
 ## Phase 4: Leaderboard
 
