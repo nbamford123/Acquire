@@ -65,18 +65,11 @@ One PR.
       player. Then drop the 403 on `GET /api/games/:id` for non-players and bring back a View Game
       link on their dashboard cards (M)
 
-## Phase 4: Leaderboard
+## Phase 4: Look and feel
 
-Its own PR.
-
-- [ ] Save each player's final money when a game ends and keep running totals, e.g. a KV entry per
-      player; `finalStandings` already has the numbers (M)
-- [ ] An endpoint for the totals and a leaderboard on the dashboard. `service/fullGame.test.ts`
-      already plays to game over and checks `finalStandings`, so extend it to check the totals (M)
-
-## Phase 5: Look and feel
-
-Do the first two before the rest, since they change how every component gets its styles.
+Do the first two before the rest, since they change how every component gets its styles. Then the
+accessibility pass, the light/dark toggle, and the layout pass, in that order: the toggle needs the
+colors fixed for both themes, and the layout pass is easier with both themes working.
 
 - [ ] Import Pico and Toastify's CSS from npm instead of `client/src/pico-styles.ts` and the copies
       in `client/public` (`with { type: 'text' }` works in `deno bundle` now), and build the Pico
@@ -84,11 +77,25 @@ Do the first two before the rest, since they change how every component gets its
 - [ ] Decide whether the top-level views (login, dashboard, board) render without shadow DOM
       (`createRenderRoot() { return this; }`), so one page-level Pico stylesheet applies and
       `StyledComponent` goes away. That makes light/dark mode and the layout pass simpler; the cost
-      is prefixing component selectors and updating the tests that use `shadowRoot` (M)
-- [ ] Light/dark mode on every screen; only AppShell and GameCard have rules for it today (M)
-- [ ] General layout pass (M–L)
+      is prefixing component selectors and updating the tests that use `shadowRoot`. Pico's theme
+      selectors match the page root (`:root`, `[data-theme]` on `<html>`), which a shadow root's
+      copy of Pico can't see, so the toggle below is much simpler with light DOM (M)
+- [ ] Accessibility pass. In light mode some hotel cards are nearly unreadable: the bank cards keep
+      dark backgrounds while their text switches to light mode's dark color, so hotel names
+      disappear, and the share chips on other players' cards have the same problem. Check every
+      hotel color for text contrast (WCAG AA, 4.5:1) in both themes, and also check keyboard use
+      (board cells are `<div>`s with click handlers), visible focus, and labels for anything shown
+      only by color or icon (M)
+- [ ] Light/dark toggle in the header. It defaults to the system preference and remembers a choice
+      per browser; Pico switches with `data-theme` on `<html>`. Replaces the per-component
+      `prefers-color-scheme` rules, which only AppShell and GameCard have today (M)
+- [ ] Layout pass at phone and tablet sizes: iPhone 13 portrait (390×844) and landscape (844×390),
+      and a tablet at 768×1024 and 1024×768. At 390 wide, the header wraps "← Back to Games" onto
+      three lines and the board page scrolls sideways by a few pixels; in phone landscape, your
+      tiles and Submit sit below the board, off screen. Tablet portrait looks fine. Add a check
+      for sideways scrolling at each size to the tests if it's practical (M–L)
 - [ ] Hotel type (economy, standard, luxury) on the bank cards. The price already shows, including
-      the lowest price for inactive hotels; the player view change in Phase 6 would provide the
+      the lowest price for inactive hotels; the player view change in Phase 5 would provide the
       type (S)
 - [ ] Hotel icons on founded tiles; the bank cards already have them (S)
 - [ ] Collapsible game card on the board (S)
@@ -96,7 +103,7 @@ Do the first two before the rest, since they change how every component gets its
 - [ ] Move the inline styles into CSS: six in the action card and its templates (exported from the
       template files), and a few in GameBoardView (S)
 
-## Phase 6: Code health and developer experience
+## Phase 5: Code health and developer experience
 
 None of these change what players see; pick them up whenever.
 
@@ -124,6 +131,15 @@ None of these change what players see; pick them up whenever.
 - [ ] Break merger ties by player id rather than name, and domain prefixes for error codes (from
       `TODO(me)` comments) (S)
 - [ ] Server debug view of API requests and responses (M)
+
+## Phase 6: Leaderboard
+
+Its own PR, done last.
+
+- [ ] Save each player's final money when a game ends and keep running totals, e.g. a KV entry per
+      player; `finalStandings` already has the numbers (M)
+- [ ] An endpoint for the totals and a leaderboard on the dashboard. `service/fullGame.test.ts`
+      already plays to game over and checks `finalStandings`, so extend it to check the totals (M)
 
 ## After the plan
 
