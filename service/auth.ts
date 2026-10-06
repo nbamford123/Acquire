@@ -7,10 +7,14 @@ let allowedUsersCache: Record<string, string> | null = null;
 // e.g. Nate:nate@none.com
 const getKey = async (): Promise<CryptoKey> => {
   if (!keyCache) {
-    const JWT_SECRET = Deno.env.get('JWT_SECRET') || 'a-secret-key';
+    const JWT_SECRET = Deno.env.get('JWT_SECRET');
+    // A default secret is public, so anyone could sign a token; only allow one outside production
+    if (!JWT_SECRET && Deno.env.get('ENV') === 'production') {
+      throw new Error('JWT_SECRET must be set in production');
+    }
     keyCache = await crypto.subtle.importKey(
       'raw',
-      new TextEncoder().encode(JWT_SECRET),
+      new TextEncoder().encode(JWT_SECRET || 'a-secret-key'),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['sign', 'verify'],
@@ -21,7 +25,6 @@ const getKey = async (): Promise<CryptoKey> => {
 
 const getAllowedUsers = (): Record<string, string> => {
   if (!allowedUsersCache) {
-    console.log(Deno.env.get('ALLOWED_EMAILS'));
     allowedUsersCache = Deno.env.get('ALLOWED_EMAILS')
       ?.split(',')
       .reduce((acc, entry) => {

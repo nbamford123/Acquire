@@ -8,7 +8,7 @@
       "dependencies": ["dev:client", "dev:service"]
     },
     "dev:client": "deno task --cwd client build --watch",
-    "dev:service": "cd service && DEV_RELOAD=true API_LOG=true deno run -A --env-file --watch main.ts",
+    "dev:service": "cd service && deno run -A --env-file --watch main.ts",
     "fmt:check": "deno fmt --check",
     "check": "deno fmt --check && deno lint && deno check && KV_PATH=:memory: deno test --no-check --allow-all",
     "hooks": "git config core.hooksPath .githooks",
