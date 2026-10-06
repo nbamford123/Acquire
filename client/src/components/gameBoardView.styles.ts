@@ -328,11 +328,16 @@ export const styles = css`
     border: 2px solid;
   }
 
-  .hotel-header {
+  .hotel-row {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.25rem;
+    align-items: baseline;
+    gap: 0 0.5rem;
+  }
+
+  .hotel-row + .hotel-row {
+    margin-top: 0.15rem;
   }
 
   .hotel-name {
@@ -352,6 +357,17 @@ export const styles = css`
   .hotel-price {
     font-weight: 600;
     font-size: 0.9rem;
+  }
+
+  .hotel-tier,
+  .hotel-bonuses {
+    font-size: 0.8rem;
+  }
+
+  .hotel-tier {
+    margin-left: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
   .players-sidebar {

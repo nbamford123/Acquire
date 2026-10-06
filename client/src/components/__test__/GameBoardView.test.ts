@@ -247,3 +247,32 @@ Deno.test('GameBoardView - the selected tile is marked pressed', async () => {
   assertEquals(tiles().map((tile) => tile.getAttribute('aria-pressed')), ['false', 'true']);
   board.remove();
 });
+
+Deno.test('GameBoardView - bank cards show tier, price, bonuses, and when a hotel is safe', async () => {
+  using _server = serve([makePlayerView({
+    hotels: hotelsWith({ Tower: { shares: 18, size: 12 }, Festival: { shares: 24, size: 4 } }),
+  })]);
+  const { board } = await mountBoard();
+  const card = (hotel: string) =>
+    [...board.querySelectorAll(`.hotel-chain.${hotel} .hotel-row`)].map((row) =>
+      row.textContent?.replace(/\s+/g, ' ').trim()
+    );
+  // Economy at 11–20 tiles
+  assertEquals(card('tower'), [
+    '♜ Tower Economy Size 12 · Safe',
+    'Available: 18 Share price: $700',
+    'Majority $7,000 Minority $3,500',
+  ]);
+  assertEquals(card('festival'), [
+    '🎪 Festival Standard Size 4',
+    'Available: 24 Share price: $500',
+    'Majority $5,000 Minority $2,500',
+  ]);
+  // Off the board: what it would be worth when founded
+  assertEquals(card('continental'), [
+    '🗺️ Continental Luxury Inactive',
+    'Available: 25 Share price: $400',
+    'Majority $4,000 Minority $2,000',
+  ]);
+  board.remove();
+});

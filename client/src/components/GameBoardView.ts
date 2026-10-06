@@ -7,11 +7,13 @@ import {
   COLS,
   type GameAction,
   type GameView,
+  HOTEL_CONFIG,
   type HOTEL_NAME,
   isPlayerView,
   type OrcCount,
   type PlayerView,
   ROWS,
+  SAFE_HOTEL_SIZE,
 } from '@acquire/engine/types';
 import { getHotelPrice, getTileLabel } from '@acquire/engine/utils';
 import { LightComponent } from './LightComponent.ts';
@@ -258,6 +260,37 @@ export class GameBoardView extends LightComponent {
     `;
   }
 
+  // What the physical game's information card says about a hotel: its tier, price, and bonuses,
+  // at its current size, or at founding size while it's off the board
+  private renderHotelChain(name: HOTEL_NAME, size: number, shares: number) {
+    const { price, majority, minority } = getHotelPrice(name, size);
+    const tier = HOTEL_CONFIG[name];
+    const status = size === 0
+      ? 'Inactive'
+      : `Size ${size}${size >= SAFE_HOTEL_SIZE ? ' · Safe' : ''}`;
+    return html`
+      <div class="hotel-chain hotel-tint ${name.toLocaleLowerCase()}">
+        <div class="hotel-row">
+          <span>
+            <span class="hotel-name"><span aria-hidden="true">${hotelIcons[
+              name
+            ]}</span> ${name}</span>
+            <span class="hotel-tier">${tier[0].toUpperCase() + tier.slice(1)}</span>
+          </span>
+          <span class="hotel-size">${status}</span>
+        </div>
+        <div class="hotel-row">
+          <span class="hotel-stock">Available: ${shares}</span>
+          <span class="hotel-price">Share price: $${price.toLocaleString()}</span>
+        </div>
+        <div class="hotel-row hotel-bonuses">
+          <span>Majority $${majority.toLocaleString()}</span>
+          <span>Minority $${minority.toLocaleString()}</span>
+        </div>
+      </div>
+    `;
+  }
+
   // Player who needs to act: the next stockholder while resolving a merger, otherwise the current
   // player, and nobody before the game starts or once it's over
   private get activePlayer() {
@@ -423,25 +456,11 @@ export class GameBoardView extends LightComponent {
         <div class="bank-section">
           <article class="bank-card">
             <h3>Hotel Chains</h3>
-            ${Object.entries(this.playerView.hotels).map(([name, { size, shares }]) =>
-              html`
-                <div class="hotel-chain hotel-tint ${name.toLocaleLowerCase()}">
-                  <div class="hotel-header">
-                    <span
-                      class="hotel-name ${name}"><span aria-hidden="true">${hotelIcons[
-                        name
-                      ]}</span> ${name}</span>
-                    <span class="hotel-size">${size > 0 ? `Size: ${size}` : 'Inactive'}</span>
-                  </div>
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span class="hotel-stock">Available: ${shares}</span>
-                    <span class="hotel-price">${`Share price: $${
-                      getHotelPrice(name as HOTEL_NAME, size).price
-                    }`}</span>
-                  </div>
-                </div>
-              `
-            )}
+            ${(Object.entries(this.playerView.hotels) as [
+              HOTEL_NAME,
+              GameView['hotels'][HOTEL_NAME],
+            ][])
+              .map(([name, { size, shares }]) => this.renderHotelChain(name, size, shares))}
           </article>
         </div>
 
