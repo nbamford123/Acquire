@@ -45,8 +45,6 @@ function createAction<T extends string, P>(type: T, payload: P): { type: T; payl
   - rejected moves now return 400 and the client shows the reason as an error toast; there's no UI test for it yet
 - add at least a debug view where the api server logs requests and responses
 - local dev hot reload doesn't seem to be working
-- import Pico and Toastify's CSS from npm instead of the copies
-- light DOM for the top-level views, so one Pico stylesheet applies?
 - stale member lockfiles, duplicate `hono`/`@std/testing` entries, and client `preview`/`deploy` tasks for files that don't exist
 - `deno check` type-checks `client/dist/bundle.js` whenever a local build exists
 - the class in `GameCard.ts` is named `DashboardView`

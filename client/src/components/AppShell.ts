@@ -7,7 +7,7 @@ import type { AppState, Route } from '../types.ts';
 import { RouterService } from '../services/RouterService.ts';
 import { bus } from '../services/EventBus.ts';
 import { clearUser, getUser, setUser } from '../services/UserService.ts';
-import { StyledComponent } from './StyledComponent.ts';
+import { LightComponent } from './LightComponent.ts';
 import './LoginView.ts';
 import './DashboardView.ts';
 import './GameBoardView.ts';
@@ -19,29 +19,28 @@ interface ConfirmDialogConfig {
 }
 
 @customElement('app-shell')
-export class AppShell extends StyledComponent {
+export class AppShell extends LightComponent {
   static override styles = [
-    super.styles,
     css`
       @media (prefers-color-scheme: light) {
         /* Soften light mode background to reduce glare */
-        :host(:not([data-theme="dark"])) {
+        &:not([data-theme="dark"]) {
           --pico-background-color: #f5f5f5;
         }
 
-        :host([data-theme="light"]) {
+        &[data-theme="light"] {
           --pico-background-color: #f5f5f5;
         }
       }
 
       /* Override for system dark mode preference */
       @media (prefers-color-scheme: dark) {
-        :host:not([data-theme="light"]) {
+        &:not([data-theme="light"]) {
           --pico-background-color: rgb(19, 22.5, 30.5);
         }
       }
 
-      :host([data-theme="dark"]) {
+      &[data-theme="dark"] {
         --pico-background-color: rgb(19, 22.5, 30.5);
       }
 
@@ -88,12 +87,6 @@ export class AppShell extends StyledComponent {
       }
       .back-button:hover {
         color: var(--pico-color-blue-650);
-      }
-      .toastify-error {
-        color: white;
-        font-size: 0.875rem;
-        font-weight: 500;
-        padding: 0.75rem 1rem;
       }
     `,
   ];
@@ -234,13 +227,13 @@ export class AppShell extends StyledComponent {
   public confirm = (title: string, message: string) => {
     return new Promise((resolve) => {
       this.dialogConfig = { title, message, resolve };
-      this.shadowRoot?.querySelector<HTMLDialogElement>('.confirm-dialog')?.showModal();
+      this.querySelector<HTMLDialogElement>('.confirm-dialog')?.showModal();
     });
   };
 
   private closeConfirmDialog = () => {
     console.log('closing dialog');
-    this.shadowRoot?.querySelector<HTMLDialogElement>('.confirm-dialog')?.close();
+    this.querySelector<HTMLDialogElement>('.confirm-dialog')?.close();
   };
 
   private onDialogCancelDelete = () => {

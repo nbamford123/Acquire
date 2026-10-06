@@ -14,7 +14,7 @@ import {
   ROWS,
 } from '@acquire/engine/types';
 import { getHotelPrice, getTileLabel } from '@acquire/engine/utils';
-import { StyledComponent } from './StyledComponent.ts';
+import { LightComponent } from './LightComponent.ts';
 import './ActionCard.ts';
 
 import { hotelIcons, styles } from './gameBoardView.styles.ts';
@@ -25,7 +25,7 @@ import { GamePhase } from '../../../engine/types/gameState.ts';
 const POLL_INTERVAL_MS = 3000;
 
 @customElement('game-board-view')
-export class GameBoardView extends StyledComponent {
+export class GameBoardView extends LightComponent {
   @property({ type: String })
   accessor gameId: string | null = null;
 
@@ -46,7 +46,6 @@ export class GameBoardView extends StyledComponent {
   private polling = false;
   private submitting = false;
   static override styles = [
-    super.styles,
     styles,
   ];
 

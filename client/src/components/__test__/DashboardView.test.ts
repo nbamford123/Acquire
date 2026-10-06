@@ -40,7 +40,7 @@ const serve = (games: GameInfo[]) => {
 
 // What a card shows: its status and the label of each action
 const describeCard = (card: Rendered) => {
-  const root = card.shadowRoot!;
+  const root = card;
   return {
     status: root.querySelector('.game-status')?.textContent?.trim(),
     actions: [...root.querySelectorAll('.card-actions button, .card-actions a')].map((el) =>
@@ -64,13 +64,13 @@ const mountDashboard = async (confirmed = true) => {
 // Waits for the dashboard and each of its game cards to render
 const settleAll = async (dashboard: Rendered) => {
   await settle(dashboard);
-  const cards = [...dashboard.shadowRoot!.querySelectorAll('game-card')] as Rendered[];
+  const cards = [...dashboard.querySelectorAll('game-card')] as Rendered[];
   await Promise.all(cards.map((card) => card.updateComplete));
   return cards;
 };
 
 const cardIds = (cards: Rendered[]) =>
-  cards.map((card) => card.shadowRoot!.querySelector('h3')?.textContent);
+  cards.map((card) => card.querySelector('h3')?.textContent);
 
 Deno.test('DashboardView - deleting a game removes its card', async () => {
   using _server = serve([makeGame('game-a'), makeGame('game-b'), makeGame('game-c')]);
@@ -81,7 +81,7 @@ Deno.test('DashboardView - deleting a game removes its card', async () => {
   let cards = await settleAll(dashboard);
   assertEquals(cardIds(cards), ['game-a', 'game-b', 'game-c']);
 
-  const deleteButton = [...cards[0].shadowRoot!.querySelectorAll('button')].find((button) =>
+  const deleteButton = [...cards[0].querySelectorAll('button')].find((button) =>
     button.textContent?.trim() === 'Delete Game'
   )!;
   deleteButton.click();
@@ -126,11 +126,11 @@ Deno.test('DashboardView - cards show what you can do in each game', async () =>
     { status: 'Full', actions: ['View Game'] },
     { status: "bob's turn", actions: ['View Game'] },
   ]);
-  const meta = (card: Rendered) => card.shadowRoot!.querySelector('.game-meta')?.textContent;
+  const meta = (card: Rendered) => card.querySelector('.game-meta')?.textContent;
   assertEquals(meta(cards[0])?.includes('Your game'), true);
   assertEquals(meta(cards[1])?.includes('Hosted by alice'), true);
   // Play is a real link, so it can open in a new tab
-  assertEquals(cards[0].shadowRoot!.querySelector('a')?.getAttribute('href'), '/game/mine');
+  assertEquals(cards[0].querySelector('a')?.getAttribute('href'), '/game/mine');
   dashboard.remove();
 });
 
@@ -141,7 +141,7 @@ Deno.test('DashboardView - joining, starting, and leaving ask first', async () =
     makeGame('open', { owner: 'alice', players: ['alice'] }),
   ]);
   const click = (card: Rendered, label: string) =>
-    ([...card.shadowRoot!.querySelectorAll('button')].find((button) =>
+    ([...card.querySelectorAll('button')].find((button) =>
       button.textContent?.trim() === label
     ) as HTMLButtonElement).click();
 

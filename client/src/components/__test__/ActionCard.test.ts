@@ -15,7 +15,7 @@ const mountCard = async (playerView: PlayerView) => {
   Object.assign(card, { user: 'nate', playerView });
   document.body.append(card);
   await settle(card);
-  const root = card.shadowRoot!;
+  const root = card;
   return {
     card,
     actions,

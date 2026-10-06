@@ -8,7 +8,7 @@ import {
   type HOTEL_NAME,
   type PlayerView,
 } from '@acquire/engine/types';
-import { StyledComponent } from './StyledComponent.ts';
+import { LightComponent } from './LightComponent.ts';
 import { foundHotelTemplate } from './foundHotelTemplate.ts';
 import {
   buyableHotels,
@@ -30,7 +30,7 @@ import {
 import { actionCardStyles } from './actionCardStyles.ts';
 
 @customElement('action-card')
-export class ActionCard extends StyledComponent {
+export class ActionCard extends LightComponent {
   @property({ attribute: false })
   accessor playerView: PlayerView | null = null;
 
@@ -57,10 +57,9 @@ export class ActionCard extends StyledComponent {
   private dispatchDefaultAction = false;
 
   static override styles = [
-    super.styles,
     actionCardStyles,
     css`
-      :host {
+      & {
         /* Wraps under the tiles when there isn't room beside them */
         flex: 1 1 24rem;
         min-width: 0;
