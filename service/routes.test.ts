@@ -217,7 +217,7 @@ Deno.test('POST /games creates a game with a readable id', async () => {
   expect(gameId).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*-[1-9][0-9]$/);
 });
 
-Deno.test('GET /games/:id only shows a game to its players', async () => {
+Deno.test('GET /games/:id shows anyone else a spectator view', async () => {
   const cookies = await login(app);
   const adminCookies = await login(app, 'admin@test.com');
   const request = (path: string, init: RequestInit, as: string) =>
@@ -225,8 +225,11 @@ Deno.test('GET /games/:id only shows a game to its players', async () => {
 
   const { gameId } = await (await request('/api/games', { method: 'POST' }, cookies)).json();
   const response = await request(`/api/games/${gameId}`, { method: 'GET' }, adminCookies);
-  assertEquals(response.status, 403);
-  assertEquals((await response.json()).error, "You're not in this game");
+  assertEquals(response.status, 200);
+  const { game } = await response.json();
+  assertEquals(game.gameId, gameId);
+  assertEquals('playerId' in game, false);
+  assertEquals('tiles' in game, false);
 });
 
 Deno.test('POST /games/:id lets a player leave before the game starts', async () => {

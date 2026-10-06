@@ -25,6 +25,6 @@ export type {
   UseCaseFunction,
 } from './stateFunctions.ts';
 export type { Player } from './player.ts';
-export type * from './playerView.ts';
+export * from './playerView.ts';
 export type { Share } from './share.ts';
 export type { PlayerAction } from './playerAction.ts';

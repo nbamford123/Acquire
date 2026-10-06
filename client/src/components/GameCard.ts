@@ -177,20 +177,19 @@ export class DashboardView extends StyledComponent {
 
   private renderActions() {
     const isOwner = this.game.owner === this.user;
+    const canJoin = !this.isPlayer && this.waiting && !this.isFull;
     return html`
-      ${this.isPlayer
+      ${canJoin
         ? html`
+          <button @click="${() => this.emit('game-join')}">Join Game</button>
+        `
+        : html`
           <a
             role="button"
             href="/game/${encodeURIComponent(this.game.id)}"
             @click="${this.openGame}"
-          >Play Game</a>
-        `
-        : this.waiting && !this.isFull
-        ? html`
-          <button @click="${() => this.emit('game-join')}">Join Game</button>
-        `
-        : ''} ${isOwner && this.waiting && this.game.players.length > 1
+          >${this.isPlayer ? 'Play' : 'View'} Game</a>
+        `} ${isOwner && this.waiting && this.game.players.length > 1
         ? html`
           <button class="secondary" @click="${() => this.emit('game-start')}">Start Game</button>
         `

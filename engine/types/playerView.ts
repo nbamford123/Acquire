@@ -11,15 +11,10 @@ export type OrcCount = '0' | '1' | '2' | 'many';
 // Relative size of a player's cash, 1 (lowest) to 4 (highest), see CASH_TIER_LIMITS
 export type CashTier = 1 | 2 | 3 | 4;
 
-// Player view of game state
-export interface PlayerView {
+// What anyone can see of a game, including spectators: other players' cash and shares only roughly
+export interface GameView {
   gameId: string;
   owner: string;
-  playerId: number; // this player
-  money: number; // this player's money
-  stocks: Record<HOTEL_NAME, number>; // only hotels this player has shares in
-  // this players tiles; unplayable says why a tile can't be played right now
-  tiles: { row: number; col: number; unplayable?: string }[];
   currentPhase: GamePhase;
   currentTurn: number;
   currentPlayer: number; // Player id
@@ -47,3 +42,14 @@ export interface PlayerView {
     message: string;
   } | null;
 }
+
+// What a player sees: the game plus their own seat
+export interface PlayerView extends GameView {
+  playerId: number; // this player
+  money: number; // this player's money
+  stocks: Record<HOTEL_NAME, number>; // only hotels this player has shares in
+  // this players tiles; unplayable says why a tile can't be played right now
+  tiles: { row: number; col: number; unplayable?: string }[];
+}
+
+export const isPlayerView = (view: GameView): view is PlayerView => 'playerId' in view;

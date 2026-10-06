@@ -5,7 +5,7 @@ export { getHotelPrice } from './getHotelPrice.ts';
 export { getStockholderMap } from './getStockholderMap.ts';
 export { getTileLabel } from './getTileLabel.ts';
 export { getAdjacentPositions } from './getAdjacentPositions.ts';
-export { getPlayerView } from './getPlayerView.ts';
+export { getPlayerView, getSpectatorView } from './getPlayerView.ts';
 export { roundUpToNearestHundred } from './roundUpToNearestHundred.ts';
 export { shuffleTiles } from './shuffleTiles.ts';
 export { sortTiles } from './sortTiles.ts';

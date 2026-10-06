@@ -56,7 +56,7 @@ One PR.
       game card shows only the first 8 characters of today's ids (S)
 - [x] Decide whether creating or joining needs a prompt: no, the join and start confirmations
       cover it (S)
-- [ ] Let anyone view a game they're not in. Spectators see what players see about each other
+- [x] Let anyone view a game they're not in. Spectators see what players see about each other
       (cash tiers, rough share counts, the board), so nothing hidden leaks. `getPlayerView` throws
       for non-players and `PlayerView` assumes a seat (`playerId`, `money`, `stocks`, `tiles`), so
       add a spectator view with no seat and every player shown as another player. Its log can use
@@ -91,7 +91,6 @@ Do the first two before the rest, since they change how every component gets its
       the lowest price for inactive hotels; the player view change in Phase 6 would provide the
       type (S)
 - [ ] Hotel icons on founded tiles; the bank cards already have them (S)
-- [ ] Player colors (S–M)
 - [ ] Collapsible game card on the board (S)
 - [ ] Less flat, more 3D-looking board squares (S)
 - [ ] Move the inline styles into CSS: six in the action card and its templates (exported from the

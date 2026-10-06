@@ -6,7 +6,9 @@ import {
   ActionTypes,
   COLS,
   type GameAction,
+  type GameView,
   type HOTEL_NAME,
+  isPlayerView,
   type OrcCount,
   type PlayerView,
   ROWS,
@@ -31,7 +33,8 @@ export class GameBoardView extends StyledComponent {
   accessor user: string | null = null;
 
   @state()
-  private accessor playerView: PlayerView | null = null;
+  // A player's view, or a spectator's when the user isn't in the game
+  private accessor playerView: GameView | PlayerView | null = null;
 
   @state()
   private accessor loading = false;
@@ -117,10 +120,15 @@ export class GameBoardView extends StyledComponent {
     console.log(position);
   }
 
+  // The user's view when they're in the game, otherwise undefined
+  private get seat() {
+    return this.playerView && isPlayerView(this.playerView) ? this.playerView : undefined;
+  }
+
   private handleTileClick(tile: { row: number; col: number }) {
     if (
-      this.playerView?.currentPlayer === this.playerView?.playerId &&
-      this.playerView?.currentPhase === GamePhase.PLAY_TILE
+      this.seat?.currentPlayer === this.seat?.playerId &&
+      this.seat?.currentPhase === GamePhase.PLAY_TILE
     ) {
       this.pendingAction = {
         action: {
@@ -302,8 +310,8 @@ export class GameBoardView extends StyledComponent {
     `;
   }
 
-  private renderGameOver(view: PlayerView, standings: NonNullable<PlayerView['finalStandings']>) {
-    const you = view.players[view.playerId].name;
+  private renderGameOver(view: GameView, standings: NonNullable<GameView['finalStandings']>) {
+    const you = isPlayerView(view) ? view.players[view.playerId].name : undefined;
     const top = standings[0]?.money;
     const winners = standings.filter(({ money }) => money === top).map(({ name }) =>
       name === you ? 'You' : name
@@ -377,12 +385,15 @@ export class GameBoardView extends StyledComponent {
         <div class="board-section">
           <div>
             <h2>${this.gameId}</h2>
-            <p class="game-status ${this.activePlayer === this.playerView.playerId
+            <p class="game-status ${this.seat && this.activePlayer === this.seat.playerId
               ? 'your-move'
               : ''}">${gameStatus(this.playerView)}</p>
+            ${this.seat ? '' : html`
+              <p class="spectating">You're watching this game</p>
+            `}
           </div>
 
-          <details class="game-log" open>
+          <details class="game-log">
             <summary>Recent moves</summary>
             <ul>
               ${this.playerView.actions.map((action) =>
@@ -398,7 +409,9 @@ export class GameBoardView extends StyledComponent {
 
           ${this.playerView.finalStandings
             ? this.renderGameOver(this.playerView, this.playerView.finalStandings)
-            : this.renderPlayerControls(this.playerView)}
+            : this.seat
+            ? this.renderPlayerControls(this.seat)
+            : ''}
         </div>
 
         <div class="bank-section">
@@ -427,8 +440,8 @@ export class GameBoardView extends StyledComponent {
           ${this.playerView.players.map((player, index) =>
             html`
               <article class="player-card ${index === this.activePlayer ? 'active' : ''}">
-                ${index === this.playerView?.playerId
-                  ? this.renderYourHoldings(this.playerView)
+                ${this.seat && index === this.seat.playerId
+                  ? this.renderYourHoldings(this.seat)
                   : this.renderOtherHoldings(player)}
               </article>
             `

@@ -17,6 +17,7 @@ import {
   getAdjacentPositions,
   getHotelPrice,
   getPlayerView,
+  getSpectatorView,
   getStockholderMap,
   getTileLabel,
   roundUpToNearestHundred,
@@ -917,4 +918,24 @@ Deno.test('getPlayerView - handles empty actions array', () => {
   const gameState = createGameState();
   const playerView = getPlayerView('player1', gameState, []);
   assertEquals(playerView.actions.length, 0);
+});
+
+Deno.test("getSpectatorView - shows the game without anyone's seat", () => {
+  const gameState = createGameState({ currentTurn: 2, currentPlayer: 0 });
+  const view = getSpectatorView(gameState, twoRounds);
+  assertEquals('playerId' in view, false);
+  assertEquals('tiles' in view, false);
+  assertEquals('stocks' in view, false);
+  assertEquals(view.players.map((player) => player.name), ['player1', 'player2']);
+  // Other players' cash is only a tier, as players see it
+  assertEquals(view.players[0].money, getPlayerView('player2', gameState).players[0].money);
+});
+
+Deno.test('getSpectatorView - the log shows the last full round', () => {
+  // During player2's first turn there's no earlier player2 turn, so the whole game shows. During
+  // player1's second turn, the log starts at player1's first.
+  const roundOne = createGameState({ currentTurn: 1, currentPlayer: 1 });
+  assertEquals(getSpectatorView(roundOne, twoRounds.slice(0, 5)).actions, twoRounds.slice(0, 5));
+  const roundTwo = createGameState({ currentTurn: 2, currentPlayer: 0 });
+  assertEquals(getSpectatorView(roundTwo, twoRounds).actions, twoRounds.slice(1));
 });
