@@ -95,7 +95,7 @@ colors fixed for both themes, and the layout pass is easier with both themes wor
       three lines and the board page scrolls sideways by a few pixels; in phone landscape, your
       tiles and Submit sit below the board, off screen. Tablet portrait looks fine. Add a check
       for sideways scrolling at each size to the tests if it's practical (M–L)
-- [ ] Bank cards show what the physical game's information card would: the hotel type (economy,
+- [x] Bank cards show what the physical game's information card would: the hotel type (economy,
       standard, luxury), the majority and minority bonuses (10× and 5× the share price; the engine
       has `majorityMinorityValue`), and "Safe" at 11 or more tiles. The price already shows,
       including the lowest price for inactive hotels; the player view change in Phase 5 would
