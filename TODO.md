@@ -2,8 +2,6 @@
 
 ## Client general
 
-1. layout at phone and tablet sizes: on an iPhone 13 in portrait the header wraps and the board page scrolls sideways; in landscape your tiles and Submit are below the board, off screen
-
 - Put the unicode characters for hotels on the tiles when they are founded? (the bank cards have them)
 - we need to enforce types on the api calls
 

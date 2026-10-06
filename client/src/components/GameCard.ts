@@ -34,7 +34,7 @@ export class DashboardView extends LightComponent {
       & {
         background-color: transparent;
         flex: 1 1 300px;
-        min-width: min(25rem, 100%);
+        min-width: min(20rem, 100%);
         max-width: 32.5rem;
       }
       .game-status {
