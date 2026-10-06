@@ -2,7 +2,6 @@
 
 ## Client general
 
-- Put the unicode characters for hotels on the tiles when they are founded? (the bank cards have them)
 - we need to enforce types on the api calls
 
 ## Action Card

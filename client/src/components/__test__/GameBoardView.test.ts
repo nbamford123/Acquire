@@ -228,7 +228,9 @@ Deno.test('GameBoardView - what color shows is also in text for screen readers',
   const cells = [...board.querySelectorAll('.board-cell')].slice(0, 3).map((cell) =>
     cell.textContent?.replace(/\s+/g, ' ').trim()
   );
-  assertEquals(cells, ['1A , Tower', '2A , placed', '3A']);
+  // Tower's only tile has its marker, which screen readers hear as the tile and hotel
+  assertEquals(cells, ['♜ 1A, Tower', '2A , placed', '3A']);
+  assertEquals(board.querySelector('.cell-marker')?.getAttribute('aria-hidden'), 'true');
   const chips = [...board.querySelectorAll('.share-chip')].map((chip) =>
     chip.textContent?.replace(/\s+/g, ' ').trim()
   );
@@ -274,5 +276,22 @@ Deno.test('GameBoardView - bank cards show tier, price, bonuses, and when a hote
     'Available: 25 Share price: $400',
     'Majority $4,000 Minority $2,000',
   ]);
+  board.remove();
+});
+
+Deno.test("GameBoardView - a hotel's marker covers the tile that founded it", async () => {
+  const tower = (col: number) => ({ row: 0, col, location: 'board' as const, hotel: 'Tower' as const });
+  const luxor = (col: number) => ({ row: 2, col, location: 'board' as const, hotel: 'Luxor' as const });
+  using _server = serve([makePlayerView({
+    board: [tower(0), tower(1), tower(2), luxor(4), luxor(5)],
+    // Tower was founded at 2A; Luxor is from a game before markers, so it uses its top-left tile
+    hotels: { ...hotelsWith(), Tower: { shares: 22, size: 3, marker: { row: 0, col: 1 } } },
+  })]);
+  const { board } = await mountBoard();
+  const label = (index: number) =>
+    board.querySelectorAll('.board-cell')[index].textContent?.replace(/\s+/g, ' ').trim();
+  assertEquals([label(0), label(1), label(2)], ['1A , Tower', '♜ 2A, Tower', '3A , Tower']);
+  assertEquals([label(28), label(29)], ['🏛️ 5C, Luxor', '6C , Luxor']);
+  assertEquals(board.querySelectorAll('.cell-marker').length, 2);
   board.remove();
 });

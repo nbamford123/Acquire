@@ -172,11 +172,17 @@ export const styles = css`
     display: flex;
     align-items: center;
     justify-content: center;
+    line-height: 1;
     /* About a quarter of a cell, whatever the board's size */
     font-size: clamp(0.5rem, 2.2cqi, 0.85rem);
     font-weight: 600;
     /* Square cells size the board; a fixed board aspect ratio let rows overflow when narrow */
     aspect-ratio: 1;
+  }
+
+  /* A hotel's marker fills one of its tiles in place of the label; it scales with the board */
+  .cell-marker {
+    font-size: clamp(0.9rem, 5.5cqi, 3rem);
   }
 
   /* Tiles in a hotel take its color; others use Pico's primary */

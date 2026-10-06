@@ -23,7 +23,10 @@ export interface GameView {
   // in player order
   players: { name: string; money: CashTier; shares: Record<HOTEL_NAME, OrcCount> }[];
   // Existing hotels with available shares
-  hotels: Record<HOTEL_NAME, { shares: number; size: number }>;
+  hotels: Record<
+    HOTEL_NAME,
+    { shares: number; size: number; marker?: { row: number; col: number } }
+  >;
   board: BoardTile[];
   mergerTieContext?: {
     // for break tie we need to give user the hotels
