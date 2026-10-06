@@ -115,7 +115,8 @@ Deno.test('GET /games returns game list', async () => {
   assertEquals(getResponse.status, 200);
   const { games } = await getResponse.json();
   assertEquals(games.length, 2);
-  assertEquals(games.map((g: { id: string }) => g.id), [game1, game2]);
+  // Games list by id, and two made in the same millisecond can sort either way
+  assertEquals(games.map((g: { id: string }) => g.id).sort(), [game1, game2].sort());
 });
 
 Deno.test('POST /games creates a game and returns the id', async () => {
