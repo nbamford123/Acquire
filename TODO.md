@@ -8,7 +8,6 @@
 ## Misc
 
 - should we have a db layer abstraction? Probably overkill for now, but it seems a bit overloaded in routes, plus it would enable easier swapping of dbs later.
-- add at least a debug view where the api server logs requests and responses
 
 ## Eventual blog post
 
