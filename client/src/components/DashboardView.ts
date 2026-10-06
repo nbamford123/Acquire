@@ -2,8 +2,14 @@ import { css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
 import { LightComponent } from './LightComponent.ts';
-import { createGame, deleteGame, listGames, sendAction } from '../services/ApiService.ts';
-import { ActionTypes, createAction, type GameInfo } from '@acquire/engine/types';
+import {
+  createGame,
+  deleteGame,
+  getLeaderboard,
+  listGames,
+  sendAction,
+} from '../services/ApiService.ts';
+import { ActionTypes, createAction, type GameInfo, type PlayerStats } from '@acquire/engine/types';
 
 import './GameCard.ts';
 
@@ -19,6 +25,9 @@ export class DashboardView extends LightComponent {
 
   @state()
   private accessor games: GameInfo[] = [];
+
+  @state()
+  private accessor leaderboard: PlayerStats[] = [];
 
   @state()
   private accessor loading = false;
@@ -66,6 +75,17 @@ export class DashboardView extends LightComponent {
         font-size: 0.875rem;
         margin: 0;
       }
+      .leaderboard {
+        padding-left: min(1.5rem, 4vw);
+        max-width: 40rem;
+      }
+      .leaderboard td:not(:first-child),
+      .leaderboard th:not(:first-child) {
+        text-align: right;
+      }
+      .leaderboard .you td {
+        font-weight: bold;
+      }
     `,
   ];
 
@@ -77,8 +97,12 @@ export class DashboardView extends LightComponent {
   private async loadGames() {
     this.loading = true;
     try {
-      const gamesResponse = await listGames();
+      const [gamesResponse, leaderboardResponse] = await Promise.all([
+        listGames(),
+        getLeaderboard(),
+      ]);
       this.games = gamesResponse?.games ?? [];
+      this.leaderboard = leaderboardResponse?.players ?? [];
     } finally {
       this.loading = false;
     }
@@ -190,6 +214,40 @@ export class DashboardView extends LightComponent {
           </div>
         `
         : ''}
+
+      <div class="section-header">
+        <h2>Leaderboard</h2>
+      </div>
+      <div class="leaderboard overflow-auto">
+        ${this.leaderboard.length
+          ? html`
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Player</th>
+                  <th scope="col">Played</th>
+                  <th scope="col">Won</th>
+                  <th scope="col">Earnings</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${this.leaderboard.map(({ name, gamesPlayed, gamesWon, earnings }) =>
+                  html`
+                    <tr class="${name === this.user ? 'you' : ''}">
+                      <td>${name}</td>
+                      <td>${gamesPlayed}</td>
+                      <td>${gamesWon}</td>
+                      <td>$${earnings.toLocaleString()}</td>
+                    </tr>
+                  `
+                )}
+              </tbody>
+            </table>
+          `
+          : html`
+            <p class="empty-description">No finished games yet.</p>
+          `}
+      </div>
     `;
   }
 }

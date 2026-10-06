@@ -8,9 +8,11 @@ import type {
   GameInfo,
   GameResponse,
   GamesResponse,
+  LeaderboardResponse,
   LoginRequest,
   LoginResponse,
 } from '@acquire/engine/types';
+import { GamePhase } from '@acquire/engine/types';
 import { createToken, validateUser } from './auth.ts';
 import { newGameId } from './gameIds.ts';
 import {
@@ -19,13 +21,19 @@ import {
   getAllGames,
   getGameEntry,
   getGameState,
+  getLeaderboard,
   getPlayerActions,
   saveMove,
 } from './dataLayer.ts';
 import { initializeGame, processAction } from '@acquire/engine/core';
 
 import type { ServiceEnv } from './types.ts';
-import { getActivePlayer, getPlayerView, getSpectatorView } from '@acquire/engine/utils';
+import {
+  getActivePlayer,
+  getGameResults,
+  getPlayerView,
+  getSpectatorView,
+} from '@acquire/engine/utils';
 import { requireAuth } from './middleware.ts';
 import { serveStatic } from 'hono/deno';
 import { setCookie } from 'hono/cookie';
@@ -137,6 +145,10 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
 
     return ctx.json({ games: gameList } satisfies GamesResponse);
   });
+  // Lifetime totals across finished games
+  app.get('/api/leaderboard', requireAuth, async (ctx) => {
+    return ctx.json({ players: await getLeaderboard() } satisfies LeaderboardResponse);
+  });
   // Main game action endpoint
   app.post('/api/games/:id', requireAuth, async (ctx) => {
     try {
@@ -178,7 +190,18 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       const lastUpdated = Math.max(Date.now(), currentGame.lastUpdated + 1);
       const updatedGame = { ...processedGame, lastUpdated };
 
-      const saved = await saveMove(updatedGame, versionstamp, previousActions.length, actions);
+      // The move that ends the game adds its results to the leaderboard
+      const ended = updatedGame.currentPhase === GamePhase.GAME_OVER &&
+        currentGame.currentPhase !== GamePhase.GAME_OVER;
+      const results = ended ? getGameResults(updatedGame) : [];
+
+      const saved = await saveMove(
+        updatedGame,
+        versionstamp,
+        previousActions.length,
+        actions,
+        results,
+      );
       if (!saved) {
         return ctx.json({ error: 'The game changed before your move was saved; try again' }, 409);
       }

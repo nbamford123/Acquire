@@ -38,6 +38,17 @@ export interface ActionResponse {
   game?: PlayerView;
 }
 
+// GET /api/leaderboard: every player who has finished a game, most earnings first
+export interface PlayerStats {
+  name: string;
+  gamesPlayed: number;
+  gamesWon: number; // Every player tied for the most money wins
+  earnings: number; // Final money, summed across finished games
+}
+export interface LeaderboardResponse {
+  players: PlayerStats[];
+}
+
 // Any failed request
 export interface ErrorResponse {
   error: string;

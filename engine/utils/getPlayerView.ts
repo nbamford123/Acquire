@@ -18,6 +18,18 @@ import { unplayableReason } from '../domain/analyzeTilePlacement.ts';
 import { getActivePlayer } from './getActivePlayer.ts';
 import { getHotelPrice } from './getHotelPrice.ts';
 
+// Every player's money, highest first; at game over, the final standings
+export const getFinalStandings = (gameState: GameState) =>
+  gameState.players
+    .map(({ name, money }) => ({ name, money }))
+    .sort((a, b) => b.money - a.money);
+
+// How each player finished, for the leaderboard: everyone tied for the most money wins
+export const getGameResults = (gameState: GameState) => {
+  const standings = getFinalStandings(gameState);
+  return standings.map(({ name, money }) => ({ name, money, won: money === standings[0].money }));
+};
+
 const getOrcCount = (amount: number): OrcCount =>
   amount >= 3 ? 'many' : amount === 2 ? '2' : amount === 1 ? '1' : '0';
 
@@ -88,9 +100,7 @@ const getGameView = (
     mergeContext: gameState.mergeContext,
     foundHotelContext: gameState.foundHotelContext,
     finalStandings: gameState.currentPhase === GamePhase.GAME_OVER
-      ? gameState.players
-        .map(({ name, money }) => ({ name, money }))
-        .sort((a, b) => b.money - a.money)
+      ? getFinalStandings(gameState)
       : undefined,
     actions: actionsSince(gameState, actions, logPlayer),
     error: gameState.error,

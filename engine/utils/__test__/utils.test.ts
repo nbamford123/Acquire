@@ -16,6 +16,7 @@ import {
   getActivePlayer,
   getAdjacentPositions,
   getHotelPrice,
+  getGameResults,
   getPlayerView,
   getSpectatorView,
   getStockholderMap,
@@ -968,4 +969,21 @@ Deno.test("getPlayerView - passes on where each hotel's marker is", () => {
   const view = getPlayerView('player1', gameState);
   assertEquals(view.hotels[first.name].marker, { row: 1, col: 2 });
   assertEquals('marker' in view.hotels[rest[0].name], false);
+});
+
+Deno.test('getGameResults - everyone tied for the most money wins', () => {
+  const base = createGameState();
+  const gameState = {
+    ...base,
+    players: [
+      createPlayer(0, 'player1', 9000),
+      createPlayer(1, 'player2', 12000),
+      createPlayer(2, 'player3', 12000),
+    ],
+  };
+  assertEquals(getGameResults(gameState), [
+    { name: 'player2', money: 12000, won: true },
+    { name: 'player3', money: 12000, won: true },
+    { name: 'player1', money: 9000, won: false },
+  ]);
 });
