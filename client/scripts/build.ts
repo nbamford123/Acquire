@@ -1,8 +1,10 @@
 // client/build.ts
 import { copy, emptyDir } from '@std/fs';
 
-// --dev skips minifying, for local development
-const dev = Deno.args.includes('--dev');
+// --dev skips minifying, for local development, and --watch rebuilds the bundle as the client
+// changes, which also implies --dev
+const watch = Deno.args.includes('--watch');
+const dev = watch || Deno.args.includes('--dev');
 
 console.log('🧹 Cleaning dist directory...');
 await emptyDir('./dist');
@@ -20,6 +22,7 @@ const bundle = new Deno.Command('deno', {
     'dist/bundle.js',
     '--sourcemap=external',
     ...(dev ? [] : ['--minify']),
+    ...(watch ? ['--watch'] : []),
     'src/main.ts',
   ],
   stdout: 'inherit',
