@@ -1,4 +1,4 @@
-import { html, type LitElement } from 'lit';
+import { css, html, type LitElement } from 'lit';
 
 import { ActionTypes, type GameAction, type HOTEL_NAME } from '@acquire/engine/types';
 
@@ -20,6 +20,15 @@ const handleHotelSelect = (
   );
 };
 
+// Added to the action card's styles
+export const foundHotelStyles = css`
+  .found-hotel-picker {
+    flex: 1;
+    max-width: 10rem;
+    margin-bottom: 0;
+  }
+`;
+
 export const foundHotelTemplate = (
   hotels: HOTEL_NAME[],
   user: string,
@@ -27,7 +36,7 @@ export const foundHotelTemplate = (
 ) =>
   html`
     <select
-      style="flex: 1; max-width: 10rem; margin-bottom: 0;"
+      class="found-hotel-picker"
       name="selecthotel"
       aria-label="Hotel to found"
       @change="${(evt: Event) =>

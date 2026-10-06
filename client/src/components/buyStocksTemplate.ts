@@ -1,4 +1,4 @@
-import { html } from 'lit';
+import { css, html } from 'lit';
 
 import type { HOTEL_NAME, PlayerView } from '@acquire/engine/types';
 import { getHotelPrice } from '@acquire/engine/utils';
@@ -56,6 +56,17 @@ export const updateShareSelection = (
   return { selection };
 };
 
+// Added to the action card's styles
+export const buyStocksStyles = css`
+  .picker-row.buy-hotels {
+    gap: 1rem;
+  }
+
+  .picker-row.buy-hotel {
+    gap: 0.35rem;
+  }
+`;
+
 export const buyStocksTemplate = (
   playerView: PlayerView,
   selection: ShareSelection,
@@ -83,10 +94,10 @@ export const buyStocksTemplate = (
   const cost = selectionCost(selection, hotels);
   return html`
     <div class="picker">
-      <div class="picker-row" style="gap: 1rem;">
+      <div class="picker-row buy-hotels">
         ${hotels.map(({ name, price }) =>
           html`
-            <div class="picker-row" style="gap: 0.35rem;">
+            <div class="picker-row buy-hotel">
               ${hotelChip(name, `$${price}`)} ${stepper(
                 name,
                 selection[name] ?? 0,

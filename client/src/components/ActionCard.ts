@@ -9,9 +9,10 @@ import {
   type PlayerView,
 } from '@acquire/engine/types';
 import { LightComponent } from './LightComponent.ts';
-import { foundHotelTemplate } from './foundHotelTemplate.ts';
+import { foundHotelStyles, foundHotelTemplate } from './foundHotelTemplate.ts';
 import {
   buyableHotels,
+  buyStocksStyles,
   buyStocksTemplate,
   type ShareSelection,
   updateShareSelection,
@@ -24,6 +25,7 @@ import {
 import {
   mergerLimits,
   type MergerShares,
+  resolveMergerStyles,
   resolveMergerTemplate,
   updateMergerShares,
 } from './resolveMergerTemplate.ts';
@@ -58,6 +60,9 @@ export class ActionCard extends LightComponent {
 
   static override styles = [
     actionCardStyles,
+    buyStocksStyles,
+    foundHotelStyles,
+    resolveMergerStyles,
     css`
       & {
         /* Wraps under the tiles when there isn't room beside them */
@@ -69,6 +74,11 @@ export class ActionCard extends LightComponent {
         flex-wrap: wrap;
         align-items: center;
         gap: 1rem;
+      }
+      .action-heading {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
       }
       .action-title {
         font-size: 0.75rem;
@@ -223,7 +233,7 @@ export class ActionCard extends LightComponent {
   public override render() {
     return html`
       <div class="action-card">
-        <div style="display: flex; flex-direction: column; align-items=flex-start">
+        <div class="action-heading">
           <div class="action-title"><strong>ACTION</strong></div>
           <div class="action-desc">
             ${this.playerView?.currentPhase}

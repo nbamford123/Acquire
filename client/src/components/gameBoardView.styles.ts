@@ -203,7 +203,9 @@ export const styles = css`
     align-items: center;
   }
 
+  /* Submit sits at the end of its row */
   .current-player-view > button {
+    margin-left: auto;
     white-space: nowrap;
   }
 

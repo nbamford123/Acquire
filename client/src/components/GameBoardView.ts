@@ -360,7 +360,6 @@ export class GameBoardView extends LightComponent {
           @set-action="${(e: CustomEvent) => this.handleSetAction(e)}"
         ></action-card>
         <button
-          style="margin-left: auto;"
           ?disabled="${this.activePlayer !== view.playerId || !this.pendingAction}"
           @click="${() => this.submitAction()}"
         >
