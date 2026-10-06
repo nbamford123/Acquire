@@ -29,6 +29,7 @@ export const foundHotelTemplate = (
     <select
       style="flex: 1; max-width: 10rem; margin-bottom: 0;"
       name="selecthotel"
+      aria-label="Hotel to found"
       @change="${(evt: Event) =>
         handleHotelSelect(
           (evt.target as HTMLSelectElement)?.value as HOTEL_NAME,

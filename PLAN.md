@@ -81,7 +81,7 @@ colors fixed for both themes, and the layout pass is easier with both themes wor
       is prefixing component selectors and updating the tests that use `shadowRoot`. Pico's theme
       selectors match the page root (`:root`, `[data-theme]` on `<html>`), which a shadow root's
       copy of Pico can't see, so the toggle below is much simpler with light DOM (M)
-- [ ] Accessibility pass. In light mode some hotel cards are nearly unreadable: the bank cards keep
+- [x] Accessibility pass. In light mode some hotel cards are nearly unreadable: the bank cards keep
       dark backgrounds while their text switches to light mode's dark color, so hotel names
       disappear, and the share chips on other players' cards have the same problem. Check every
       hotel color for text contrast (WCAG AA, 4.5:1) in both themes, and also check keyboard use

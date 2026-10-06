@@ -78,7 +78,7 @@ export class AppShell extends LightComponent {
         justify-content: center;
       }
       .back-button {
-        color: var(--pico-color-blue-500);
+        color: var(--pico-primary);
         font-weight: 500;
         background: none;
         border: none;
@@ -86,7 +86,7 @@ export class AppShell extends LightComponent {
         transition: color 0.15s ease;
       }
       .back-button:hover {
-        color: var(--pico-color-blue-650);
+        color: var(--pico-primary-hover);
       }
     `,
   ];
