@@ -7,6 +7,7 @@ import {
   type GameState,
   type GameView,
   type Hotel,
+  HOTEL_CONFIG,
   type HOTEL_NAME,
   type OrcCount,
   type PlayerAction,
@@ -15,6 +16,7 @@ import {
 import { boardTiles } from '../domain/tileOperations.ts';
 import { unplayableReason } from '../domain/analyzeTilePlacement.ts';
 import { getActivePlayer } from './getActivePlayer.ts';
+import { getHotelPrice } from './getHotelPrice.ts';
 
 const getOrcCount = (amount: number): OrcCount =>
   amount >= 3 ? 'many' : amount === 2 ? '2' : amount === 1 ? '1' : '0';
@@ -71,17 +73,16 @@ const getGameView = (
       money: getCashTier(player.money),
       shares: getShares(player.id, gameState.hotels, true),
     })),
-    hotels: gameState.hotels.reduce(
-      (hotelShares, hotel) => ({
-        ...hotelShares,
-        [hotel.name]: {
-          shares: hotel.shares.filter((share) => share.location === 'bank').length,
-          size: board.filter((tile) => tile.hotel === hotel.name).length,
-          ...(hotel.marker ? { marker: hotel.marker } : {}),
-        },
-      }),
-      {} as GameView['hotels'],
-    ),
+    hotels: Object.fromEntries(gameState.hotels.map((hotel) => {
+      const size = board.filter((tile) => tile.hotel === hotel.name).length;
+      return [hotel.name, {
+        shares: hotel.shares.filter((share) => share.location === 'bank').length,
+        size,
+        type: HOTEL_CONFIG[hotel.name],
+        ...getHotelPrice(hotel.name, size),
+        ...(hotel.marker ? { marker: hotel.marker } : {}),
+      }];
+    })) as GameView['hotels'],
     board,
     mergerTieContext: gameState.mergerTieContext,
     mergeContext: gameState.mergeContext,

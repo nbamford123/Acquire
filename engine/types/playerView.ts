@@ -3,6 +3,7 @@ import type {
   ErrorCodeValue,
   GamePhase,
   HOTEL_NAME,
+  HOTEL_TYPE,
   MergeContext,
   PlayerAction,
 } from './index.ts';
@@ -10,6 +11,18 @@ import type {
 export type OrcCount = '0' | '1' | '2' | 'many';
 // Relative size of a player's cash, 1 (lowest) to 4 (highest), see CASH_TIER_LIMITS
 export type CashTier = 1 | 2 | 3 | 4;
+
+// A hotel as the views show it. Price and bonuses are at its current size, or at founding size
+// while it's off the board, like the physical game's information card.
+export interface HotelView {
+  shares: number; // left in the bank
+  size: number;
+  type: HOTEL_TYPE;
+  price: number;
+  majority: number;
+  minority: number;
+  marker?: { row: number; col: number };
+}
 
 // What anyone can see of a game, including spectators: other players' cash and shares only roughly
 export interface GameView {
@@ -22,11 +35,8 @@ export interface GameView {
   lastUpdated: number; // Timestamp
   // in player order
   players: { name: string; money: CashTier; shares: Record<HOTEL_NAME, OrcCount> }[];
-  // Existing hotels with available shares
-  hotels: Record<
-    HOTEL_NAME,
-    { shares: number; size: number; marker?: { row: number; col: number } }
-  >;
+  // Every hotel, on the board or not, by name
+  hotels: Record<HOTEL_NAME, HotelView>;
   board: BoardTile[];
   mergerTieContext?: {
     // for break tie we need to give user the hotels
@@ -56,3 +66,10 @@ export interface PlayerView extends GameView {
 }
 
 export const isPlayerView = (view: GameView): view is PlayerView => 'playerId' in view;
+
+// The view's hotels as a list, in the game's order, for when you need all of them rather than one
+export const hotelList = (hotels: GameView['hotels']) =>
+  (Object.entries(hotels) as [HOTEL_NAME, HotelView][]).map(([name, hotel]) => ({
+    name,
+    ...hotel,
+  }));

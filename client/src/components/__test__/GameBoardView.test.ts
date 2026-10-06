@@ -316,7 +316,7 @@ Deno.test("GameBoardView - a hotel's marker covers the tile that founded it", as
   using _server = serve([makePlayerView({
     board: [tower(0), tower(1), tower(2), luxor(4), luxor(5)],
     // Tower was founded at 2A; Luxor is from a game before markers, so it uses its top-left tile
-    hotels: { ...hotelsWith(), Tower: { shares: 22, size: 3, marker: { row: 0, col: 1 } } },
+    hotels: hotelsWith({ Tower: { shares: 22, size: 3, marker: { row: 0, col: 1 } } }),
   })]);
   const { board } = await mountBoard();
   const label = (index: number) =>

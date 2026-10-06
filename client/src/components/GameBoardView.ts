@@ -11,13 +11,15 @@ import {
   type GameView,
   HOTEL_CONFIG,
   type HOTEL_NAME,
+  hotelList,
+  type HotelView,
   isPlayerView,
   type OrcCount,
   type PlayerView,
   ROWS,
   SAFE_HOTEL_SIZE,
 } from '@acquire/engine/types';
-import { getHotelPrice, getTileLabel } from '@acquire/engine/utils';
+import { getTileLabel } from '@acquire/engine/utils';
 import { LightComponent } from './LightComponent.ts';
 import './ActionCard.ts';
 
@@ -151,12 +153,7 @@ export class GameBoardView extends LightComponent {
   // still in the hotel, otherwise its top-left tile (games from before markers were recorded)
   private markerTiles(view: GameView) {
     const markers = new Map<string, HOTEL_NAME>();
-    for (
-      const [hotel, { marker }] of Object.entries(view.hotels) as [
-        HOTEL_NAME,
-        GameView['hotels'][HOTEL_NAME],
-      ][]
-    ) {
+    for (const { name: hotel, marker } of hotelList(view.hotels)) {
       const tiles = view.board.filter((tile) => tile.hotel === hotel);
       if (!tiles.length) continue;
       const at = tiles.find((tile) => tile.row === marker?.row && tile.col === marker?.col) ??
@@ -209,9 +206,9 @@ export class GameBoardView extends LightComponent {
   private renderYourHoldings(view: PlayerView) {
     const holdings = (Object.entries(view.stocks) as [HOTEL_NAME, number][]).map(
       ([hotel, count]) => {
-        const size = view.hotels[hotel]?.size ?? 0;
+        const { size, price } = view.hotels[hotel];
         // Shares in a defunct hotel have no price until it's founded again
-        const value = size > 0 ? count * getHotelPrice(hotel, size).price : undefined;
+        const value = size > 0 ? count * price : undefined;
         return { hotel, count, value };
       },
     );
@@ -287,9 +284,9 @@ export class GameBoardView extends LightComponent {
 
   // What the physical game's information card says about a hotel: its tier, price, and bonuses,
   // at its current size, or at founding size while it's off the board
-  private renderHotelChain(name: HOTEL_NAME, size: number, shares: number) {
-    const { price, majority, minority } = getHotelPrice(name, size);
-    const tier = HOTEL_CONFIG[name];
+  private renderHotelChain(
+    { name, size, shares, type: tier, price, majority, minority }: HotelView & { name: HOTEL_NAME },
+  ) {
     const status = size === 0
       ? 'Inactive'
       : `Size ${size}${size >= SAFE_HOTEL_SIZE ? ' · Safe' : ''}`;
@@ -480,11 +477,7 @@ export class GameBoardView extends LightComponent {
         <div class="bank-section">
           <article class="bank-card">
             <h3>Hotel Chains</h3>
-            ${(Object.entries(this.playerView.hotels) as [
-              HOTEL_NAME,
-              GameView['hotels'][HOTEL_NAME],
-            ][])
-              .map(([name, { size, shares }]) => this.renderHotelChain(name, size, shares))}
+            ${hotelList(this.playerView.hotels).map((hotel) => this.renderHotelChain(hotel))}
           </article>
         </div>
 
