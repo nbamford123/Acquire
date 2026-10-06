@@ -71,21 +71,9 @@ export class DashboardView extends LightComponent {
         margin: 0;
         padding: 1.5rem;
         border-radius: 8px;
+        background-color: var(--pico-card-background-color);
+        box-shadow: var(--pico-card-box-shadow);
         transition: transform 0.2s, box-shadow 0.2s;
-      }
-
-      @media (prefers-color-scheme: light) {
-        &:not([data-theme="dark"]) .game-card {
-          background-color: #fafbfc;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-      }
-
-      @media (prefers-color-scheme: dark) {
-        &:not([data-theme="light"]) .game-card {
-          background-color: rgb(26, 30.5, 40.25);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
       }
 
       .game-card:hover {
