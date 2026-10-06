@@ -30,10 +30,15 @@ One PR.
       game over has a headline), but nothing says it in one place (M)
 - [ ] Poll immediately when a tab becomes visible, instead of up to 3 seconds later; today polling
       only skips while the tab is hidden (S)
-- [ ] Game log: drop engine detail lines like "Minority bonus paid to single minority shareholder"
-      (from `calculateShareholderPayoutsOperation.ts`), and show recent turns instead of starting
-      from the player's own first action (`getPlayerView.ts`). The log is a `<select>` today, so
-      consider a real list while you're there (M)
+- [ ] Game log: show what happened since the player's last turn, since that's what it's for in an
+      asynchronous game. Today `getPlayerView.ts` keeps the current and previous rounds
+      (`currentTurn` counts rounds, not player turns), so it shows about two rounds whatever the
+      player count. Actions are plain text with a round number, so the view can't tell whose turn
+      each one belongs to; record that (e.g. a player index on `PlayerAction`), then start the log
+      at the player's last turn so they see what they did and everything since. Also drop engine
+      detail lines like "Minority bonus paid to single minority shareholder" (from
+      `calculateShareholderPayoutsOperation.ts`). The log is a `<select>` today, so consider a
+      real list while you're there (M)
 - [ ] Dashboard game card: the buttons overflow on narrow screens (the card has
       `min-width: 400px`), and label the time, e.g. "Updated 4:29 PM"; it already shows the last
       move's time (S)
