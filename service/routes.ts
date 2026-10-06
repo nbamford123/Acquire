@@ -149,8 +149,10 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       if (processedGame.error) {
         return ctx.json({ error: processedGame.error.message }, 400);
       }
-      // Stamp the change so polling clients can tell the game moved on
-      const updatedGame = { ...processedGame, lastUpdated: Date.now() };
+      // Stamp the change so polling clients can tell the game moved on. It always goes up, even
+      // for two moves in the same millisecond.
+      const lastUpdated = Math.max(Date.now(), currentGame.lastUpdated + 1);
+      const updatedGame = { ...processedGame, lastUpdated };
 
       const saved = await saveMove(updatedGame, versionstamp, previousActions.length, actions);
       if (!saved) {
