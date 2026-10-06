@@ -379,8 +379,7 @@ export class GameBoardView extends LightComponent {
     }
     return html`
       <div class="game-container">
-        <div class="board-section">
-          <div>
+          <div class="game-heading">
             <h2>${this.gameId}</h2>
             <p class="game-status ${this.seat && this.activePlayer === this.seat.playerId
               ? 'your-move'
@@ -409,8 +408,18 @@ export class GameBoardView extends LightComponent {
             : this.seat
             ? this.renderPlayerControls(this.seat)
             : ''}
-        </div>
 
+        <div class="players-sidebar">
+          ${this.playerView.players.map((player, index) =>
+            html`
+              <article class="player-card ${index === this.activePlayer ? 'active' : ''}">
+                ${this.seat && index === this.seat.playerId
+                  ? this.renderYourHoldings(this.seat)
+                  : this.renderOtherHoldings(player)}
+              </article>
+            `
+          )}
+        </div>
         <div class="bank-section">
           <article class="bank-card">
             <h3>Hotel Chains</h3>
@@ -436,17 +445,6 @@ export class GameBoardView extends LightComponent {
           </article>
         </div>
 
-        <div class="players-sidebar">
-          ${this.playerView.players.map((player, index) =>
-            html`
-              <article class="player-card ${index === this.activePlayer ? 'active' : ''}">
-                ${this.seat && index === this.seat.playerId
-                  ? this.renderYourHoldings(this.seat)
-                  : this.renderOtherHoldings(player)}
-              </article>
-            `
-          )}
-        </div>
       </div>
     `;
   }
