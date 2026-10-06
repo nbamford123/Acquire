@@ -1,11 +1,15 @@
-import type { Hono } from 'hono';
+import { Hono } from 'hono';
 import { assertEquals } from '@std/assert';
 import { expect } from '@std/expect';
 
 import { ActionTypes, type AddPlayerAction, type StartGameAction } from '@acquire/engine/types';
-import { app } from './main.ts';
+import { setRoutes } from './routes.ts';
 import { clearCache } from './auth.ts';
 import type { ServiceEnv } from './types.ts';
+
+// Build the app from the routes rather than importing main.ts, which starts a server
+const app = new Hono<ServiceEnv>();
+setRoutes(app);
 
 // Mock environment for testing
 clearCache();
