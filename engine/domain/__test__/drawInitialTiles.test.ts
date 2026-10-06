@@ -1,4 +1,4 @@
-import { assert, assertEquals } from 'jsr:@std/assert';
+import { assert, assertEquals } from '@std/assert';
 import { drawInitialTiles } from '../../domain/drawInitialTiles.ts';
 import { type Player, type Tile } from '../../types/index.ts';
 

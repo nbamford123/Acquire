@@ -1,4 +1,4 @@
-import { assertEquals } from 'jsr:@std/assert';
+import { assertEquals } from '@std/assert';
 import { resolveShares } from '../../domain/hotelOperations.ts';
 import { type Hotel } from '../../types/index.ts';
 

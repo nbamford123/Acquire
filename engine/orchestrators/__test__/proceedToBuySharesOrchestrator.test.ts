@@ -1,4 +1,4 @@
-import { assertEquals } from 'https://deno.land/std@0.203.0/assert/mod.ts';
+import { assertEquals } from '@std/assert';
 import { proceedToBuySharesOrchestrator } from '../proceedToBuySharesOrchestrator.ts';
 import { GamePhase } from '../../types/index.ts';
 

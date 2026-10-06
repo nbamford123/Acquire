@@ -1,5 +1,5 @@
 import { rootReducer } from '../rootReducer.ts';
-import { assertEquals, assertExists } from 'https://deno.land/std@0.203.0/assert/mod.ts';
+import { assertEquals, assertExists } from '@std/assert';
 import { GameAction, GamePhase, GameState } from '../../types/index.ts';
 import { GameErrorCodes } from '../../types/index.ts';
 import { actionHandlers } from '../actionHandlers.ts';

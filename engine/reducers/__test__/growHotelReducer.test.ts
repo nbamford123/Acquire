@@ -1,5 +1,5 @@
 import { growHotelReducer } from '../growHotelReducer.ts';
-import { assert } from 'https://deno.land/std@0.203.0/assert/mod.ts';
+import { assert } from '@std/assert';
 import type { BoardTile, GameState, HOTEL_NAME } from '../../types/index.ts';
 
 Deno.test('growHotelReducer: updates tiles with hotel name', () => {

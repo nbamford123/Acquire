@@ -1,4 +1,4 @@
-import { assertEquals } from 'jsr:@std/assert';
+import { assertEquals } from '@std/assert';
 import { calculateShareholderPayouts } from '../../domain/calculateShareholderPayoutsOperation.ts';
 import type { BoardTile, Hotel } from '../../types/index.ts';
 

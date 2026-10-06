@@ -1,5 +1,5 @@
 import { startGameReducer } from '../startGameReducers.ts';
-import { assertEquals, assertExists } from 'https://deno.land/std@0.203.0/assert/mod.ts';
+import { assertEquals, assertExists } from '@std/assert';
 import type { Player, Tile } from '../../types/index.ts';
 
 Deno.test('startGameReducer: assigns tiles to players', () => {

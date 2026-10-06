@@ -1,4 +1,4 @@
-import { create, getNumericDate, verify } from 'jsr:@zaubrik/djwt@3';
+import { create, getNumericDate, verify } from '@zaubrik/djwt';
 
 import { onDenoDeploy } from './env.ts';
 

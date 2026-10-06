@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from 'jsr:@std/assert';
+import { assertEquals, assertThrows } from '@std/assert';
 import { mergeHotels } from '../../domain/mergeHotelsOperation.ts';
 import {
   type BoardTile,

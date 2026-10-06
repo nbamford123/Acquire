@@ -1,5 +1,5 @@
 import { prepareMergerReducer } from '../prepareMergerReducer.ts';
-import { assertEquals, assertExists } from 'https://deno.land/std@0.203.0/assert/mod.ts';
+import { assertEquals, assertExists } from '@std/assert';
 import type { BoardTile, Hotel, MergeResult, Player, Tile } from '../../types/index.ts';
 
 Deno.test('prepareMergerReducer: updates players and tiles after merger', () => {

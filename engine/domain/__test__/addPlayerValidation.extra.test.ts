@@ -1,4 +1,4 @@
-import { assertThrows } from 'jsr:@std/assert';
+import { assertThrows } from '@std/assert';
 import { addPlayerValidation } from '../../domain/addPlayerValidation.ts';
 import { MAX_PLAYERS, RESERVED_NAMES } from '../../types/index.ts';
 import { GameError, GameErrorCodes } from '../../types/index.ts';

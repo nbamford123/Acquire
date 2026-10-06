@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from 'jsr:@std/assert';
+import { assertEquals, assertThrows } from '@std/assert';
 import { resolveMergerValidation } from '../../domain/resolveMergerValidation.ts';
 import { GamePhase, type GameState } from '../../types/index.ts';
 import { GameError, GameErrorCodes } from '../../types/index.ts';

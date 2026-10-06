@@ -2,7 +2,7 @@ import {
   assertEquals,
   assertExists,
   assertMatch,
-} from 'https://deno.land/std@0.203.0/assert/mod.ts';
+} from '@std/assert';
 import { playTileOrchestrator } from '../playTileOrchestrator.ts';
 import { GamePhase } from '../../types/index.ts';
 

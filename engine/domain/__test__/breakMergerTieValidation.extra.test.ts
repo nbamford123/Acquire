@@ -1,4 +1,4 @@
-import { assertThrows } from 'jsr:@std/assert';
+import { assertThrows } from '@std/assert';
 import { breakMergerTieValidation } from '../../domain/breakMergerTieValidation.ts';
 import { GameError, type GameState } from '../../types/index.ts';
 

@@ -1,5 +1,5 @@
 import { drawAndReplaceTilesReducer } from '../drawAndReplaceTilesReducer.ts';
-import { assertEquals } from 'https://deno.land/std@0.203.0/assert/mod.ts';
+import { assertEquals } from '@std/assert';
 import type { Player, Tile } from '../../types/index.ts';
 import { SAFE_HOTEL_SIZE } from '../../types/index.ts';
 

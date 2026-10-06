@@ -3,7 +3,7 @@ import {
   assertEquals,
   assertExists,
   assertThrows,
-} from 'https://deno.land/std@0.203.0/assert/mod.ts';
+} from '@std/assert';
 import { GameError, type GameState, type Hotel } from '../../types/index.ts';
 
 const makeState = (mergedHotelSize?: number) =>

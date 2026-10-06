@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from 'jsr:@std/assert';
+import { assertEquals, assertThrows } from '@std/assert';
 import { getPlayerView } from '../../utils/getPlayerView.ts';
 import { GamePhase } from '../../types/index.ts';
 
