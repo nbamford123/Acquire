@@ -140,9 +140,9 @@ None of these change what players see; pick them up whenever.
 
 Its own PR, done last.
 
-- [ ] Save each player's final money when a game ends and keep running totals, e.g. a KV entry per
-      player; `finalStandings` already has the numbers (M)
-- [ ] An endpoint for the totals and a leaderboard on the dashboard. `service/fullGame.test.ts`
+- [x] Save each player's final money when a game ends and keep running totals, e.g. a KV entry per
+      player; `finalStandings` already has the numbers. Also counts games played and won (M)
+- [x] An endpoint for the totals and a leaderboard on the dashboard. `service/fullGame.test.ts`
       already plays to game over and checks `finalStandings`, so extend it to check the totals (M)
 
 ## After the plan

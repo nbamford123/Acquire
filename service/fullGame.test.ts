@@ -7,6 +7,7 @@ import {
   type GameState,
   type HOTEL_NAME,
   HOTEL_NAMES,
+  type PlayerStats,
   type PlayerView,
   type Tile,
 } from '@acquire/engine/types';
@@ -43,6 +44,8 @@ const login = async (email: string) => {
     );
   return {
     request,
+    leaderboard: async (): Promise<PlayerStats[]> =>
+      (await (await request('/api/leaderboard')).json()).players,
     view: async (gameId: string): Promise<PlayerView> =>
       (await (await request(`/api/games/${gameId}`)).json()).game,
     act: (gameId: string, action: ClientAction) =>
@@ -191,6 +194,12 @@ Deno.test('full game over HTTP: tied merger through game over', async (t) => {
     assertEquals(afterTrade.pendingMergePlayer, undefined);
   });
 
+  // Other tests may have finished games too, so the leaderboard checks below look at the change
+  const stats = async () =>
+    Object.fromEntries((await testUser.leaderboard()).map(({ name, ...totals }) => [name, totals]));
+  const none = { gamesPlayed: 0, gamesWon: 0, earnings: 0 };
+  const before = await stats();
+
   await t.step('buying the last share ends the game with Tower the only, safe hotel', async () => {
     const response = await testUser.act(gameId, {
       type: 'BUY_SHARES',
@@ -223,6 +232,29 @@ Deno.test('full game over HTTP: tied merger through game over', async (t) => {
     ) {
       assertEquals(log.includes(entry), true, `missing log entry: ${entry}`);
     }
+  });
+
+  await t.step('the finished game counts once on the leaderboard', async () => {
+    // A move after game over is rejected, and doesn't count the game again
+    const late = await admin.act(gameId, {
+      type: 'BUY_SHARES',
+      payload: { shares: {} as Record<HOTEL_NAME, number> },
+    });
+    assertEquals(late.status, 400);
+
+    const after = await stats();
+    const change = (name: string) => {
+      const was = before[name] ?? none;
+      return {
+        gamesPlayed: after[name].gamesPlayed - was.gamesPlayed,
+        gamesWon: after[name].gamesWon - was.gamesWon,
+        earnings: after[name].earnings - was.earnings,
+      };
+    };
+    assertEquals(change('TestUser'), { gamesPlayed: 1, gamesWon: 1, earnings: 14400 });
+    assertEquals(change('Admin'), { gamesPlayed: 1, gamesWon: 0, earnings: 12900 });
+    // Admin sees the same leaderboard
+    assertEquals(await admin.leaderboard(), await testUser.leaderboard());
   });
 
   await testUser.request(`/api/games/${gameId}`, { method: 'DELETE' });

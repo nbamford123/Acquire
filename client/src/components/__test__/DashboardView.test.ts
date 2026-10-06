@@ -2,7 +2,7 @@ import './dom.ts';
 import { assertEquals } from '@std/assert';
 import { stub } from '@std/testing/mock';
 
-import { GamePhase, type GameInfo } from '@acquire/engine/types';
+import { GamePhase, type GameInfo, type PlayerStats } from '@acquire/engine/types';
 import '../DashboardView.ts';
 import { updatedLabel } from '../GameCard.ts';
 import { mount, settle } from './fixtures.ts';
@@ -19,9 +19,9 @@ const makeGame = (id: string, overrides: Partial<GameInfo> = {}): GameInfo => ({
   ...overrides,
 });
 
-// Serves GET /api/games from games, DELETE /api/games/:id removes the game, and POSTed actions are
-// recorded
-const serve = (games: GameInfo[]) => {
+// Serves GET /api/games from games and GET /api/leaderboard from leaderboard, DELETE /api/games/:id
+// removes the game, and POSTed actions are recorded
+const serve = (games: GameInfo[], leaderboard: PlayerStats[] = []) => {
   const posted: unknown[] = [];
   const fetchStub = stub(globalThis, 'fetch', (input, init?: RequestInit) => {
     if (init?.method === 'DELETE') {
@@ -32,6 +32,9 @@ const serve = (games: GameInfo[]) => {
     if (init?.method === 'POST') {
       posted.push(JSON.parse(String(init.body)).action);
       return Promise.resolve(new Response(JSON.stringify({})));
+    }
+    if (String(input).endsWith('/api/leaderboard')) {
+      return Promise.resolve(new Response(JSON.stringify({ players: leaderboard })));
     }
     return Promise.resolve(new Response(JSON.stringify({ games })));
   });
@@ -166,4 +169,29 @@ Deno.test('DashboardView - joining, starting, and leaving ask first', async () =
     { type: 'REMOVE_PLAYER', payload: {} },
   ]);
   accepted.dashboard.remove();
+});
+
+Deno.test('DashboardView - the leaderboard lists totals and marks you', async () => {
+  using _server = serve([], [
+    { name: 'alice', gamesPlayed: 3, gamesWon: 2, earnings: 61200 },
+    { name: 'nate', gamesPlayed: 2, gamesWon: 1, earnings: 30500 },
+  ]);
+  const { dashboard } = await mountDashboard();
+  const rows = [...dashboard.querySelectorAll('.leaderboard tbody tr')];
+  assertEquals(
+    rows.map((row) => [...row.querySelectorAll('td')].map((cell) => cell.textContent?.trim())),
+    [['alice', '3', '2', '$61,200'], ['nate', '2', '1', '$30,500']],
+  );
+  assertEquals(rows.map((row) => row.classList.contains('you')), [false, true]);
+  dashboard.remove();
+});
+
+Deno.test('DashboardView - the leaderboard says when no games have finished', async () => {
+  using _server = serve([]);
+  const { dashboard } = await mountDashboard();
+  assertEquals(
+    dashboard.querySelector('.leaderboard')?.textContent?.trim(),
+    'No finished games yet.',
+  );
+  dashboard.remove();
 });
