@@ -18,9 +18,8 @@
 
 ## Game Board
 
-- put the hotel type (economy, standard, luxury) on the bank card (the price already shows, including when inactive)
+- put the hotel type (economy, standard, luxury), the majority/minority bonuses, and "Safe" at 11+ tiles on the bank card (the price already shows, including when inactive)
 - make the board squares more 3D? They look very flat right now.
-- game card somewhere on screen? Could make it collapsible/hidable.
 - give players unique colors?
 
 ## Misc

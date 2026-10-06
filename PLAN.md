@@ -95,11 +95,13 @@ colors fixed for both themes, and the layout pass is easier with both themes wor
       three lines and the board page scrolls sideways by a few pixels; in phone landscape, your
       tiles and Submit sit below the board, off screen. Tablet portrait looks fine. Add a check
       for sideways scrolling at each size to the tests if it's practical (M–L)
-- [ ] Hotel type (economy, standard, luxury) on the bank cards. The price already shows, including
-      the lowest price for inactive hotels; the player view change in Phase 5 would provide the
-      type (S)
+- [ ] Bank cards show what the physical game's information card would: the hotel type (economy,
+      standard, luxury), the majority and minority bonuses (10× and 5× the share price; the engine
+      has `majorityMinorityValue`), and "Safe" at 11 or more tiles. The price already shows,
+      including the lowest price for inactive hotels; the player view change in Phase 5 would
+      provide the type. This replaces a separate reference card: the only thing that card adds is
+      the full price ladder, and a "next price at size N" line could cover that if it's missed (S)
 - [ ] Hotel icons on founded tiles; the bank cards already have them (S)
-- [ ] Collapsible game card on the board (S)
 - [ ] Less flat, more 3D-looking board squares (S)
 - [ ] Move the inline styles into CSS: six in the action card and its templates (exported from the
       template files), and a few in GameBoardView (S)
