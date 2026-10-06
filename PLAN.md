@@ -87,7 +87,7 @@ colors fixed for both themes, and the layout pass is easier with both themes wor
       hotel color for text contrast (WCAG AA, 4.5:1) in both themes, and also check keyboard use
       (board cells are `<div>`s with click handlers), visible focus, and labels for anything shown
       only by color or icon (M)
-- [ ] Light/dark toggle in the header. It defaults to the system preference and remembers a choice
+- [x] Light/dark toggle in the header. It defaults to the system preference and remembers a choice
       per browser; Pico switches with `data-theme` on `<html>`. Replaces the per-component
       `prefers-color-scheme` rules, which only AppShell and GameCard have today (M)
 - [ ] Layout pass at phone and tablet sizes: iPhone 13 portrait (390×844) and landscape (844×390),

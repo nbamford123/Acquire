@@ -11,6 +11,7 @@ import { LightComponent } from './LightComponent.ts';
 import './LoginView.ts';
 import './DashboardView.ts';
 import './GameBoardView.ts';
+import './ThemeToggle.ts';
 
 interface ConfirmDialogConfig {
   title: string;
@@ -22,28 +23,6 @@ interface ConfirmDialogConfig {
 export class AppShell extends LightComponent {
   static override styles = [
     css`
-      @media (prefers-color-scheme: light) {
-        /* Soften light mode background to reduce glare */
-        &:not([data-theme="dark"]) {
-          --pico-background-color: #f5f5f5;
-        }
-
-        &[data-theme="light"] {
-          --pico-background-color: #f5f5f5;
-        }
-      }
-
-      /* Override for system dark mode preference */
-      @media (prefers-color-scheme: dark) {
-        &:not([data-theme="light"]) {
-          --pico-background-color: rgb(19, 22.5, 30.5);
-        }
-      }
-
-      &[data-theme="dark"] {
-        --pico-background-color: rgb(19, 22.5, 30.5);
-      }
-
       /* Root app layout: header outside of the scrollable content area */
       .app-root {
         display: flex;
@@ -55,7 +34,7 @@ export class AppShell extends LightComponent {
       /* The header sits above the scrollable content */
       .header {
         background-color: var(--pico-background-color);
-        border-bottom: 1px solid var(--pico-color-azure-150);
+        border-bottom: 1px solid var(--pico-muted-border-color);
         padding-left: 16px;
         padding-right: 16px;
         width: 100%;
@@ -73,6 +52,12 @@ export class AppShell extends LightComponent {
         -webkit-overflow-scrolling: touch;
         box-sizing: border-box;
         padding-left: 1.5rem;
+      }
+      /* The login screen has no header, so the theme toggle sits in the corner */
+      .login-theme {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
       }
       .content.center {
         justify-content: center;
@@ -245,7 +230,13 @@ export class AppShell extends LightComponent {
     const loginView = this.appState.currentView === 'login';
     return html`
       <div class="app-root">
-        ${loginView ? '' : this.renderHeader()}
+        ${loginView
+          ? html`
+            <div class="login-theme">
+              <theme-toggle></theme-toggle>
+            </div>
+          `
+          : this.renderHeader()}
         <main class="${`content${loginView ? ' center' : ''}`}">
           <dialog class="confirm-dialog" @cancel="${this.onDialogCancelDelete}">
             <article>
@@ -298,6 +289,7 @@ export class AppShell extends LightComponent {
               `
               : ''}
             <li>Welcome, ${this.appState.user}</li>
+            <li><theme-toggle></theme-toggle></li>
             <li>
               <button
                 class="secondary"
