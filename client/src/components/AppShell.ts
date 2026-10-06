@@ -41,17 +41,39 @@ export class AppShell extends LightComponent {
         box-sizing: border-box;
         z-index: 1;
       }
-      /* Main content area grows to fill available space and scrolls vertically when needed */
+      /* Compact on every size: Pico's nav spacing made the header a quarter of a landscape phone */
+      .header h1 {
+        margin: 0;
+        font-size: 1.75rem;
+      }
+      .header nav li {
+        padding-block: 0.5rem;
+      }
+      /* Phones drop the welcome and shorten Back, so the header stays on one line */
+      @media (max-width: 576px) {
+        .header {
+          padding-inline: 0.5rem;
+        }
+        .header h1 {
+          font-size: 1.375rem;
+        }
+        .header nav li {
+          padding-inline: 0.25rem;
+        }
+        .wide-only {
+          display: none;
+        }
+      }
+      /* Main content area grows to fill the space below the header. The page scrolls, not this,
+        so the board can stay in view while the rest of the game scrolls beside it. */
       .content {
         flex: 1 1 auto;
         display: flex;
         flex-direction: column;
         align-items: center;
         width: 100%;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
         box-sizing: border-box;
-        padding-left: 1.5rem;
+        padding-inline: clamp(0.75rem, 3vw, 1.5rem);
       }
       /* The login screen has no header, so the theme toggle sits in the corner */
       .login-theme {
@@ -282,13 +304,14 @@ export class AppShell extends LightComponent {
                   <button
                     @click="${this.handleBackToGameList}"
                     class="back-button"
+                    aria-label="Back to games"
                   >
-                    ← Back to Games
+                    ← <span class="wide-only">Back to </span>Games
                   </button>
                 </li>
               `
               : ''}
-            <li>Welcome, ${this.appState.user}</li>
+            <li class="wide-only">Welcome, ${this.appState.user}</li>
             <li><theme-toggle></theme-toggle></li>
             <li>
               <button

@@ -12,31 +12,75 @@ export const hotelIcons: Record<string, string> = {
 
 export const styles = css`
   & {
-    align-self: stretch;
     display: block;
-    padding: 1rem;
+    width: 100%;
+    padding-block: 1rem;
   }
 
+  /* Portrait: one column in reading order. Landscape, below, puts the board beside the rest. */
   .game-container {
     display: grid;
-    grid-template-columns: minmax(700px, 900px) 300px; /* Explicit sizes */
-    grid-template-rows: auto auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'heading' 'log' 'board' 'controls' 'players' 'bank';
     gap: 1rem;
-    justify-content: center;
+    align-items: start;
+    max-width: 48rem;
     margin: 0 auto;
   }
 
-  .board-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    width: 100%;
-    grid-row: 1 / 3;
-    grid-column: 1;
+  .game-heading {
+    grid-area: heading;
   }
 
-  .board-section h2 {
+  .game-heading h2 {
     margin-bottom: 0.25rem;
+  }
+
+  .game-log {
+    grid-area: log;
+  }
+
+  .game-board {
+    grid-area: board;
+  }
+
+  .current-player-view {
+    grid-area: controls;
+  }
+
+  .players-sidebar {
+    grid-area: players;
+  }
+
+  .bank-section {
+    grid-area: bank;
+  }
+
+  /* Landscape: the board fits the screen's height and stays in view on the left, with your move,
+    the players, and the bank beside it. 6rem leaves room for the header and padding, since a
+    board's height is three quarters of its width, and 25rem leaves room for six tiles beside it. */
+  @media (orientation: landscape) and (min-width: 600px) {
+    .game-container {
+      --board-size: min(calc((100dvh - 6rem) * 4 / 3), calc(100vw - 25rem));
+      grid-template-columns: var(--board-size) minmax(18rem, 1fr);
+      grid-template-areas: 'board heading' 'board controls' 'board players' 'board log' 'board bank';
+      max-width: none;
+    }
+
+    .game-board {
+      position: sticky;
+      top: 1rem;
+    }
+  }
+
+  /* Wide enough for the bank in a column of its own without shrinking the board */
+  @media (orientation: landscape) and (min-width: 1600px) {
+    .game-container {
+      --board-size: min(calc((100dvh - 6rem) * 4 / 3), calc(100vw - 42rem), 60rem);
+      grid-template-columns: var(--board-size) minmax(18rem, 1fr) minmax(16rem, 20rem);
+      grid-template-areas: 'board heading bank' 'board controls bank' 'board players bank'
+        'board log bank';
+    }
   }
 
   .game-status {
@@ -112,10 +156,11 @@ export const styles = css`
     grid-template-columns: repeat(12, 1fr);
     gap: 4px;
     background: var(--pico-background-color);
-    padding: 1rem;
+    padding: 0.75rem;
     border-radius: 8px;
     width: 100%;
-    margin: 0 auto;
+    /* Cell labels scale with the board's width */
+    container-type: inline-size;
   }
 
   .board-cell {
@@ -125,11 +170,11 @@ export const styles = css`
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.75rem;
+    /* About a quarter of a cell, whatever the board's size */
+    font-size: clamp(0.5rem, 2.2cqi, 0.85rem);
     font-weight: 600;
     /* Square cells size the board; a fixed board aspect ratio let rows overflow when narrow */
     aspect-ratio: 1;
-    min-height: 40px;
   }
 
   /* Tiles in a hotel take its color; others use Pico's primary */
@@ -195,8 +240,10 @@ export const styles = css`
     font-variant-numeric: tabular-nums;
   }
 
+  /* Can shrink, so the tiles wrap in a narrow column */
   .tile-hand {
-    flex: 0 0 auto;
+    flex: 0 1 auto;
+    min-width: 0;
   }
 
   .tiles-title {
@@ -238,12 +285,9 @@ export const styles = css`
   }
 
   .bank-section {
-    width: 300px;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    grid-row: 1;
-    grid-column: 2;
   }
 
   .bank-card {
@@ -301,12 +345,9 @@ export const styles = css`
   }
 
   .players-sidebar {
-    width: 300px;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    grid-row: 2;
-    grid-column: 2;
   }
 
   .player-card {
@@ -433,128 +474,53 @@ export const styles = css`
   }
 
   /* Laptop: 1200-1400px - Board minimum 600px */
-  @media (max-width: 1400px) and (min-width: 1200px) {
-    .game-board {
-      min-width: 600px;
-      max-width: 900px;
+  /* Short screens, like a phone in landscape: smaller type and spacing, so your move fits beside
+    the board without scrolling. The action card is inside the board, so its text is set here. */
+  @media (max-height: 500px) {
+    .game-heading h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0;
+    }
+
+    .game-status {
+      font-size: 1rem;
+    }
+
+    .current-player-view {
+      padding: 0.5rem 0.75rem;
+      gap: 0.5rem 0.75rem;
+    }
+
+    .tiles-title,
+    .action-title {
+      margin-bottom: 0.25rem;
+    }
+
+    .action-desc {
+      font-size: 1.1rem;
+    }
+
+    .current-player-view > button {
+      padding-block: 0.4rem;
     }
   }
 
-  /* Tablet: <1200px - Board spans full width above, bank and players side-by-side below */
-  @media (max-width: 1200px) {
-    & {
-      padding: 1rem;
-      width: 100%;
-    }
-
-    .game-container {
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto auto;
-      max-width: 100%;
-      width: 100%;
-    }
-
-    .board-section {
-      width: 100%;
-      grid-row: 1;
-      grid-column: 1 / 3;
-    }
-
+  /* Phones: tighter spacing */
+  @media (max-width: 576px) {
     .game-board {
-      width: 100%;
-      min-width: 0;
-      max-width: 100%;
-      margin: 0;
-    }
-
-    .bank-section {
-      width: 100%;
-      grid-row: 2;
-      grid-column: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .players-sidebar {
-      width: 100%;
-      grid-row: 2;
-      grid-column: 2;
-      display: flex;
-      flex-direction: column;
-    }
-  }
-
-  /* Mobile: <768px - Everything stacks in single column */
-  @media (max-width: 768px) {
-    & {
       padding: 0.5rem;
-    }
-
-    /* Twelve 40px cells don't fit; let them shrink with the width */
-    .board-cell {
-      min-height: 0;
-      font-size: 0.6rem;
-    }
-
-    .game-container {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto auto auto;
-      gap: 0.75rem;
-    }
-
-    .board-section {
-      width: 100%;
-      grid-row: 1;
-      grid-column: 1;
-      gap: 0.75rem;
-    }
-
-    .game-board {
-      width: 100%;
-      min-width: 0;
-      max-width: 100%;
-      padding: 0.75rem;
       gap: 2px;
-      margin: 0;
     }
 
-    .bank-section {
-      width: 100%;
-      grid-row: 2;
-      grid-column: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .bank-card {
+    .bank-card,
+    .player-card,
+    .current-player-view {
       padding: 0.75rem;
     }
 
     .bank-card h3 {
       margin-bottom: 0.5rem;
       font-size: 1rem;
-    }
-
-    .players-sidebar {
-      width: 100%;
-      grid-row: 3;
-      grid-column: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .player-card {
-      padding: 0.75rem;
-    }
-
-    .player-header {
-      margin-bottom: 0.25rem;
-    }
-
-    .current-player-view {
-      padding: 0.75rem;
     }
   }
 `;
