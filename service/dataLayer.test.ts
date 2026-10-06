@@ -3,6 +3,7 @@ import { assertEquals } from '@std/assert';
 import { initializeGame } from '@acquire/engine/core';
 import type { PlayerAction } from '@acquire/engine/types';
 import {
+  createGame,
   deleteGamesUpdatedBefore,
   getAllGames,
   getGameEntry,
@@ -64,4 +65,11 @@ Deno.test('deleteGamesUpdatedBefore deletes only inactive games and their action
   assertEquals(remaining.includes('old-game'), false);
   assertEquals(remaining.includes('recent-game'), true);
   assertEquals(await getPlayerActions(old.gameId), []);
+});
+
+Deno.test("createGame doesn't overwrite a game with the same id", async () => {
+  const first = initializeGame('taken-id-10', 'nate');
+  assertEquals(await createGame(first), true);
+  assertEquals(await createGame(initializeGame('taken-id-10', 'alice')), false);
+  assertEquals((await getGameEntry('taken-id-10')).value?.owner, 'nate');
 });

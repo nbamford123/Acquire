@@ -208,6 +208,57 @@ Deno.test('DELETE /games/:id deletes a game', async () => {
   expect(getResponse.status).toBe(404);
 });
 
+Deno.test('POST /games creates a game with a readable id', async () => {
+  const cookies = await login(app);
+  const response = await app.fetch(
+    new Request('http://localhost/api/games', { method: 'POST', headers: { 'Cookie': cookies } }),
+  );
+  const { gameId } = await response.json();
+  expect(gameId).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*-[1-9][0-9]$/);
+});
+
+Deno.test('GET /games/:id only shows a game to its players', async () => {
+  const cookies = await login(app);
+  const adminCookies = await login(app, 'admin@test.com');
+  const request = (path: string, init: RequestInit, as: string) =>
+    app.fetch(new Request(`http://localhost${path}`, { ...init, headers: { 'Cookie': as } }));
+
+  const { gameId } = await (await request('/api/games', { method: 'POST' }, cookies)).json();
+  const response = await request(`/api/games/${gameId}`, { method: 'GET' }, adminCookies);
+  assertEquals(response.status, 403);
+  assertEquals((await response.json()).error, "You're not in this game");
+});
+
+Deno.test('POST /games/:id lets a player leave before the game starts', async () => {
+  const cookies = await login(app);
+  const adminCookies = await login(app, 'admin@test.com');
+  const request = (path: string, init: RequestInit, as: string) =>
+    app.fetch(
+      new Request(`http://localhost${path}`, {
+        ...init,
+        headers: { 'Content-Type': 'application/json', 'Cookie': as },
+      }),
+    );
+  const act = (gameId: string, type: string, as: string) =>
+    request(`/api/games/${gameId}`, {
+      method: 'POST',
+      body: JSON.stringify({ action: { type, payload: { player: '' } } }),
+    }, as);
+
+  const { gameId } = await (await request('/api/games', { method: 'POST' }, cookies)).json();
+  assertEquals((await act(gameId, 'ADD_PLAYER', adminCookies)).status, 200);
+  const leave = await act(gameId, 'REMOVE_PLAYER', adminCookies);
+  assertEquals(leave.status, 200);
+  assertEquals(await leave.json(), { action: 'REMOVE_PLAYER' });
+  const view = (await (await request(`/api/games/${gameId}`, { method: 'GET' }, cookies)).json())
+    .game;
+  assertEquals(view.players.map((player: { name: string }) => player.name), ['TestUser']);
+
+  // The owner deletes the game instead
+  const ownerLeave = await act(gameId, 'REMOVE_PLAYER', cookies);
+  assertEquals(ownerLeave.status, 400);
+});
+
 Deno.test('DELETE /games/:id only lets the owner delete a game', async () => {
   const cookies = await login(app);
   const adminCookies = await login(app, 'admin@test.com');

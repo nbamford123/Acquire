@@ -45,16 +45,25 @@ One PR.
 
 ## Phase 3: Lobby flow
 
-- [ ] Make the join/start/delete/play buttons styled links (S)
-- [ ] Confirmation dialogs for join and start; delete already has one (S–M)
-- [ ] Players can leave a game before it starts, with a confirmation. The engine already handles
+- [x] Make the join/start/delete/play buttons styled links (S)
+- [x] Confirmation dialogs for join and start; delete already has one (S–M)
+- [x] Players can leave a game before it starts, with a confirmation. The engine already handles
       `REMOVE_PLAYER`, so this needs the route and the UI (M)
-- [ ] Dashboard states for full (6/6) games and games owned by others. A full game already shows
+- [x] Dashboard states for full (6/6) games and games owned by others. A full game already shows
       "View Game" instead of "Join Game", and only the owner sees Delete; what's missing is a
       "Full" status (S)
-- [ ] Friendlier game ids, like Docker's generated names. That also fixes the cut-off names: the
+- [x] Friendlier game ids, like Docker's generated names. That also fixes the cut-off names: the
       game card shows only the first 8 characters of today's ids (S)
-- [ ] Decide whether creating or joining needs a prompt (S)
+- [x] Decide whether creating or joining needs a prompt: no, the join and start confirmations
+      cover it (S)
+- [ ] Let anyone view a game they're not in. Spectators see what players see about each other
+      (cash tiers, rough share counts, the board), so nothing hidden leaks. `getPlayerView` throws
+      for non-players and `PlayerView` assumes a seat (`playerId`, `money`, `stocks`, `tiles`), so
+      add a spectator view with no seat and every player shown as another player. Its log can use
+      the same filter with the current player in place of "you", which shows the last full round.
+      On the board, skip the hand, action card, and Submit, and show every player card as another
+      player. Then drop the 403 on `GET /api/games/:id` for non-players and bring back a View Game
+      link on their dashboard cards (M)
 
 ## Phase 4: Leaderboard
 

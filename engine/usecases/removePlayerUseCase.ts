@@ -18,6 +18,13 @@ export const removePlayerUseCase: UseCaseFunction<RemovePlayerAction> = (
       GameErrorCodes.GAME_INVALID_ACTION,
     );
   }
+  // The owner deletes the game instead
+  if (player === gameState.owner) {
+    throw new GameError(
+      "The owner can't leave the game; delete it instead",
+      GameErrorCodes.GAME_INVALID_ACTION,
+    );
+  }
   // Domain validation
   if (!gameState.players.find((p) => p.name === player)) {
     throw new GameError(
@@ -29,5 +36,5 @@ export const removePlayerUseCase: UseCaseFunction<RemovePlayerAction> = (
   return [{
     ...gameState,
     players: gameState.players.filter((p) => p.name !== player),
-  }, [{ turn: gameState.currentTurn, action: `Player ${player} has been removed from the game` }]];
+  }, [{ turn: gameState.currentTurn, action: `${player} left the game` }]];
 };

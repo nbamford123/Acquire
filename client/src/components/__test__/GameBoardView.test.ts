@@ -181,3 +181,12 @@ Deno.test('GameBoardView - the log lists recent moves in order', async () => {
   );
   board.remove();
 });
+
+Deno.test("GameBoardView - nobody's move before the game starts", async () => {
+  using _server = serve([makePlayerView({ currentPhase: GamePhase.WAITING_FOR_PLAYERS })]);
+  const { board, root, text } = await mountBoard();
+  assertEquals(text('.game-status'), 'Waiting for the game to start');
+  assertEquals(root.querySelector('.game-status.your-move'), null);
+  assertEquals(root.querySelector('.player-card.active'), null);
+  board.remove();
+});
