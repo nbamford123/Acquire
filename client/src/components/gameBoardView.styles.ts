@@ -163,9 +163,11 @@ export const styles = css`
     container-type: inline-size;
   }
 
+  /* Empty squares are recessed and placed tiles raised; the shadows are set per theme */
   .board-cell {
     background: var(--pico-card-background-color);
-    border: 2px solid var(--pico-muted-border-color);
+    border: 2px solid transparent;
+    box-shadow: var(--slot-shadow);
     border-radius: 4px;
     display: flex;
     align-items: center;
@@ -182,6 +184,7 @@ export const styles = css`
     background: var(--hotel, var(--pico-primary-background));
     color: var(--hotel-text, var(--pico-primary-inverse));
     border-color: var(--hotel, var(--pico-primary-background));
+    box-shadow: var(--tile-shadow);
   }
 
   .current-player-view {
@@ -266,6 +269,7 @@ export const styles = css`
     transition: all 0.2s;
     border: none;
     color: var(--pico-secondary-inverse);
+    box-shadow: var(--tile-shadow);
   }
 
   .tile:disabled {
@@ -282,6 +286,12 @@ export const styles = css`
 
   .tile.selected {
     transform: translateY(-10px);
+    box-shadow: var(--tile-shadow), 0 8px 12px rgb(0 0 0 / 0.25);
+  }
+
+  /* Pico draws the focus ring with box-shadow too, so keep it alongside the tile's */
+  .tile:focus-visible {
+    box-shadow: var(--tile-shadow), 0 0 0 var(--pico-outline-width) var(--pico-primary-focus);
   }
 
   .bank-section {
