@@ -36,7 +36,7 @@ import {
   getSpectatorView,
 } from '@acquire/engine/utils';
 import { requireAuth } from './middleware.ts';
-import { serveStatic } from 'hono/deno';
+import { serveStatic } from '@hono/deno';
 import { setCookie } from 'hono/cookie';
 
 // The built client, found from this file so the service can run from any directory
