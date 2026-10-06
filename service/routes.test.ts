@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { assertEquals } from '@std/assert';
 import { expect } from '@std/expect';
 
-import { ActionTypes, type AddPlayerAction, type StartGameAction } from '@acquire/engine/types';
+import { ActionTypes, createAction } from '@acquire/engine/types';
 import { setRoutes } from './routes.ts';
 import { clearCache } from './auth.ts';
 import type { ServiceEnv } from './types.ts';
@@ -245,7 +245,7 @@ Deno.test('POST /games/:id lets a player leave before the game starts', async ()
   const act = (gameId: string, type: string, as: string) =>
     request(`/api/games/${gameId}`, {
       method: 'POST',
-      body: JSON.stringify({ action: { type, payload: { player: '' } } }),
+      body: JSON.stringify({ action: { type, payload: {} } }),
     }, as);
 
   const { gameId } = await (await request('/api/games', { method: 'POST' }, cookies)).json();
@@ -295,10 +295,7 @@ Deno.test('POST /games/:id performs actions', async () => {
 
   // A second player joins (the service takes the player from the login, not the payload)
   const adminCookies = await login(app, 'admin@test.com');
-  const addPlayer: AddPlayerAction = {
-    type: ActionTypes.ADD_PLAYER,
-    payload: { player: 'Admin' },
-  };
+  const addPlayer = createAction(ActionTypes.ADD_PLAYER, {});
   const postResponse = await app.fetch(
     new Request(`http://localhost/api/games/${gameId}`, {
       method: 'POST',
@@ -311,10 +308,7 @@ Deno.test('POST /games/:id performs actions', async () => {
   );
   assertEquals(postResponse.status, 200);
 
-  const startGame: StartGameAction = {
-    type: ActionTypes.START_GAME,
-    payload: { player: 'hono' },
-  };
+  const startGame = createAction(ActionTypes.START_GAME, {});
   const startResponse = await app.fetch(
     new Request(`http://localhost/api/games/${gameId}`, {
       method: 'POST',
@@ -347,10 +341,7 @@ Deno.test('POST /games/:id updates lastUpdated', async () => {
   const before = (await (await request(`/api/games/${gameId}`)).json()).game.lastUpdated;
 
   await new Promise((resolve) => setTimeout(resolve, 5));
-  const addPlayer: AddPlayerAction = {
-    type: ActionTypes.ADD_PLAYER,
-    payload: { player: 'Admin' },
-  };
+  const addPlayer = createAction(ActionTypes.ADD_PLAYER, {});
   const postResponse = await request(`/api/games/${gameId}`, {
     method: 'POST',
     body: JSON.stringify({ action: addPlayer }),
@@ -378,10 +369,7 @@ Deno.test('POST /games/:id rejects invalid moves without saving them', async () 
   const before = (await (await request(`/api/games/${gameId}`)).json()).game;
 
   // Can't start with only one player
-  const startGame: StartGameAction = {
-    type: ActionTypes.START_GAME,
-    payload: { player: 'TestUser' },
-  };
+  const startGame = createAction(ActionTypes.START_GAME, {});
   const response = await request(`/api/games/${gameId}`, {
     method: 'POST',
     body: JSON.stringify({ action: startGame }),

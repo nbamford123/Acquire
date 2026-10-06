@@ -1,19 +1,11 @@
 import { css, html, type LitElement } from 'lit';
 
-import { ActionTypes, type GameAction, type HOTEL_NAME } from '@acquire/engine/types';
+import { ActionTypes, createAction, type HOTEL_NAME } from '@acquire/engine/types';
 
-const handleHotelSelect = (
-  hotel: HOTEL_NAME,
-  user: string,
-  parent: LitElement,
-) => {
-  const action: GameAction = {
-    type: ActionTypes.FOUND_HOTEL,
-    payload: { player: user || '', hotelName: hotel },
-  };
+const handleHotelSelect = (hotel: HOTEL_NAME, parent: LitElement) => {
   parent.dispatchEvent(
     new CustomEvent('set-action', {
-      detail: action,
+      detail: createAction(ActionTypes.FOUND_HOTEL, { hotelName: hotel }),
       bubbles: true,
       composed: true,
     }),
@@ -31,7 +23,6 @@ export const foundHotelStyles = css`
 
 export const foundHotelTemplate = (
   hotels: HOTEL_NAME[],
-  user: string,
   parent: LitElement,
 ) =>
   html`
@@ -42,7 +33,6 @@ export const foundHotelTemplate = (
       @change="${(evt: Event) =>
         handleHotelSelect(
           (evt.target as HTMLSelectElement)?.value as HOTEL_NAME,
-          user,
           parent,
         )}"
     >

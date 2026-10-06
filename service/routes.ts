@@ -1,5 +1,16 @@
 import type { Context, Hono } from 'hono';
-import type { GameAction, GameInfo, GameState, PlayerAction } from '@acquire/engine/types';
+import type {
+  ActionRequest,
+  ActionResponse,
+  CreateGameResponse,
+  ErrorResponse,
+  GameAction,
+  GameInfo,
+  GameResponse,
+  GamesResponse,
+  LoginRequest,
+  LoginResponse,
+} from '@acquire/engine/types';
 import { createToken, validateUser } from './auth.ts';
 import { newGameId } from './gameIds.ts';
 import {
@@ -45,7 +56,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
   app.post('/api/login', async (ctx) => {
     try {
       const bodyJson = await parseJsonBody(ctx);
-      const { email } = bodyJson as { email?: string };
+      const { email } = bodyJson as Partial<LoginRequest>;
       const user = validateUser(email || '');
       if (!email || user === null) {
         return ctx.json({ error: 'Invalid login' }, 403);
@@ -58,7 +69,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
         sameSite: 'strict',
         maxAge: 60 * 60 * 24 * 365, // 1 year in milliseconds
       });
-      return ctx.json({ success: true, user });
+      return ctx.json({ success: true, user } satisfies LoginResponse);
     } catch (error) {
       return ctx.json({
         error: (error instanceof Error) ? error.message : String(error),
@@ -73,7 +84,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       for (let attempt = 0; attempt < GAME_ID_ATTEMPTS; attempt++) {
         const game = initializeGame(newGameId(), user);
         if (await createGame(game)) {
-          return ctx.json({ gameId: game.gameId }, 201);
+          return ctx.json({ gameId: game.gameId } satisfies CreateGameResponse, 201);
         }
       }
       return ctx.json({ error: "Couldn't find a free game id; try again" }, 500);
@@ -107,9 +118,11 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
     const actions = await getPlayerActions(gameId);
     // Anyone not in the game can watch it
     const isPlayer = game.players.some((player) => player.name === user);
-    return ctx.json({
-      game: isPlayer ? getPlayerView(user, game, actions) : getSpectatorView(game, actions),
-    });
+    return ctx.json(
+      {
+        game: isPlayer ? getPlayerView(user, game, actions) : getSpectatorView(game, actions),
+      } satisfies GameResponse,
+    );
   });
   // Get list of games
   app.get('/api/games', requireAuth, async (ctx) => {
@@ -122,7 +135,7 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       lastUpdated: game.lastUpdated,
     })));
 
-    return ctx.json({ games: gameList });
+    return ctx.json({ games: gameList } satisfies GamesResponse);
   });
   // Main game action endpoint
   app.post('/api/games/:id', requireAuth, async (ctx) => {
@@ -134,16 +147,18 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       if (!user) {
         return ctx.json({ error: 'Unauthorized' }, 401);
       }
-      const { action } = bodyJson as { action: GameAction };
-
-      // Security: always use JWT player
-      action.payload.player = user;
-      if (!action || !action.type) {
+      const { action: clientAction } = bodyJson as Partial<ActionRequest>;
+      if (!clientAction?.type) {
         return ctx.json(
           { error: 'Action is required with a type field' },
           400,
         );
       }
+      // Act as the logged-in user, whatever the payload says
+      const action = {
+        ...clientAction,
+        payload: { ...clientAction.payload, player: user },
+      } as GameAction;
 
       const { value: currentGame, versionstamp } = await getGameEntry(gameId);
       if (!currentGame || !versionstamp) {
@@ -169,13 +184,15 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
       }
       // A player who just left has no view of the game
       if (!updatedGame.players.some((player) => player.name === user)) {
-        return ctx.json({ action: action.type });
+        return ctx.json({ action: action.type } satisfies ActionResponse);
       }
       const currentActions = previousActions.concat(actions);
-      return ctx.json({
-        game: getPlayerView(user, updatedGame, currentActions),
-        action: action.type, // Echo back the action type for client confirmation
-      });
+      return ctx.json(
+        {
+          game: getPlayerView(user, updatedGame, currentActions),
+          action: action.type, // Echo back the action type for client confirmation
+        } satisfies ActionResponse,
+      );
     } catch (error) {
       console.error('Game action error:', error);
       return ctx.json({

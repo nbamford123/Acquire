@@ -161,9 +161,9 @@ Deno.test('DashboardView - joining, starting, and leaving ask first', async () =
   click(accepted.cards[1], 'Leave Game');
   await settleAll(accepted.dashboard);
   assertEquals(server.posted, [
-    { type: 'ADD_PLAYER', payload: { player: 'nate' } },
-    { type: 'START_GAME', payload: { player: 'nate' } },
-    { type: 'REMOVE_PLAYER', payload: { player: 'nate' } },
+    { type: 'ADD_PLAYER', payload: {} },
+    { type: 'START_GAME', payload: {} },
+    { type: 'REMOVE_PLAYER', payload: {} },
   ]);
   accepted.dashboard.remove();
 });

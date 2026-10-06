@@ -72,7 +72,7 @@ Deno.test('GameBoardView - submitting posts the action and shows the result', as
   submit().click();
   await settle(board);
   await settle(board);
-  assertEquals(server.posted, [{ type: 'BUY_SHARES', payload: { player: 'nate', shares: {} } }]);
+  assertEquals(server.posted, [{ type: 'BUY_SHARES', payload: { shares: {} } }]);
   assertEquals(submit().textContent?.trim(), 'Waiting…');
   board.remove();
 });

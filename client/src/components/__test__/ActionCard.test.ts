@@ -1,18 +1,18 @@
 import './dom.ts';
 import { assertEquals } from '@std/assert';
 
-import { type GameAction, GamePhase, type PlayerView } from '@acquire/engine/types';
+import { type ClientAction, GamePhase, type PlayerView } from '@acquire/engine/types';
 import '../ActionCard.ts';
 import { hotelsWith, makePlayerView, settle } from './fixtures.ts';
 
 // Renders an action card and records every action it dispatches, including the first render's
 const mountCard = async (playerView: PlayerView) => {
-  const actions: (GameAction | null)[] = [];
+  const actions: (ClientAction | null)[] = [];
   const card = document.createElement('action-card') as HTMLElement & Record<string, unknown> & {
     updateComplete: Promise<boolean>;
   };
   card.addEventListener('set-action', (event) => actions.push((event as CustomEvent).detail));
-  Object.assign(card, { user: 'nate', playerView });
+  Object.assign(card, { playerView });
   document.body.append(card);
   await settle(card);
   const root = card;
@@ -31,7 +31,7 @@ const buyTurn = makePlayerView({
   currentPhase: GamePhase.BUY_SHARES,
   hotels: hotelsWith({ Tower: { shares: 20, size: 3 } }),
 });
-const buyNothing = { type: 'BUY_SHARES', payload: { player: 'nate', shares: {} } } as GameAction;
+const buyNothing = { type: 'BUY_SHARES', payload: { shares: {} } } as ClientAction;
 
 Deno.test('ActionCard - buying shares', async (t) => {
   await t.step('buying nothing is ready to submit, and picks update the purchase', async () => {
@@ -42,8 +42,8 @@ Deno.test('ActionCard - buying shares', async (t) => {
     await click('button[aria-label="Tower more"]');
     assertEquals(actions.at(-1), {
       type: 'BUY_SHARES',
-      payload: { player: 'nate', shares: { Tower: 1 } },
-    } as GameAction);
+      payload: { shares: { Tower: 1 } },
+    } as ClientAction);
     assertEquals(text('p.picker-summary'), '1 of 3 shares for $300, leaving you $5700.');
     card.remove();
   });
@@ -97,14 +97,14 @@ Deno.test('ActionCard - resolving a merger', async (t) => {
     const { card, actions, text, click } = await mountCard(resolveTurn(0));
     assertEquals(actions, [{
       type: 'RESOLVE_MERGER',
-      payload: { player: 'nate', shares: { sell: 0, trade: 0 } },
-    } as GameAction]);
+      payload: { shares: { sell: 0, trade: 0 } },
+    } as ClientAction]);
 
     await click('button[aria-label="Sell more"]');
     assertEquals(actions.at(-1), {
       type: 'RESOLVE_MERGER',
-      payload: { player: 'nate', shares: { sell: 1, trade: 0 } },
-    } as GameAction);
+      payload: { shares: { sell: 1, trade: 0 } },
+    } as ClientAction);
     assertEquals(
       text('p.picker-summary'),
       "You'll sell 1 Luxor share for $500 and keep 2 Luxor shares. Trades are 2 for 1.",
@@ -136,7 +136,7 @@ Deno.test('ActionCard - breaking a two-way tie fills in the merged hotel', async
   await click('.hotel-option:nth-of-type(2)');
   assertEquals(actions.at(-1), {
     type: 'BREAK_MERGER_TIE',
-    payload: { player: 'nate', resolvedTie: { survivor: 'Luxor', merged: 'Tower' } },
-  } as GameAction);
+    payload: { resolvedTie: { survivor: 'Luxor', merged: 'Tower' } },
+  } as ClientAction);
   card.remove();
 });

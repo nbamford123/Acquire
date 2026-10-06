@@ -87,3 +87,17 @@ export type GameAction =
   | BreakMergerTieAction
   | FoundHotelAction
   | ResolveMergerAction;
+
+// An action as the client sends it. The service adds the player from the login, so no one can act
+// for someone else.
+type WithoutPlayer<A> = A extends GameAction
+  ? { type: A['type']; payload: Omit<A['payload'], 'player'> }
+  : never;
+export type ClientAction = WithoutPlayer<GameAction>;
+export type ClientActionOf<T extends ActionType> = Extract<ClientAction, { type: T }>;
+
+// Builds a client action, checking the payload against the action type
+export const createAction = <T extends ActionType>(
+  type: T,
+  payload: ClientActionOf<T>['payload'],
+) => ({ type, payload }) as ClientActionOf<T>;

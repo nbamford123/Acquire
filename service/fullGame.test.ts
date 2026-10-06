@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { assertEquals } from '@std/assert';
 
 import {
-  type GameAction,
+  type ClientAction,
   GamePhase,
   type GameState,
   type HOTEL_NAME,
@@ -45,7 +45,7 @@ const login = async (email: string) => {
     request,
     view: async (gameId: string): Promise<PlayerView> =>
       (await (await request(`/api/games/${gameId}`)).json()).game,
-    act: (gameId: string, action: GameAction) =>
+    act: (gameId: string, action: ClientAction) =>
       request(`/api/games/${gameId}`, { method: 'POST', body: JSON.stringify({ action }) }),
   };
 };
@@ -112,7 +112,7 @@ Deno.test('full game over HTTP: tied merger through game over', async (t) => {
   await t.step('playing the joining tile asks TestUser to break the tie', async () => {
     const response = await testUser.act(gameId, {
       type: 'PLAY_TILE',
-      payload: { player: 'TestUser', tile: { row: 1, col: 0 } },
+      payload: { tile: { row: 1, col: 0 } },
     });
     assertEquals(response.status, 200);
     await expectUpdated();
@@ -127,7 +127,7 @@ Deno.test('full game over HTTP: tied merger through game over', async (t) => {
   await t.step('only the merging player can break the tie', async () => {
     const response = await admin.act(gameId, {
       type: 'BREAK_MERGER_TIE',
-      payload: { player: 'Admin', resolvedTie: { survivor: 'Luxor', merged: 'Tower' } },
+      payload: { resolvedTie: { survivor: 'Luxor', merged: 'Tower' } },
     });
     assertEquals(response.status, 400);
   });
@@ -135,7 +135,7 @@ Deno.test('full game over HTTP: tied merger through game over', async (t) => {
   await t.step('breaking the tie pays bonuses and starts with the merging player', async () => {
     const response = await testUser.act(gameId, {
       type: 'BREAK_MERGER_TIE',
-      payload: { player: 'TestUser', resolvedTie: { survivor: 'Tower', merged: 'Luxor' } },
+      payload: { resolvedTie: { survivor: 'Tower', merged: 'Luxor' } },
     });
     assertEquals(response.status, 200);
     await expectUpdated();
@@ -162,13 +162,13 @@ Deno.test('full game over HTTP: tied merger through game over', async (t) => {
   await t.step('stockholders resolve in turn, and only in turn', async () => {
     const early = await admin.act(gameId, {
       type: 'RESOLVE_MERGER',
-      payload: { player: 'Admin', shares: { sell: 0, trade: 2 } },
+      payload: { shares: { sell: 0, trade: 2 } },
     });
     assertEquals(early.status, 400);
 
     const sell = await testUser.act(gameId, {
       type: 'RESOLVE_MERGER',
-      payload: { player: 'TestUser', shares: { sell: 1, trade: 0 } },
+      payload: { shares: { sell: 1, trade: 0 } },
     });
     assertEquals(sell.status, 200);
     await expectUpdated();
@@ -180,7 +180,7 @@ Deno.test('full game over HTTP: tied merger through game over', async (t) => {
 
     const trade = await admin.act(gameId, {
       type: 'RESOLVE_MERGER',
-      payload: { player: 'Admin', shares: { sell: 0, trade: 2 } },
+      payload: { shares: { sell: 0, trade: 2 } },
     });
     assertEquals(trade.status, 200);
     await expectUpdated();
@@ -194,7 +194,7 @@ Deno.test('full game over HTTP: tied merger through game over', async (t) => {
   await t.step('buying the last share ends the game with Tower the only, safe hotel', async () => {
     const response = await testUser.act(gameId, {
       type: 'BUY_SHARES',
-      payload: { player: 'TestUser', shares: { Tower: 1 } as Record<HOTEL_NAME, number> },
+      payload: { shares: { Tower: 1 } as Record<HOTEL_NAME, number> },
     });
     assertEquals(response.status, 200);
     await expectUpdated();

@@ -2,7 +2,8 @@ import { css, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
 import { LightComponent } from './LightComponent.ts';
-import { postApi } from '../services/ApiService.ts';
+import { login } from '../services/ApiService.ts';
+import type { LoginResponse } from '@acquire/engine/types';
 import { getUser } from '../services/UserService.ts';
 
 @customElement('login-view')
@@ -36,11 +37,11 @@ export class LoginView extends LightComponent {
     this.loading = true;
 
     try {
-      const loginResult = await postApi('/api/login', { email: this.email });
+      const loginResult = await login(this.email);
       if (loginResult !== null) {
         // Dispatch success event to parent
         this.dispatchEvent(
-          new CustomEvent<string>('user-login', {
+          new CustomEvent<LoginResponse>('user-login', {
             detail: loginResult,
             bubbles: true,
           }),

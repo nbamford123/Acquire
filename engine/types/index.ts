@@ -5,6 +5,9 @@ export {
   type AddPlayerAction,
   type BreakMergerTieAction,
   type BuySharesAction,
+  type ClientAction,
+  type ClientActionOf,
+  createAction,
   type FoundHotelAction,
   type GameAction,
   type PlayTileAction,
@@ -12,6 +15,7 @@ export {
   type ResolveMergerAction,
   type StartGameAction,
 } from './actionsTypes.ts';
+export type * from './api.ts';
 export type { BoardTile, Tile } from './tile.ts';
 export { type ErrorCodeValue, GameError, GameErrorCodes } from './errorCodes.ts';
 export * from './gameConfig.ts';
