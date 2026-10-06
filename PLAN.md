@@ -6,60 +6,49 @@ L a day or more.
 
 Done so far: a complete game plays start to finish in production (merge flow, end game and scoring,
 live updates, buying and skipping, unplayable tiles), with CI running formatting, lint, types, and
-234 tests on every PR, and a pre-commit hook (`deno task hooks`). Details are in the history of
-#20 and #21.
+241 tests on every PR, and a pre-commit hook (`deno task hooks`). Details are in the history of
+#20 and #21. Phase 1 (#27 and #28) then made Lit properties reactive with standard decorators, ran
+the tests against in-memory KV, let only a game's owner delete it, removed `/api/save/:id`, saved
+each move in one atomic commit with a versionstamp check, moved the deploy settings into
+`deno.json`, removed the dead CORS setup, added a daily cron that deletes games inactive for 30
+days, and minified the production bundle.
 
 ## Phase 1: Production hardening
 
-The site is live, so these come first. Two PRs: the Lit fix on its own, then the rest. Background
-for most of these is in `assessments/stack.md`.
+Done in #27 and #28, except one dashboard setting:
 
-- [x] Fix Lit reactive properties. Deno ignores `useDefineForClassFields`, so class fields hide Lit's
-      accessors, whether they're declared with decorators or `static properties`; that's why the
-      code needs manual `requestUpdate()` calls. It also causes a bug: after deleting a game, the
-      dashboard still shows it and drops another, because `GameCard.game` isn't reactive. Switch
-      to standard decorators (`@property() accessor x`, `@state() accessor x`), remove
-      `experimentalDecorators` and `emitDecoratorMetadata` (which also clears the deprecation
-      warning), and delete all 12 manual `requestUpdate()` calls (AppShell 4, GameBoardView 5,
-      LoginView 2, DashboardView 1). Each one follows an assignment to a property that becomes
-      reactive, so none are needed. Add a dashboard test that deletes a game (M)
-- [x] Run tests against in-memory KV (`KV_PATH=:memory:` in the `check` and `validate` tasks) and
-      un-ignore the two ignored route tests, which pass that way (S)
-- [x] Only a game's owner can delete it; today anyone signed in can delete any game (S)
-- [x] Remove the temporary `/api/save/:id` endpoint, marked "remove before production"; it writes
-      game state to the server's disk (S)
-- [x] Save each move in one atomic KV commit that checks the game's versionstamp, so two submits
-      can't overwrite each other and the state and its actions are always saved together; also
-      stop reading the whole action log just to count it (S–M)
-- [x] Replace the old deployctl `"deploy"` block in `deno.json` with the new Deno Deploy format
-      (`install`, `build`, and `runtime` with `entrypoint` and `cwd`), so the deploy settings live
-      in the repo instead of only in the dashboard. Settings in `deno.json` override the dashboard,
-      so try it on a preview deploy first (S)
-- [x] Remove the CORS setup in `service/main.ts`: it names a `.deno.dev` host that no longer
-      resolves, it's registered after the routes so it only affects preflight requests, and the
-      client is served from the same origin (S)
-- [x] Delete games after a period of inactivity so the production database doesn't only grow; pick
-      the cutoff, e.g. 30 days since `lastUpdated`. `Deno.cron` on Deno Deploy can run the sweep (M)
+- [ ] Set `ALLOWED_EMAILS` and `JWT_SECRET` in the Development context on Deno Deploy, so you can
+      log in on preview and branch deploys. Use a different `JWT_SECRET` from production. Preview
+      timelines get their own KV database, so testing there doesn't touch production games (S)
 
 ## Phase 2: Clarity while playing
 
 One PR.
 
-- [ ] A game status line: "Alice's turn", "Waiting for Bob to sell or trade", "Game over" (M)
-- [ ] Submit reads "Waiting…" while waiting for players (S)
-- [ ] Poll immediately when a tab becomes visible, instead of up to 3 seconds later (S)
-- [ ] Game log: drop engine detail lines like "Minority bonus paid to single minority shareholder",
-      and show recent turns instead of starting from the player's own first action (M)
-- [ ] Dashboard: long game names are cut off, the game card's buttons overflow when narrow, and
-      confirm the time display works now that `lastUpdated` changes on every move (S)
+- [ ] A game status line: "Alice's turn", "Waiting for Bob to sell or trade", "Game over". Parts
+      exist (the active player's card is highlighted, the action card shows waiting messages, and
+      game over has a headline), but nothing says it in one place (M)
+- [ ] Poll immediately when a tab becomes visible, instead of up to 3 seconds later; today polling
+      only skips while the tab is hidden (S)
+- [ ] Game log: drop engine detail lines like "Minority bonus paid to single minority shareholder"
+      (from `calculateShareholderPayoutsOperation.ts`), and show recent turns instead of starting
+      from the player's own first action (`getPlayerView.ts`). The log is a `<select>` today, so
+      consider a real list while you're there (M)
+- [ ] Dashboard game card: the buttons overflow on narrow screens (the card has
+      `min-width: 400px`), and label the time, e.g. "Updated 4:29 PM"; it already shows the last
+      move's time (S)
 
 ## Phase 3: Lobby flow
 
 - [ ] Make the join/start/delete/play buttons styled links (S)
-- [ ] Confirmation dialogs for join, delete, and start (M)
-- [ ] Players can leave a game before it starts, with a confirmation (M)
-- [ ] Dashboard states for full (6/6) games and games owned by others (S)
-- [ ] Friendlier game ids, like Docker's generated names (S)
+- [ ] Confirmation dialogs for join and start; delete already has one (S–M)
+- [ ] Players can leave a game before it starts, with a confirmation. The engine already handles
+      `REMOVE_PLAYER`, so this needs the route and the UI (M)
+- [ ] Dashboard states for full (6/6) games and games owned by others. A full game already shows
+      "View Game" instead of "Join Game", and only the owner sees Delete; what's missing is a
+      "Full" status (S)
+- [ ] Friendlier game ids, like Docker's generated names. That also fixes the cut-off names: the
+      game card shows only the first 8 characters of today's ids (S)
 - [ ] Decide whether creating or joining needs a prompt (S)
 
 ## Phase 4: Leaderboard
@@ -68,8 +57,8 @@ Its own PR.
 
 - [ ] Save each player's final money when a game ends and keep running totals, e.g. a KV entry per
       player; `finalStandings` already has the numbers (M)
-- [ ] An endpoint for the totals and a leaderboard on the dashboard, with a service test that plays
-      to game over and checks them (M)
+- [ ] An endpoint for the totals and a leaderboard on the dashboard. `service/fullGame.test.ts`
+      already plays to game over and checks `finalStandings`, so extend it to check the totals (M)
 
 ## Phase 5: Look and feel
 
@@ -82,15 +71,17 @@ Do the first two before the rest, since they change how every component gets its
       (`createRenderRoot() { return this; }`), so one page-level Pico stylesheet applies and
       `StyledComponent` goes away. That makes light/dark mode and the layout pass simpler; the cost
       is prefixing component selectors and updating the tests that use `shadowRoot` (M)
-- [ ] Light/dark mode on every screen (M)
+- [ ] Light/dark mode on every screen; only AppShell and GameCard have rules for it today (M)
 - [ ] General layout pass (M–L)
-- [ ] Hotel type (economy, standard, luxury) and price on the bank cards, including inactive hotels;
-      see the player view change in Phase 6, which provides both (S)
-- [ ] Hotel icons on founded tiles (S)
+- [ ] Hotel type (economy, standard, luxury) on the bank cards. The price already shows, including
+      the lowest price for inactive hotels; the player view change in Phase 6 would provide the
+      type (S)
+- [ ] Hotel icons on founded tiles; the bank cards already have them (S)
 - [ ] Player colors (S–M)
 - [ ] Collapsible game card on the board (S)
 - [ ] Less flat, more 3D-looking board squares (S)
-- [ ] Move the action card's inline styles into CSS exported from the template files (S)
+- [ ] Move the inline styles into CSS: six in the action card and its templates (exported from the
+      template files), and a few in GameBoardView (S)
 
 ## Phase 6: Code health and developer experience
 
@@ -103,14 +94,20 @@ None of these change what players see; pick them up whenever.
       client recalculates prices in four places). An array would simplify the loops but make the
       four lookups by name clumsier (S–M)
 - [ ] Add the missing `getAvailableHotelNames` test (S)
-- [ ] UI test for a rejected move showing its error (S)
+- [ ] A GameBoardView test for a rejected move showing its error; the ApiService tests check that
+      the error event is sent, but nothing checks the board (S)
 - [ ] Root task to run the client in dev mode, and fix local hot reload: `deno bundle --watch` next
       to the service's `--watch` can replace `client/dev-server.ts`, and the live-reload script in
       `index.html` is commented out (S–M)
 - [ ] Config cleanup: delete the stale `client/deno.lock` and `service/deno.lock` (a workspace only
       uses the root lock), drop the duplicate `hono` and `@std/testing` entries in the member
       `deno.json` files, remove the client's `preview` and `deploy` tasks (their files don't exist),
-      and drop `--unstable-kv` from the `dev` task since `deno.json` already sets it (S)
+      drop `--unstable-kv` from the `dev` task since `deno.json` already sets it, and exclude
+      `client/dist` from `deno check`, which type-checks the bundle whenever a local build
+      exists (S)
+- [ ] Small cleanups: the class in `GameCard.ts` is named `DashboardView`, GameBoardView imports
+      `GamePhase` by relative path instead of from `@acquire/engine/types`, and leftover debug
+      `console.log`s remain in GameBoardView, AppShell, DashboardView, and ApiService (S)
 - [ ] Break merger ties by player id rather than name, and domain prefixes for error codes (from
       `TODO(me)` comments) (S)
 - [ ] Server debug view of API requests and responses (M)
