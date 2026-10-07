@@ -26,8 +26,14 @@ import './ActionCard.ts';
 import { hotelIcons, styles } from './gameBoardView.styles.ts';
 import { gameStatus } from './gameStatus.ts';
 
-// How often to check for other players' moves
-const POLL_INTERVAL_MS = 3000;
+// How often to check for other players' moves, by how long the game has been quiet: often while
+// it's active, less as it sits, and not at all after a long quiet spell, until the player is back
+const POLL_SCHEDULE = [
+  { quietFor: 60_000, every: 3_000 },
+  { quietFor: 5 * 60_000, every: 10_000 },
+  { quietFor: 10 * 60_000, every: 30_000 },
+];
+const FASTEST_POLL_MS = POLL_SCHEDULE[0].every;
 
 @customElement('game-board-view')
 export class GameBoardView extends LightComponent {
@@ -47,7 +53,14 @@ export class GameBoardView extends LightComponent {
   @state()
   private accessor pendingAction: { action: ClientAction; description: string } | undefined;
 
-  private pollTimer?: ReturnType<typeof setInterval>;
+  @state()
+  // The game has been quiet too long to keep checking
+  private accessor pollingPaused = false;
+
+  private pollTimer?: ReturnType<typeof setTimeout>;
+  private nextPollAt = Infinity;
+  // When the game last changed or the player last did something
+  private lastActiveAt = Date.now();
   private polling = false;
   private submitting = false;
   static override styles = [
@@ -56,39 +69,79 @@ export class GameBoardView extends LightComponent {
 
   public override connectedCallback() {
     super.connectedCallback();
+    this.lastActiveAt = Date.now();
     this.loadGameState();
-    this.pollTimer = setInterval(() => this.pollGameState(), POLL_INTERVAL_MS);
+    this.schedulePoll();
     document.addEventListener('visibilitychange', this.handleVisibilityChange);
+    document.addEventListener('pointerdown', this.handleActivity);
+    document.addEventListener('keydown', this.handleActivity);
+    globalThis.addEventListener('focus', this.handleActivity);
   }
 
   public override disconnectedCallback() {
     super.disconnectedCallback();
     this.stopPolling();
     document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+    document.removeEventListener('pointerdown', this.handleActivity);
+    document.removeEventListener('keydown', this.handleActivity);
+    globalThis.removeEventListener('focus', this.handleActivity);
   }
 
   // Polling skips hidden tabs, so catch up as soon as the tab is back
   private handleVisibilityChange = () => {
-    if (!document.hidden) this.pollGameState();
+    if (document.hidden) return;
+    this.lastActiveAt = Date.now();
+    this.pollGameState();
+  };
+
+  // The player is here, so check at the fastest rate again, right away if checking had paused
+  private handleActivity = () => {
+    this.lastActiveAt = Date.now();
+    if (this.pollingPaused) this.pollGameState();
+    else if (this.nextPollAt > Date.now() + FASTEST_POLL_MS) this.schedulePoll();
   };
 
   private stopPolling() {
-    clearInterval(this.pollTimer);
+    clearTimeout(this.pollTimer);
     this.pollTimer = undefined;
+    this.nextPollAt = Infinity;
+    this.pollingPaused = false;
+  }
+
+  // Sets the next poll by how long the game has been quiet
+  private schedulePoll() {
+    this.stopPolling();
+    // Finished games don't change
+    if (this.playerView?.finalStandings || !this.isConnected) return;
+    const quiet = Date.now() - this.lastActiveAt;
+    const delay = POLL_SCHEDULE.find(({ quietFor }) => quiet < quietFor)?.every;
+    if (delay === undefined) {
+      this.pollingPaused = true;
+      return;
+    }
+    this.nextPollAt = Date.now() + delay;
+    this.pollTimer = setTimeout(() => this.pollGameState(), delay);
   }
 
   // Picks up other players' moves. The view is only replaced when the game has moved on, so
-  // selections in progress survive, and a slow response can't overwrite a newer state.
+  // selections in progress survive, and a slow response can't overwrite a newer state. Sending the
+  // current lastUpdated lets the service skip reading the game when nothing changed.
   private async pollGameState() {
-    if (this.playerView?.finalStandings) {
+    // The poll in flight schedules the next one
+    if (this.polling) return;
+    // The tab coming back starts polling again
+    if (document.hidden) {
       this.stopPolling();
       return;
     }
-    if (document.hidden || this.polling || this.submitting || this.loading) return;
+    if (this.submitting || this.loading || !this.gameId) {
+      this.schedulePoll();
+      return;
+    }
     this.polling = true;
     try {
-      if (!this.gameId) return;
-      const game = (await getGame(this.gameId, { silent: true }))?.game;
+      const since = this.playerView?.lastUpdated;
+      const game = (await getGame(this.gameId, { silent: true, since }))?.game;
       if (
         game && !this.submitting &&
         game.lastUpdated > (this.playerView?.lastUpdated ?? 0)
@@ -96,11 +149,13 @@ export class GameBoardView extends LightComponent {
         this.playerView = game;
         // Any selection was made against the old state
         this.pendingAction = undefined;
+        this.lastActiveAt = Date.now();
       }
     } catch {
       // Network hiccup, try again on the next poll
     } finally {
       this.polling = false;
+      this.schedulePoll();
     }
   }
 
@@ -415,6 +470,8 @@ export class GameBoardView extends LightComponent {
       if (resp.game) {
         this.playerView = resp.game;
       }
+      // The other players answer this move, so check for theirs at the fastest rate
+      this.handleActivity();
     } finally {
       this.submitting = false;
     }
@@ -441,6 +498,13 @@ export class GameBoardView extends LightComponent {
             ${this.seat ? '' : html`
               <p class="spectating">You're watching this game</p>
             `}
+            ${this.pollingPaused
+              ? html`
+                <p class="polling-paused">
+                  No moves for a while, so updates are paused. Click anywhere to check again.
+                </p>
+              `
+              : ''}
           </div>
 
           <details class="game-log">

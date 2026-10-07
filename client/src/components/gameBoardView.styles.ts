@@ -93,7 +93,8 @@ export const styles = css`
     color: var(--pico-primary);
   }
 
-  .spectating {
+  .spectating,
+  .polling-paused {
     margin: 0;
     font-size: 0.875rem;
     color: var(--pico-muted-color);

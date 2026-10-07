@@ -4,9 +4,11 @@ import { initializeGame } from '@acquire/engine/core';
 import type { PlayerAction } from '@acquire/engine/types';
 import {
   createGame,
+  deleteGame,
   deleteGamesUpdatedBefore,
   getAllGames,
   getGameEntry,
+  getGameVersion,
   getPlayerActions,
   saveGameState,
   saveMove,
@@ -72,4 +74,26 @@ Deno.test("createGame doesn't overwrite a game with the same id", async () => {
   assertEquals(await createGame(first), true);
   assertEquals(await createGame(initializeGame('taken-id-10', 'alice')), false);
   assertEquals((await getGameEntry('taken-id-10')).value?.owner, 'nate');
+});
+
+Deno.test('the game version follows lastUpdated and goes with the game', async () => {
+  const game = initializeGame('versioned-game', 'nate');
+  assertEquals(await getGameVersion(game.gameId), null);
+  await createGame(game);
+  assertEquals(await getGameVersion(game.gameId), game.lastUpdated);
+
+  const { versionstamp } = await getGameEntry(game.gameId);
+  await saveMove({ ...game, lastUpdated: game.lastUpdated + 1 }, versionstamp!, 0, [
+    action('move'),
+  ]);
+  assertEquals(await getGameVersion(game.gameId), game.lastUpdated + 1);
+
+  // A rejected move leaves it alone
+  await saveMove({ ...game, lastUpdated: game.lastUpdated + 2 }, versionstamp!, 1, [
+    action('late'),
+  ]);
+  assertEquals(await getGameVersion(game.gameId), game.lastUpdated + 1);
+
+  await deleteGame(game.gameId);
+  assertEquals(await getGameVersion(game.gameId), null);
 });

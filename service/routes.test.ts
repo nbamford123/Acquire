@@ -374,6 +374,43 @@ Deno.test('POST /games/:id updates lastUpdated', async () => {
   assertEquals(saved, after);
 });
 
+Deno.test("GET /games/:id?since= is empty while the game hasn't changed", async () => {
+  const cookies = await login(app);
+  const adminCookies = await login(app, 'admin@test.com');
+  const request = (path: string, init: RequestInit = {}, as = cookies) =>
+    app.fetch(
+      new Request(`http://localhost${path}`, {
+        ...init,
+        headers: { 'Content-Type': 'application/json', 'Cookie': as },
+      }),
+    );
+  const { gameId } = await (await request('/api/games', { method: 'POST' })).json();
+  const { lastUpdated } = (await (await request(`/api/games/${gameId}`)).json()).game;
+
+  const unchanged = await request(`/api/games/${gameId}?since=${lastUpdated}`);
+  assertEquals(unchanged.status, 204);
+  assertEquals(await unchanged.text(), '');
+  // A client behind the game gets the whole thing
+  const behind = await request(`/api/games/${gameId}?since=${lastUpdated - 1}`);
+  assertEquals((await behind.json()).game.lastUpdated, lastUpdated);
+
+  await request(`/api/games/${gameId}`, {
+    method: 'POST',
+    body: JSON.stringify({ action: createAction(ActionTypes.ADD_PLAYER, {}) }),
+  }, adminCookies);
+  const moved = await request(`/api/games/${gameId}?since=${lastUpdated}`);
+  assertEquals(moved.status, 200);
+  assertEquals((await moved.json()).game.lastUpdated > lastUpdated, true);
+
+  // A missing game is still a 404, and since still needs a login
+  assertEquals((await request('/api/games/no-such-game?since=0')).status, 404);
+  assertEquals(
+    (await app.fetch(new Request(`http://localhost/api/games/${gameId}?since=${lastUpdated}`)))
+      .status,
+    401,
+  );
+});
+
 Deno.test('POST /games/:id rejects invalid moves without saving them', async () => {
   const cookies = await login(app);
   const request = (path: string, init: RequestInit = {}) =>
