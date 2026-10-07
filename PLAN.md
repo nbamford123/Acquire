@@ -154,7 +154,7 @@ Its own PR, done last.
 
 From the 2026-10-06 recheck in `assessments/stack.md`. Each is its own small PR.
 
-- [ ] Update Hono to 4.13.13 (fixes a `serveStatic` advisory this app isn't exposed to) and import
+- [x] Update Hono to 4.13.13 (fixes a `serveStatic` advisory this app isn't exposed to) and import
       `serveStatic` from `@hono/deno`, since `hono/deno` is deprecated. Also update Lit to 3.3.3 and
       `@std/testing` to 1.0.21, and let the lock regenerate, which drops its dead entries (S)
 - [ ] Define the 8 Pico colors the client uses instead of bundling all of `pico.colors.min.css`

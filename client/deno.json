@@ -7,8 +7,8 @@
   "imports": {
     "@happy-dom/global-registrator": "npm:@happy-dom/global-registrator@^20.14.5",
     "@picocss/pico": "npm:@picocss/pico@^2.1.1",
-    "lit": "npm:lit@^3.3.0",
-    "lit/decorators": "npm:lit@^3.3.0/decorators.js",
+    "lit": "npm:lit@^3.3.3",
+    "lit/decorators": "npm:lit@^3.3.3/decorators.js",
     "toastify-js": "npm:toastify-js@^1.12.0"
   },
   "tasks": {
