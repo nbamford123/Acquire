@@ -92,7 +92,6 @@ const getGameView = (
         size,
         type: HOTEL_CONFIG[hotel.name],
         ...getHotelPrice(hotel.name, size),
-        ...(hotel.marker ? { marker: hotel.marker } : {}),
       }];
     })) as GameView['hotels'],
     board,

@@ -204,17 +204,15 @@ export class GameBoardView extends LightComponent {
     this.pendingAction = { action, description: desc };
   }
 
-  // Where each hotel's marker sits, like the physical game's: the tile that founded it while that's
-  // still in the hotel, otherwise its top-left tile (games from before markers were recorded)
+  // Each hotel's marker sits on its topmost tile, the leftmost of those
   private markerTiles(view: GameView) {
     const markers = new Map<string, HOTEL_NAME>();
-    for (const { name: hotel, marker } of hotelList(view.hotels)) {
+    for (const { name: hotel } of hotelList(view.hotels)) {
       const tiles = view.board.filter((tile) => tile.hotel === hotel);
       if (!tiles.length) continue;
-      const at = tiles.find((tile) => tile.row === marker?.row && tile.col === marker?.col) ??
-        tiles.reduce((first, tile) =>
-          tile.row < first.row || (tile.row === first.row && tile.col < first.col) ? tile : first
-        );
+      const at = tiles.reduce((first, tile) =>
+        tile.row < first.row || (tile.row === first.row && tile.col < first.col) ? tile : first
+      );
       markers.set(`${at.row},${at.col}`, hotel);
     }
     return markers;

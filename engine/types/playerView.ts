@@ -21,7 +21,6 @@ export interface HotelView {
   price: number;
   majority: number;
   minority: number;
-  marker?: { row: number; col: number };
 }
 
 // What anyone can see of a game, including spectators: other players' cash and shares only roughly

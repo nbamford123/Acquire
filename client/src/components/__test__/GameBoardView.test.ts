@@ -357,19 +357,22 @@ Deno.test('GameBoardView - bank cards show tier, price, bonuses, and when a hote
   board.remove();
 });
 
-Deno.test("GameBoardView - a hotel's marker covers the tile that founded it", async () => {
-  const tower = (col: number) => ({ row: 0, col, location: 'board' as const, hotel: 'Tower' as const });
-  const luxor = (col: number) => ({ row: 2, col, location: 'board' as const, hotel: 'Luxor' as const });
+Deno.test("GameBoardView - a hotel's marker covers its top-left tile", async () => {
+  const tile = (row: number, col: number, hotel: 'Tower' | 'Luxor') => ({
+    row,
+    col,
+    location: 'board' as const,
+    hotel,
+  });
   using _server = serve([makePlayerView({
-    board: [tower(0), tower(1), tower(2), luxor(4), luxor(5)],
-    // Tower was founded at 2A; Luxor is from a game before markers, so it uses its top-left tile
-    hotels: hotelsWith({ Tower: { shares: 22, size: 3, marker: { row: 0, col: 1 } } }),
+    // Listed out of order: Tower's top row starts at 2B, and Luxor's only row at 5C
+    board: [tile(2, 1, 'Tower'), tile(1, 2, 'Tower'), tile(1, 1, 'Tower'), tile(2, 5, 'Luxor'), tile(2, 4, 'Luxor')],
   })]);
   const { board } = await mountBoard();
-  const label = (index: number) =>
-    board.querySelectorAll('.board-cell')[index].textContent?.replace(/\s+/g, ' ').trim();
-  assertEquals([label(0), label(1), label(2)], ['1A , Tower', '♜ 2A, Tower', '3A , Tower']);
-  assertEquals([label(28), label(29)], ['🏛️ 5C, Luxor', '6C , Luxor']);
+  const label = (row: number, col: number) =>
+    board.querySelectorAll('.board-cell')[row * 12 + col].textContent?.replace(/\s+/g, ' ').trim();
+  assertEquals([label(1, 1), label(1, 2), label(2, 1)], ['♜ 2B, Tower', '3B , Tower', '2C , Tower']);
+  assertEquals([label(2, 4), label(2, 5)], ['🏛️ 5C, Luxor', '6C , Luxor']);
   assertEquals(board.querySelectorAll('.cell-marker').length, 2);
   board.remove();
 });

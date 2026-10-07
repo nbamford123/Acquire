@@ -8,7 +8,7 @@ import {
 } from '@acquire/engine/types';
 import { getHotelPrice } from '@acquire/engine/utils';
 
-type HotelState = Pick<HotelView, 'shares' | 'size' | 'marker'>;
+type HotelState = Pick<HotelView, 'shares' | 'size'>;
 
 // A hotel as the view shows it, with its type and prices filled in the way the engine does
 const hotelView = (name: HOTEL_NAME, hotel: HotelState): HotelView => ({
