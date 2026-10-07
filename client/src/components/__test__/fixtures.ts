@@ -8,7 +8,7 @@ import {
 } from '@acquire/engine/types';
 import { getHotelPrice } from '@acquire/engine/utils';
 
-type HotelState = Pick<HotelView, 'shares' | 'size' | 'marker'>;
+type HotelState = Pick<HotelView, 'shares' | 'size'>;
 
 // A hotel as the view shows it, with its type and prices filled in the way the engine does
 const hotelView = (name: HOTEL_NAME, hotel: HotelState): HotelView => ({
@@ -36,8 +36,8 @@ export const makePlayerView = (overrides: Partial<PlayerView> = {}): PlayerView 
   currentPlayer: 0,
   lastUpdated: 100,
   players: [
-    { name: 'nate', money: 3, shares: {} as PlayerView['players'][number]['shares'] },
-    { name: 'alice', money: 3, shares: {} as PlayerView['players'][number]['shares'] },
+    { name: 'nate', money: 6000, shares: {} as PlayerView['players'][number]['shares'] },
+    { name: 'alice', money: 6000, shares: {} as PlayerView['players'][number]['shares'] },
   ],
   hotels: hotelsWith(),
   board: [],

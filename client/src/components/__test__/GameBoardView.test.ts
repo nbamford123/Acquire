@@ -245,7 +245,7 @@ Deno.test('GameBoardView - polls as soon as the tab is visible again', async () 
   board.remove();
 });
 
-Deno.test('GameBoardView - the log lists recent moves in order', async () => {
+Deno.test('GameBoardView - the log lists the moves in order', async () => {
   using _server = serve([makePlayerView({
     actions: [
       { turn: 1, player: 0, action: 'nate played 1A' },
@@ -259,6 +259,43 @@ Deno.test('GameBoardView - the log lists recent moves in order', async () => {
     [...root.querySelectorAll('.game-log li')].map((li) => li.textContent?.trim()),
     ['nate played 1A', 'alice played 2B'],
   );
+  board.remove();
+});
+
+Deno.test('GameBoardView - the log opens on the latest move and follows new ones', async () => {
+  const moves = (count: number) =>
+    Array.from({ length: count }, (_, i) => ({ turn: i + 1, player: 0, action: `move ${i + 1}` }));
+  using _server = serve([
+    makePlayerView({ actions: moves(2), lastUpdated: 100 }),
+    makePlayerView({ actions: moves(3), lastUpdated: 150 }),
+    makePlayerView({ actions: moves(4), lastUpdated: 200 }),
+  ]);
+  const { board, root } = await mountBoard();
+  const log = root.querySelector('.game-log') as HTMLDetailsElement;
+  const list = log.querySelector('ul')!;
+  // happy-dom doesn't lay out, so give the list a height and contents taller than it
+  let contentHeight = 500;
+  Object.defineProperty(list, 'clientHeight', { value: 100 });
+  Object.defineProperty(list, 'scrollHeight', { get: () => contentHeight });
+
+  log.open = true;
+  log.dispatchEvent(new Event('toggle'));
+  assertEquals(list.scrollTop, 500);
+
+  // A new move scrolls down to it
+  contentHeight = 600;
+  await board.pollGameState();
+  await settle(board);
+  assertEquals(list.scrollTop, 600);
+
+  // Reading back through the log stays put when another move comes in
+  list.scrollTop = 0;
+  list.dispatchEvent(new Event('scroll'));
+  contentHeight = 700;
+  await board.pollGameState();
+  await settle(board);
+  assertEquals(log.querySelectorAll('li').length, 4);
+  assertEquals(list.scrollTop, 0);
   board.remove();
 });
 
@@ -293,27 +330,43 @@ Deno.test('GameBoardView - what color shows is also in text for screen readers',
       { row: 0, col: 0, location: 'board', hotel: 'Tower' },
       { row: 0, col: 1, location: 'board' },
     ],
-    players: [
-      { name: 'nate', money: 3, shares: {} as PlayerView['players'][number]['shares'] },
-      {
-        name: 'alice',
-        money: 2,
-        shares: { Tower: 'many', Luxor: '1' } as PlayerView['players'][number]['shares'],
-      },
-    ],
   })]);
-  const { board, text } = await mountBoard();
+  const { board } = await mountBoard();
   const cells = [...board.querySelectorAll('.board-cell')].slice(0, 3).map((cell) =>
     cell.textContent?.replace(/\s+/g, ' ').trim()
   );
   // Tower's only tile has its marker, which screen readers hear as the tile and hotel
   assertEquals(cells, ['♜ 1A, Tower', '2A , placed', '3A']);
   assertEquals(board.querySelector('.cell-marker')?.getAttribute('aria-hidden'), 'true');
-  const chips = [...board.querySelectorAll('.share-chip')].map((chip) =>
-    chip.textContent?.replace(/\s+/g, ' ').trim()
-  );
-  assertEquals(chips, ['Tower : 3 or more shares +', 'Luxor : 1 shares']);
-  assertEquals(text('.cash-meter[role="img"]') !== undefined, true);
+  board.remove();
+});
+
+Deno.test("GameBoardView - every player's card shows their exact cash and shares", async () => {
+  using _server = serve([makePlayerView({
+    currentPlayer: 1,
+    stocks: { Tower: 2 } as PlayerView['stocks'],
+    hotels: hotelsWith({ Tower: { shares: 20, size: 3 } }),
+    players: [
+      { name: 'nate', money: 6000, shares: { Tower: 2 } as PlayerView['players'][number]['shares'] },
+      {
+        name: 'alice',
+        money: 4200,
+        shares: { Tower: 3, Luxor: 1 } as PlayerView['players'][number]['shares'],
+      },
+    ],
+  })]);
+  const { board } = await mountBoard();
+  const card = (index: number) =>
+    [...board.querySelectorAll('.player-card')[index].querySelectorAll('.player-header, .holding-row')]
+      .map((row) => row.textContent?.replace(/\s+/g, ' ').trim());
+  // Tower is $300 a share at size 3, and Luxor is off the board
+  assertEquals(card(0), ['nate You $6,000', 'Tower 2 · $600', 'Shares worth $600']);
+  assertEquals(card(1), [
+    'alice $4,200',
+    'Tower 3 · $900',
+    'Luxor 1 · inactive',
+    'Shares worth $900',
+  ]);
   board.remove();
 });
 
@@ -357,19 +410,22 @@ Deno.test('GameBoardView - bank cards show tier, price, bonuses, and when a hote
   board.remove();
 });
 
-Deno.test("GameBoardView - a hotel's marker covers the tile that founded it", async () => {
-  const tower = (col: number) => ({ row: 0, col, location: 'board' as const, hotel: 'Tower' as const });
-  const luxor = (col: number) => ({ row: 2, col, location: 'board' as const, hotel: 'Luxor' as const });
+Deno.test("GameBoardView - a hotel's marker covers its top-left tile", async () => {
+  const tile = (row: number, col: number, hotel: 'Tower' | 'Luxor') => ({
+    row,
+    col,
+    location: 'board' as const,
+    hotel,
+  });
   using _server = serve([makePlayerView({
-    board: [tower(0), tower(1), tower(2), luxor(4), luxor(5)],
-    // Tower was founded at 2A; Luxor is from a game before markers, so it uses its top-left tile
-    hotels: hotelsWith({ Tower: { shares: 22, size: 3, marker: { row: 0, col: 1 } } }),
+    // Listed out of order: Tower's top row starts at 2B, and Luxor's only row at 5C
+    board: [tile(2, 1, 'Tower'), tile(1, 2, 'Tower'), tile(1, 1, 'Tower'), tile(2, 5, 'Luxor'), tile(2, 4, 'Luxor')],
   })]);
   const { board } = await mountBoard();
-  const label = (index: number) =>
-    board.querySelectorAll('.board-cell')[index].textContent?.replace(/\s+/g, ' ').trim();
-  assertEquals([label(0), label(1), label(2)], ['1A , Tower', '♜ 2A, Tower', '3A , Tower']);
-  assertEquals([label(28), label(29)], ['🏛️ 5C, Luxor', '6C , Luxor']);
+  const label = (row: number, col: number) =>
+    board.querySelectorAll('.board-cell')[row * 12 + col].textContent?.replace(/\s+/g, ' ').trim();
+  assertEquals([label(1, 1), label(1, 2), label(2, 1)], ['♜ 2B, Tower', '3B , Tower', '2C , Tower']);
+  assertEquals([label(2, 4), label(2, 5)], ['🏛️ 5C, Luxor', '6C , Luxor']);
   assertEquals(board.querySelectorAll('.cell-marker').length, 2);
   board.remove();
 });

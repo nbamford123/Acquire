@@ -14,7 +14,6 @@ import {
   hotelList,
   type HotelView,
   isPlayerView,
-  type OrcCount,
   type PlayerView,
   ROWS,
   SAFE_HOTEL_SIZE,
@@ -63,6 +62,8 @@ export class GameBoardView extends LightComponent {
   private lastActiveAt = Date.now();
   private polling = false;
   private submitting = false;
+  // The log keeps the latest move in view unless the player has scrolled back through it
+  private logFollowsLatest = true;
   static override styles = [
     styles,
   ];
@@ -159,6 +160,28 @@ export class GameBoardView extends LightComponent {
     }
   }
 
+  // The log opens on the latest moves
+  private handleLogToggle = (event: Event) => {
+    if (!(event.currentTarget as HTMLDetailsElement).open) return;
+    this.logFollowsLatest = true;
+    this.scrollLogToLatest();
+  };
+
+  private handleLogScroll = (event: Event) => {
+    const list = event.currentTarget as HTMLElement;
+    this.logFollowsLatest = list.scrollTop + list.clientHeight >= list.scrollHeight - 1;
+  };
+
+  private scrollLogToLatest() {
+    const list = this.querySelector<HTMLElement>('.game-log ul');
+    if (list) list.scrollTop = list.scrollHeight;
+  }
+
+  // New moves stay in view, unless the player is reading back through the log
+  protected override updated() {
+    if (this.logFollowsLatest) this.scrollLogToLatest();
+  }
+
   private playedTile = ({ row, col }: { row: number; col: number }) =>
     this.pendingAction && this.pendingAction.action.type === ActionTypes.PLAY_TILE &&
     this.pendingAction.action.payload.tile.row === row &&
@@ -204,17 +227,15 @@ export class GameBoardView extends LightComponent {
     this.pendingAction = { action, description: desc };
   }
 
-  // Where each hotel's marker sits, like the physical game's: the tile that founded it while that's
-  // still in the hotel, otherwise its top-left tile (games from before markers were recorded)
+  // Each hotel's marker sits on its topmost tile, the leftmost of those
   private markerTiles(view: GameView) {
     const markers = new Map<string, HOTEL_NAME>();
-    for (const { name: hotel, marker } of hotelList(view.hotels)) {
+    for (const { name: hotel } of hotelList(view.hotels)) {
       const tiles = view.board.filter((tile) => tile.hotel === hotel);
       if (!tiles.length) continue;
-      const at = tiles.find((tile) => tile.row === marker?.row && tile.col === marker?.col) ??
-        tiles.reduce((first, tile) =>
-          tile.row < first.row || (tile.row === first.row && tile.col < first.col) ? tile : first
-        );
+      const at = tiles.reduce((first, tile) =>
+        tile.row < first.row || (tile.row === first.row && tile.col < first.col) ? tile : first
+      );
       markers.set(`${at.row},${at.col}`, hotel);
     }
     return markers;
@@ -257,9 +278,9 @@ export class GameBoardView extends LightComponent {
     return cells;
   }
 
-  // Your own card shows exact cash, shares, and what the shares are worth at current prices
-  private renderYourHoldings(view: PlayerView) {
-    const holdings = (Object.entries(view.stocks) as [HOTEL_NAME, number][]).map(
+  // A player's cash, shares, and what the shares are worth at current prices
+  private renderHoldings(view: GameView, player: GameView['players'][number], you: boolean) {
+    const holdings = (Object.entries(player.shares) as [HOTEL_NAME, number][]).map(
       ([hotel, count]) => {
         const { size, price } = view.hotels[hotel];
         // Shares in a defunct hotel have no price until it's founded again
@@ -270,9 +291,12 @@ export class GameBoardView extends LightComponent {
     const worth = holdings.reduce((total, { value }) => total + (value ?? 0), 0);
     return html`
       <div class="player-header">
-        <span class="player-name">${view.players[view.playerId].name}
-          <span class="you-badge">You</span></span>
-        <span class="player-cash">$${view.money.toLocaleString()}</span>
+        <span class="player-name">${player.name}${you
+          ? html`
+            <span class="you-badge">You</span>
+          `
+          : ''}</span>
+        <span class="player-cash">$${player.money.toLocaleString()}</span>
       </div>
       ${holdings.length
         ? html`
@@ -290,45 +314,6 @@ export class GameBoardView extends LightComponent {
           <div class="holding-row holding-total">
             <span class="holding-value">Shares worth</span>
             <span>$${worth.toLocaleString()}</span>
-          </div>
-        `
-        : html`
-          <div class="player-stocks">No shares</div>
-        `}
-    `;
-  }
-
-  // Other players only show relative amounts, like eyeballing their stacks across the table
-  private renderOtherHoldings(player: PlayerView['players'][number]) {
-    const shares = Object.entries(player.shares) as [HOTEL_NAME, OrcCount][];
-    return html`
-      <div class="player-header">
-        <span class="player-name">${player.name}</span>
-        <span class="cash-meter" role="img" aria-label="Cash: tier ${player.money} of 4">
-          ${[1, 2, 3, 4].map((tier) =>
-            html`
-              <span class="cash-segment ${tier <= player.money ? 'filled' : ''}"></span>
-            `
-          )}
-        </span>
-      </div>
-      ${shares.length
-        ? html`
-          <div class="share-chips">
-            ${shares.map(([hotel, count]) =>
-              html`
-                <span class="share-chip hotel-tint ${hotel.toLocaleLowerCase()}">
-                  ${hotel}
-                  <span class="sr-only">: ${count === 'many' ? '3 or more' : count} shares</span>
-                  <span class="share-pips" aria-hidden="true">
-                    ${Array.from({ length: count === 'many' ? 3 : Number(count) }, () =>
-                      html`
-                        <span class="share-pip"></span>
-                      `)}${count === 'many' ? '+' : ''}
-                  </span>
-                </span>
-              `
-            )}
           </div>
         `
         : html`
@@ -488,6 +473,7 @@ export class GameBoardView extends LightComponent {
         <div>Game not found or error loading.</div>
       `;
     }
+    const view = this.playerView;
     return html`
       <div class="game-container">
           <div class="game-heading">
@@ -507,9 +493,9 @@ export class GameBoardView extends LightComponent {
               : ''}
           </div>
 
-          <details class="game-log">
-            <summary>Recent moves</summary>
-            <ul>
+          <details class="game-log" @toggle="${this.handleLogToggle}">
+            <summary>Moves</summary>
+            <ul @scroll="${this.handleLogScroll}">
               ${this.playerView.actions.map((action) =>
                 html`
                   <li>${action.action}</li>
@@ -531,9 +517,7 @@ export class GameBoardView extends LightComponent {
           ${this.playerView.players.map((player, index) =>
             html`
               <article class="player-card ${index === this.activePlayer ? 'active' : ''}">
-                ${this.seat && index === this.seat.playerId
-                  ? this.renderYourHoldings(this.seat)
-                  : this.renderOtherHoldings(player)}
+                ${this.renderHoldings(view, player, index === this.seat?.playerId)}
               </article>
             `
           )}
