@@ -14,7 +14,6 @@ import {
   hotelList,
   type HotelView,
   isPlayerView,
-  type OrcCount,
   type PlayerView,
   ROWS,
   SAFE_HOTEL_SIZE,
@@ -279,9 +278,9 @@ export class GameBoardView extends LightComponent {
     return cells;
   }
 
-  // Your own card shows exact cash, shares, and what the shares are worth at current prices
-  private renderYourHoldings(view: PlayerView) {
-    const holdings = (Object.entries(view.stocks) as [HOTEL_NAME, number][]).map(
+  // A player's cash, shares, and what the shares are worth at current prices
+  private renderHoldings(view: GameView, player: GameView['players'][number], you: boolean) {
+    const holdings = (Object.entries(player.shares) as [HOTEL_NAME, number][]).map(
       ([hotel, count]) => {
         const { size, price } = view.hotels[hotel];
         // Shares in a defunct hotel have no price until it's founded again
@@ -292,9 +291,12 @@ export class GameBoardView extends LightComponent {
     const worth = holdings.reduce((total, { value }) => total + (value ?? 0), 0);
     return html`
       <div class="player-header">
-        <span class="player-name">${view.players[view.playerId].name}
-          <span class="you-badge">You</span></span>
-        <span class="player-cash">$${view.money.toLocaleString()}</span>
+        <span class="player-name">${player.name}${you
+          ? html`
+            <span class="you-badge">You</span>
+          `
+          : ''}</span>
+        <span class="player-cash">$${player.money.toLocaleString()}</span>
       </div>
       ${holdings.length
         ? html`
@@ -312,45 +314,6 @@ export class GameBoardView extends LightComponent {
           <div class="holding-row holding-total">
             <span class="holding-value">Shares worth</span>
             <span>$${worth.toLocaleString()}</span>
-          </div>
-        `
-        : html`
-          <div class="player-stocks">No shares</div>
-        `}
-    `;
-  }
-
-  // Other players only show relative amounts, like eyeballing their stacks across the table
-  private renderOtherHoldings(player: PlayerView['players'][number]) {
-    const shares = Object.entries(player.shares) as [HOTEL_NAME, OrcCount][];
-    return html`
-      <div class="player-header">
-        <span class="player-name">${player.name}</span>
-        <span class="cash-meter" role="img" aria-label="Cash: tier ${player.money} of 4">
-          ${[1, 2, 3, 4].map((tier) =>
-            html`
-              <span class="cash-segment ${tier <= player.money ? 'filled' : ''}"></span>
-            `
-          )}
-        </span>
-      </div>
-      ${shares.length
-        ? html`
-          <div class="share-chips">
-            ${shares.map(([hotel, count]) =>
-              html`
-                <span class="share-chip hotel-tint ${hotel.toLocaleLowerCase()}">
-                  ${hotel}
-                  <span class="sr-only">: ${count === 'many' ? '3 or more' : count} shares</span>
-                  <span class="share-pips" aria-hidden="true">
-                    ${Array.from({ length: count === 'many' ? 3 : Number(count) }, () =>
-                      html`
-                        <span class="share-pip"></span>
-                      `)}${count === 'many' ? '+' : ''}
-                  </span>
-                </span>
-              `
-            )}
           </div>
         `
         : html`
@@ -510,6 +473,7 @@ export class GameBoardView extends LightComponent {
         <div>Game not found or error loading.</div>
       `;
     }
+    const view = this.playerView;
     return html`
       <div class="game-container">
           <div class="game-heading">
@@ -553,9 +517,7 @@ export class GameBoardView extends LightComponent {
           ${this.playerView.players.map((player, index) =>
             html`
               <article class="player-card ${index === this.activePlayer ? 'active' : ''}">
-                ${this.seat && index === this.seat.playerId
-                  ? this.renderYourHoldings(this.seat)
-                  : this.renderOtherHoldings(player)}
+                ${this.renderHoldings(view, player, index === this.seat?.playerId)}
               </article>
             `
           )}

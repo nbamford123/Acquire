@@ -457,51 +457,6 @@ export const styles = css`
     background: var(--hotel);
   }
 
-  .cash-meter {
-    display: inline-flex;
-    gap: 2px;
-  }
-
-  .cash-segment {
-    width: 0.4rem;
-    height: 0.8rem;
-    border-radius: 1px;
-    background: var(--pico-muted-border-color);
-  }
-
-  .cash-segment.filled {
-    background: var(--pico-ins-color);
-  }
-
-  .share-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-  }
-
-  .share-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.1rem 0.5rem;
-    border: 1px solid;
-    border-radius: 4px;
-    font-size: 0.8rem;
-  }
-
-  .share-pips {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-  }
-
-  .share-pip {
-    width: 0.4rem;
-    height: 0.4rem;
-    border-radius: 50%;
-    background: currentColor;
-  }
-
   .player-stocks {
     font-size: 0.85rem;
     color: var(--pico-muted-color);

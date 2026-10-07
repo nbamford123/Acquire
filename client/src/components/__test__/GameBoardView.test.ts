@@ -330,27 +330,43 @@ Deno.test('GameBoardView - what color shows is also in text for screen readers',
       { row: 0, col: 0, location: 'board', hotel: 'Tower' },
       { row: 0, col: 1, location: 'board' },
     ],
-    players: [
-      { name: 'nate', money: 3, shares: {} as PlayerView['players'][number]['shares'] },
-      {
-        name: 'alice',
-        money: 2,
-        shares: { Tower: 'many', Luxor: '1' } as PlayerView['players'][number]['shares'],
-      },
-    ],
   })]);
-  const { board, text } = await mountBoard();
+  const { board } = await mountBoard();
   const cells = [...board.querySelectorAll('.board-cell')].slice(0, 3).map((cell) =>
     cell.textContent?.replace(/\s+/g, ' ').trim()
   );
   // Tower's only tile has its marker, which screen readers hear as the tile and hotel
   assertEquals(cells, ['♜ 1A, Tower', '2A , placed', '3A']);
   assertEquals(board.querySelector('.cell-marker')?.getAttribute('aria-hidden'), 'true');
-  const chips = [...board.querySelectorAll('.share-chip')].map((chip) =>
-    chip.textContent?.replace(/\s+/g, ' ').trim()
-  );
-  assertEquals(chips, ['Tower : 3 or more shares +', 'Luxor : 1 shares']);
-  assertEquals(text('.cash-meter[role="img"]') !== undefined, true);
+  board.remove();
+});
+
+Deno.test("GameBoardView - every player's card shows their exact cash and shares", async () => {
+  using _server = serve([makePlayerView({
+    currentPlayer: 1,
+    stocks: { Tower: 2 } as PlayerView['stocks'],
+    hotels: hotelsWith({ Tower: { shares: 20, size: 3 } }),
+    players: [
+      { name: 'nate', money: 6000, shares: { Tower: 2 } as PlayerView['players'][number]['shares'] },
+      {
+        name: 'alice',
+        money: 4200,
+        shares: { Tower: 3, Luxor: 1 } as PlayerView['players'][number]['shares'],
+      },
+    ],
+  })]);
+  const { board } = await mountBoard();
+  const card = (index: number) =>
+    [...board.querySelectorAll('.player-card')[index].querySelectorAll('.player-header, .holding-row')]
+      .map((row) => row.textContent?.replace(/\s+/g, ' ').trim());
+  // Tower is $300 a share at size 3, and Luxor is off the board
+  assertEquals(card(0), ['nate You $6,000', 'Tower 2 · $600', 'Shares worth $600']);
+  assertEquals(card(1), [
+    'alice $4,200',
+    'Tower 3 · $900',
+    'Luxor 1 · inactive',
+    'Shares worth $900',
+  ]);
   board.remove();
 });
 

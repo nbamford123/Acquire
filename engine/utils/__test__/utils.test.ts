@@ -2,14 +2,8 @@ import { assertEquals, assertNotEquals, assertThrows } from '@std/assert';
 import type { Tile } from '../../types/tile.ts';
 import type { GameState, Hotel, Player, PlayerAction, Share } from '../../types/index.ts';
 import { GamePhase } from '../../types/gameState.ts';
-import {
-  CASH_TIER_LIMITS,
-  GameError,
-  GameErrorCodes,
-  INITIAL_PLAYER_MONEY,
-} from '../../types/index.ts';
+import { GameError, GameErrorCodes, INITIAL_PLAYER_MONEY } from '../../types/index.ts';
 
-import { getCashTier } from '../getPlayerView.ts';
 import {
   cmpTiles,
   filterDefined,
@@ -459,7 +453,7 @@ Deno.test('getPlayerView - returns correct tiles for player', () => {
   ]);
 });
 
-Deno.test('getPlayerView - returns correct other players info with cash tiers', () => {
+Deno.test("getPlayerView - shows every player's exact cash", () => {
   const gameState = createGameState({
     players: [
       createPlayer(0, 'player1', 6000),
@@ -472,30 +466,30 @@ Deno.test('getPlayerView - returns correct other players info with cash tiers', 
 
   assertEquals(playerView.players.length, 4);
   assertEquals(playerView.players[0].name, 'player1');
-  assertEquals(playerView.players[0].money, 4);
+  assertEquals(playerView.players[0].money, 6000);
   assertEquals(playerView.players[1].name, 'player2');
-  assertEquals(playerView.players[1].money, 1);
+  assertEquals(playerView.players[1].money, 2);
   assertEquals(playerView.players[2].name, 'player3');
-  assertEquals(playerView.players[2].money, 3);
+  assertEquals(playerView.players[2].money, INITIAL_PLAYER_MONEY);
   assertEquals(playerView.players[3].name, 'player4');
-  assertEquals(playerView.players[3].money, 2);
+  assertEquals(playerView.players[3].money, 2000);
 });
 
-Deno.test('getPlayerView - returns correct other players shares with OrcCount', () => {
+Deno.test("getPlayerView - shows other players' exact share counts", () => {
   const gameState = createGameState({
     hotels: [
       createHotel('Worldwide', 'economy', [
         createShare(0), // player1 has 1 share
         createShare(1), // player2 has 1 share
         createShare(1), // player2 has 2 shares total
-        createShare(1), // player2 has 3+ shares total (many)
+        createShare(1), // player2 has 3 shares total
         createShare('bank'),
       ]),
     ],
   });
   const playerView = getPlayerView('player1', gameState);
 
-  assertEquals(playerView.players[1].shares.Worldwide, 'many');
+  assertEquals(playerView.players[1].shares.Worldwide, 3);
   assertEquals(Object.keys(playerView.players[1].shares).length, 1);
 });
 
@@ -725,21 +719,7 @@ Deno.test('getPlayerView - handles single player game', () => {
   assertEquals(playerView.players[0].name, 'player1');
 });
 
-Deno.test('getCashTier - buckets cash relative to starting money', () => {
-  const [tier1Limit, tier2Limit, tier3Limit] = CASH_TIER_LIMITS;
-  // Starting cash sits in tier 3 so players can see others spending down or pulling ahead
-  assertEquals(getCashTier(INITIAL_PLAYER_MONEY), 3);
-  assertEquals(getCashTier(0), 1);
-  assertEquals(getCashTier(tier1Limit - 1), 1);
-  assertEquals(getCashTier(tier1Limit), 2);
-  assertEquals(getCashTier(tier2Limit - 1), 2);
-  assertEquals(getCashTier(tier2Limit), 3);
-  assertEquals(getCashTier(tier3Limit - 1), 3);
-  assertEquals(getCashTier(tier3Limit), 4);
-  assertEquals(getCashTier(100000), 4);
-});
-
-Deno.test('getPlayerView - handles different share amounts for OrcCount conversion', () => {
+Deno.test('getPlayerView - counts shares for each player', () => {
   const gameState = createGameState({
     hotels: [
       createHotel('Worldwide', 'economy', [
@@ -748,7 +728,7 @@ Deno.test('getPlayerView - handles different share amounts for OrcCount conversi
         createShare(2), // player3 has 1 share
         createShare(3), // player4 has 2 shares
         createShare(3),
-        createShare(4), // player5 has 3+ shares
+        createShare(4), // player5 has 3 shares
         createShare(4),
         createShare(4),
         createShare('bank'),
@@ -767,11 +747,11 @@ Deno.test('getPlayerView - handles different share amounts for OrcCount conversi
   // player2 should not appear in shares since they have 0
   assertEquals(Object.keys(playerView.players[0].shares).length, 1); // player1
   assertEquals(Object.keys(playerView.players[1].shares).length, 0); // player2
-  assertEquals(playerView.players[2].shares.Worldwide, '1'); // player3
+  assertEquals(playerView.players[2].shares.Worldwide, 1); // player3
   assertEquals(Object.keys(playerView.players[2].shares).length, 1);
-  assertEquals(playerView.players[3].shares.Worldwide, '2'); // player4
+  assertEquals(playerView.players[3].shares.Worldwide, 2); // player4
   assertEquals(Object.keys(playerView.players[3].shares).length, 1);
-  assertEquals(playerView.players[4].shares.Worldwide, 'many'); // player5
+  assertEquals(playerView.players[4].shares.Worldwide, 3); // player5
   assertEquals(Object.keys(playerView.players[4].shares).length, 1);
 });
 
@@ -927,7 +907,7 @@ Deno.test("getSpectatorView - shows the game without anyone's seat", () => {
   assertEquals('tiles' in view, false);
   assertEquals('stocks' in view, false);
   assertEquals(view.players.map((player) => player.name), ['player1', 'player2']);
-  // Other players' cash is only a tier, as players see it
+  // Spectators see the same exact cash players do
   assertEquals(view.players[0].money, getPlayerView('player2', gameState).players[0].money);
 });
 

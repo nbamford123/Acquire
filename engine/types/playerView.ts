@@ -8,10 +8,6 @@ import type {
   PlayerAction,
 } from './index.ts';
 
-export type OrcCount = '0' | '1' | '2' | 'many';
-// Relative size of a player's cash, 1 (lowest) to 4 (highest), see CASH_TIER_LIMITS
-export type CashTier = 1 | 2 | 3 | 4;
-
 // A hotel as the views show it. Price and bonuses are at its current size, or at founding size
 // while it's off the board, like the physical game's information card.
 export interface HotelView {
@@ -23,7 +19,7 @@ export interface HotelView {
   minority: number;
 }
 
-// What anyone can see of a game, including spectators: other players' cash and shares only roughly
+// What anyone can see of a game, including spectators: everyone's cash and shares are public
 export interface GameView {
   gameId: string;
   owner: string;
@@ -32,8 +28,8 @@ export interface GameView {
   currentPlayer: number; // Player id
   pendingMergePlayer?: number; // next player to act in merger
   lastUpdated: number; // Timestamp
-  // in player order
-  players: { name: string; money: CashTier; shares: Record<HOTEL_NAME, OrcCount> }[];
+  // in player order; shares only lists hotels the player has shares in
+  players: { name: string; money: number; shares: Record<HOTEL_NAME, number> }[];
   // Every hotel, on the board or not, by name
   hotels: Record<HOTEL_NAME, HotelView>;
   board: BoardTile[];

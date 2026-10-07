@@ -155,11 +155,11 @@ Deno.test('full game over HTTP: tied merger through game over', async (t) => {
     assertEquals(mine.hotels.Tower.size, 11);
     assertEquals(mine.hotels.Luxor.size, 0);
 
-    // Admin sees the same merger but only a cash tier for TestUser
+    // Admin sees the same merger, and TestUser's exact cash
     const theirs = await admin.view(gameId);
     assertEquals(theirs.pendingMergePlayer, 0);
     assertEquals(theirs.money, 3000 + 5000);
-    assertEquals(theirs.players[0].money, 3);
+    assertEquals(theirs.players[0].money, 3000 + 2500);
   });
 
   await t.step('stockholders resolve in turn, and only in turn', async () => {

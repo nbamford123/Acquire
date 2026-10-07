@@ -1,6 +1,4 @@
 import {
-  CASH_TIER_LIMITS,
-  type CashTier,
   GameError,
   GameErrorCodes,
   GamePhase,
@@ -9,7 +7,6 @@ import {
   type Hotel,
   HOTEL_CONFIG,
   type HOTEL_NAME,
-  type OrcCount,
   type PlayerAction,
   type PlayerView,
 } from '../types/index.ts';
@@ -30,25 +27,13 @@ export const getGameResults = (gameState: GameState) => {
   return standings.map(({ name, money }) => ({ name, money, won: money === standings[0].money }));
 };
 
-const getOrcCount = (amount: number): OrcCount =>
-  amount >= 3 ? 'many' : amount === 2 ? '2' : amount === 1 ? '1' : '0';
-
-export const getCashTier = (money: number): CashTier => {
-  const tier = CASH_TIER_LIMITS.findIndex((limit) => money < limit);
-  return (tier === -1 ? CASH_TIER_LIMITS.length + 1 : tier + 1) as CashTier;
-};
-
-function getShares(playerId: number, hotels: Hotel[], orcCount: true): Record<HOTEL_NAME, OrcCount>;
-function getShares(playerId: number, hotels: Hotel[], orcCount?: false): Record<HOTEL_NAME, number>;
-function getShares(playerId: number, hotels: Hotel[], orcCount: boolean = false) {
-  return hotels.reduce((playerShares, hotel) => {
-    const shares = hotel.shares.filter((share) => share.location === playerId);
-    if (shares.length) {
-      playerShares[hotel.name] = orcCount ? getOrcCount(shares.length) : shares.length;
-    }
+// How many shares the player has in each hotel, leaving out hotels they have none in
+const getShares = (playerId: number, hotels: Hotel[]) =>
+  hotels.reduce((playerShares, hotel) => {
+    const shares = hotel.shares.filter((share) => share.location === playerId).length;
+    if (shares) playerShares[hotel.name] = shares;
     return playerShares;
-  }, {} as Record<HOTEL_NAME, number | OrcCount>);
-}
+  }, {} as Record<HOTEL_NAME, number>);
 
 // Everyone, players and spectators, sees the whole game's log
 const getGameView = (gameState: GameState, actions: PlayerAction[]): GameView => {
@@ -65,8 +50,8 @@ const getGameView = (gameState: GameState, actions: PlayerAction[]): GameView =>
     lastUpdated: gameState.lastUpdated,
     players: gameState.players.map((player) => ({
       name: player.name,
-      money: getCashTier(player.money),
-      shares: getShares(player.id, gameState.hotels, true),
+      money: player.money,
+      shares: getShares(player.id, gameState.hotels),
     })),
     hotels: Object.fromEntries(gameState.hotels.map((hotel) => {
       const size = board.filter((tile) => tile.hotel === hotel.name).length;

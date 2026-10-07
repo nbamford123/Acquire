@@ -36,8 +36,8 @@ export const makePlayerView = (overrides: Partial<PlayerView> = {}): PlayerView 
   currentPlayer: 0,
   lastUpdated: 100,
   players: [
-    { name: 'nate', money: 3, shares: {} as PlayerView['players'][number]['shares'] },
-    { name: 'alice', money: 3, shares: {} as PlayerView['players'][number]['shares'] },
+    { name: 'nate', money: 6000, shares: {} as PlayerView['players'][number]['shares'] },
+    { name: 'alice', money: 6000, shares: {} as PlayerView['players'][number]['shares'] },
   ],
   hotels: hotelsWith(),
   board: [],
