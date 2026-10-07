@@ -49,12 +49,12 @@ On Deno Deploy, production and preview alike, the service also sees `DENO_DEPLOY
 Deploy sets itself. It makes the login cookie HTTPS-only, and refuses `API_LOG` and a missing
 `JWT_SECRET`.
 
-| Variable          | Purpose                                                                                                         | Default                         |
-| ----------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| `JWT_SECRET`      | Signs login tokens. Required on Deno Deploy, and different in the Development context                           | A fixed key, outside production |
-| `ALLOWED_EMAILS`  | Who can log in: `name:email` pairs separated by commas. The name is the player's name in games                  | Nobody                          |
-| `KV_PATH`         | Where Deno KV keeps games; tests use `:memory:`                                                                 | Deno's default location         |
-| `PORT`            | The port to serve on                                                                                            | `8000`                          |
-| `SEED_TEST_GAMES` | Flag: wipe KV and load the games in `service/__test-data__` on each start. Local only                           | Off                             |
-| `DEV_RELOAD`      | Flag: reload open pages after a client rebuild or a service restart. Local only                                 | Off                             |
-| `API_LOG`         | Flag: keep the last 100 API requests and responses at `/dev/requests`, and log changes and failures. Local only | Off                             |
+| Variable          | Purpose                                                                                                                                      | Default                         |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `JWT_SECRET`      | Signs login tokens. Required on Deno Deploy, and different in the Development context                                                        | A fixed key, outside production |
+| `ALLOWED_EMAILS`  | Who can log in: `name:email` pairs separated by commas. The name is the player's name in games, and only these names show on the leaderboard | Nobody                          |
+| `KV_PATH`         | Where Deno KV keeps games; tests use `:memory:`                                                                                              | Deno's default location         |
+| `PORT`            | The port to serve on                                                                                                                         | `8000`                          |
+| `SEED_TEST_GAMES` | Flag: wipe KV and load the games in `service/__test-data__` on each start. Local only                                                        | Off                             |
+| `DEV_RELOAD`      | Flag: reload open pages after a client rebuild or a service restart. Local only                                                              | Off                             |
+| `API_LOG`         | Flag: keep the last 100 API requests and responses at `/dev/requests`, and log changes and failures. Local only                              | Off                             |
