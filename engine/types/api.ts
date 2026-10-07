@@ -38,7 +38,7 @@ export interface ActionResponse {
   game?: PlayerView;
 }
 
-// GET /api/leaderboard: every player who has finished a game, most earnings first
+// GET /api/leaderboard: every player in ALLOWED_EMAILS who has finished a game, most earnings first
 export interface PlayerStats {
   name: string;
   gamesPlayed: number;
