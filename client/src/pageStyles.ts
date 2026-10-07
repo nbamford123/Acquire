@@ -1,7 +1,22 @@
 // Styles for the whole page, imported from npm so they update with the packages
 import pico from '@picocss/pico/css/pico.min.css' with { type: 'text' };
-import picoColors from '@picocss/pico/css/pico.colors.min.css' with { type: 'text' };
 import toastify from 'toastify-js/src/toastify.css' with { type: 'text' };
+
+// The colors the app uses from Pico's color palette (pico.colors.css), copied from Pico 2.1.1. The
+// whole palette is 75 KB, which is too much to bundle for eight colors; if you need another, take
+// its value from that file.
+const colors = `
+:root {
+  --pico-color-azure-600: #02659a;
+  --pico-color-blue-600: #1d59d0;
+  --pico-color-green-550: #33790f;
+  --pico-color-pink-550: #c72259;
+  --pico-color-red-500: #d93526;
+  --pico-color-red-550: #c52f21;
+  --pico-color-sand-550: #6e6a60;
+  --pico-color-yellow-200: #d9c800;
+}
+`;
 
 // Toasts are added to the end of the page, outside every component
 const toasts = `
@@ -89,6 +104,6 @@ const srOnly = `
 export const addPageStyles = () => {
   const style = document.createElement('style');
   style.dataset.page = '';
-  style.textContent = [pico, picoColors, toastify, toasts, themes, pageColor, srOnly].join('\n');
+  style.textContent = [pico, colors, toastify, toasts, themes, pageColor, srOnly].join('\n');
   document.head.append(style);
 };
