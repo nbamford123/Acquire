@@ -908,32 +908,10 @@ const twoRounds: PlayerAction[] = [
 ];
 
 // getPlayerView with actions tests
-Deno.test('getPlayerView - the log starts at the player\'s last finished turn', () => {
-  // player1 is partway through their second turn
+Deno.test('getPlayerView - the log is the whole game', () => {
   const gameState = createGameState({ currentTurn: 2, currentPlayer: 0 });
-  const playerView = getPlayerView('player1', gameState, twoRounds);
-  assertEquals(playerView.actions, twoRounds.slice(1));
-});
-
-Deno.test('getPlayerView - the log includes moves other players made during your turn', () => {
-  // player2's last turn was round 1, and they also sold shares during player1's turn before it
-  const gameState = createGameState({ currentTurn: 2, currentPlayer: 0 });
-  const playerView = getPlayerView('player2', gameState, twoRounds);
-  assertEquals(playerView.actions, twoRounds.slice(5));
-});
-
-Deno.test('getPlayerView - on your turn, the log starts at your previous turn', () => {
-  const actions = twoRounds.slice(0, 7);
-  const gameState = createGameState({ currentTurn: 2, currentPlayer: 0 });
-  const playerView = getPlayerView('player1', gameState, actions);
-  assertEquals(playerView.actions, actions.slice(1));
-});
-
-Deno.test('getPlayerView - before your first finished turn, the log shows the whole game', () => {
-  const actions = twoRounds.slice(0, 3);
-  const gameState = createGameState({ currentTurn: 1, currentPlayer: 0 });
-  assertEquals(getPlayerView('player1', gameState, actions).actions, actions);
-  assertEquals(getPlayerView('player2', gameState, actions).actions, actions);
+  assertEquals(getPlayerView('player1', gameState, twoRounds).actions, twoRounds);
+  assertEquals(getPlayerView('player2', gameState, twoRounds).actions, twoRounds);
 });
 
 Deno.test('getPlayerView - handles empty actions array', () => {
@@ -953,13 +931,9 @@ Deno.test("getSpectatorView - shows the game without anyone's seat", () => {
   assertEquals(view.players[0].money, getPlayerView('player2', gameState).players[0].money);
 });
 
-Deno.test('getSpectatorView - the log shows the last full round', () => {
-  // During player2's first turn there's no earlier player2 turn, so the whole game shows. During
-  // player1's second turn, the log starts at player1's first.
-  const roundOne = createGameState({ currentTurn: 1, currentPlayer: 1 });
-  assertEquals(getSpectatorView(roundOne, twoRounds.slice(0, 5)).actions, twoRounds.slice(0, 5));
-  const roundTwo = createGameState({ currentTurn: 2, currentPlayer: 0 });
-  assertEquals(getSpectatorView(roundTwo, twoRounds).actions, twoRounds.slice(1));
+Deno.test('getSpectatorView - the log is the whole game', () => {
+  const gameState = createGameState({ currentTurn: 2, currentPlayer: 0 });
+  assertEquals(getSpectatorView(gameState, twoRounds).actions, twoRounds);
 });
 
 Deno.test('getGameResults - everyone tied for the most money wins', () => {

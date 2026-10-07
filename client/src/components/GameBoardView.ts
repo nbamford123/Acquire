@@ -63,6 +63,8 @@ export class GameBoardView extends LightComponent {
   private lastActiveAt = Date.now();
   private polling = false;
   private submitting = false;
+  // The log keeps the latest move in view unless the player has scrolled back through it
+  private logFollowsLatest = true;
   static override styles = [
     styles,
   ];
@@ -157,6 +159,28 @@ export class GameBoardView extends LightComponent {
       this.polling = false;
       this.schedulePoll();
     }
+  }
+
+  // The log opens on the latest moves
+  private handleLogToggle = (event: Event) => {
+    if (!(event.currentTarget as HTMLDetailsElement).open) return;
+    this.logFollowsLatest = true;
+    this.scrollLogToLatest();
+  };
+
+  private handleLogScroll = (event: Event) => {
+    const list = event.currentTarget as HTMLElement;
+    this.logFollowsLatest = list.scrollTop + list.clientHeight >= list.scrollHeight - 1;
+  };
+
+  private scrollLogToLatest() {
+    const list = this.querySelector<HTMLElement>('.game-log ul');
+    if (list) list.scrollTop = list.scrollHeight;
+  }
+
+  // New moves stay in view, unless the player is reading back through the log
+  protected override updated() {
+    if (this.logFollowsLatest) this.scrollLogToLatest();
   }
 
   private playedTile = ({ row, col }: { row: number; col: number }) =>
@@ -505,9 +529,9 @@ export class GameBoardView extends LightComponent {
               : ''}
           </div>
 
-          <details class="game-log">
-            <summary>Recent moves</summary>
-            <ul>
+          <details class="game-log" @toggle="${this.handleLogToggle}">
+            <summary>Moves</summary>
+            <ul @scroll="${this.handleLogScroll}">
               ${this.playerView.actions.map((action) =>
                 html`
                   <li>${action.action}</li>

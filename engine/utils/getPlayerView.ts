@@ -50,25 +50,8 @@ function getShares(playerId: number, hotels: Hotel[], orcCount: boolean = false)
   }, {} as Record<HOTEL_NAME, number | OrcCount>);
 }
 
-// The log starts at logPlayer's last finished turn, so a player sees what they did and everything
-// since. Until they've finished a turn, it shows the whole game.
-const actionsSince = (gameState: GameState, actions: PlayerAction[], logPlayer: number) => {
-  const sameTurn = (a: PlayerAction, b: { turn: number; player?: number }) =>
-    a.turn === b.turn && a.player === b.player;
-  const current = { turn: gameState.currentTurn, player: gameState.currentPlayer };
-  const lastTurn = actions.findLast((action) =>
-    action.player === logPlayer && !sameTurn(action, current)
-  );
-  return lastTurn
-    ? actions.slice(actions.findIndex((action) => sameTurn(action, lastTurn)))
-    : actions;
-};
-
-const getGameView = (
-  gameState: GameState,
-  actions: PlayerAction[],
-  logPlayer: number,
-): GameView => {
+// Everyone, players and spectators, sees the whole game's log
+const getGameView = (gameState: GameState, actions: PlayerAction[]): GameView => {
   const board = boardTiles(gameState.tiles);
   return {
     gameId: gameState.gameId,
@@ -101,17 +84,16 @@ const getGameView = (
     finalStandings: gameState.currentPhase === GamePhase.GAME_OVER
       ? getFinalStandings(gameState)
       : undefined,
-    actions: actionsSince(gameState, actions, logPlayer),
+    actions,
     error: gameState.error,
   };
 };
 
-// What someone watching a game they're not in sees. With no turns of their own, their log starts
-// at the current player's last turn, which is the last full round.
+// What someone watching a game they're not in sees
 export const getSpectatorView = (
   gameState: GameState,
   actions: PlayerAction[] = [],
-): GameView => getGameView(gameState, actions, gameState.currentPlayer);
+): GameView => getGameView(gameState, actions);
 
 export const getPlayerView = (
   playerName: string,
@@ -126,7 +108,7 @@ export const getPlayerView = (
     );
   }
   return {
-    ...getGameView(gameState, actions, playerId),
+    ...getGameView(gameState, actions),
     playerId,
     money: gameState.players[playerId].money,
     stocks: getShares(playerId, gameState.hotels),

@@ -245,7 +245,7 @@ Deno.test('GameBoardView - polls as soon as the tab is visible again', async () 
   board.remove();
 });
 
-Deno.test('GameBoardView - the log lists recent moves in order', async () => {
+Deno.test('GameBoardView - the log lists the moves in order', async () => {
   using _server = serve([makePlayerView({
     actions: [
       { turn: 1, player: 0, action: 'nate played 1A' },
@@ -259,6 +259,43 @@ Deno.test('GameBoardView - the log lists recent moves in order', async () => {
     [...root.querySelectorAll('.game-log li')].map((li) => li.textContent?.trim()),
     ['nate played 1A', 'alice played 2B'],
   );
+  board.remove();
+});
+
+Deno.test('GameBoardView - the log opens on the latest move and follows new ones', async () => {
+  const moves = (count: number) =>
+    Array.from({ length: count }, (_, i) => ({ turn: i + 1, player: 0, action: `move ${i + 1}` }));
+  using _server = serve([
+    makePlayerView({ actions: moves(2), lastUpdated: 100 }),
+    makePlayerView({ actions: moves(3), lastUpdated: 150 }),
+    makePlayerView({ actions: moves(4), lastUpdated: 200 }),
+  ]);
+  const { board, root } = await mountBoard();
+  const log = root.querySelector('.game-log') as HTMLDetailsElement;
+  const list = log.querySelector('ul')!;
+  // happy-dom doesn't lay out, so give the list a height and contents taller than it
+  let contentHeight = 500;
+  Object.defineProperty(list, 'clientHeight', { value: 100 });
+  Object.defineProperty(list, 'scrollHeight', { get: () => contentHeight });
+
+  log.open = true;
+  log.dispatchEvent(new Event('toggle'));
+  assertEquals(list.scrollTop, 500);
+
+  // A new move scrolls down to it
+  contentHeight = 600;
+  await board.pollGameState();
+  await settle(board);
+  assertEquals(list.scrollTop, 600);
+
+  // Reading back through the log stays put when another move comes in
+  list.scrollTop = 0;
+  list.dispatchEvent(new Event('scroll'));
+  contentHeight = 700;
+  await board.pollGameState();
+  await settle(board);
+  assertEquals(log.querySelectorAll('li').length, 4);
+  assertEquals(list.scrollTop, 0);
   board.remove();
 });
 
