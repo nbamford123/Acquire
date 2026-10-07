@@ -13,15 +13,33 @@ export async function getAllGames(): Promise<GameState[]> {
   return games;
 }
 
+// Each game's lastUpdated is also kept on its own, under ['gameVersions', gameId], so a poll can
+// see whether the game changed without reading the whole state. It's always written in the same
+// commit as the state.
+const versionKey = (gameId: string) => ['gameVersions', gameId];
+
 export async function saveGameState(state: GameState) {
-  await kv.set(['games', state.gameId], state);
+  await kv.atomic()
+    .set(['games', state.gameId], state)
+    .set(versionKey(state.gameId), state.lastUpdated)
+    .commit();
 }
 
 // Saves a new game, returning false if its id is already taken
 export async function createGame(state: GameState): Promise<boolean> {
   const key = ['games', state.gameId];
-  const result = await kv.atomic().check({ key, versionstamp: null }).set(key, state).commit();
+  const result = await kv.atomic()
+    .check({ key, versionstamp: null })
+    .set(key, state)
+    .set(versionKey(state.gameId), state.lastUpdated)
+    .commit();
   return result.ok;
+}
+
+// The game's lastUpdated, or null for a game that isn't saved, or that hasn't moved since before
+// versions were kept
+export async function getGameVersion(gameId: string): Promise<number | null> {
+  return (await kv.get<number>(versionKey(gameId))).value;
 }
 
 export async function getGameState(gameId: string): Promise<GameState | null> {
@@ -58,7 +76,10 @@ export async function saveMove(
   results: GameResult[] = [],
 ): Promise<boolean> {
   const key = ['games', state.gameId];
-  const operation = kv.atomic().check({ key, versionstamp }).set(key, state);
+  const operation = kv.atomic()
+    .check({ key, versionstamp })
+    .set(key, state)
+    .set(versionKey(state.gameId), state.lastUpdated);
   actions.forEach((action, i) => operation.set(['actions', state.gameId, start + i], action));
   for (const { name, money, won } of results) {
     operation
@@ -100,6 +121,7 @@ export async function getPlayerActions(gameId: string): Promise<PlayerAction[]> 
 export async function deleteGame(gameId: string) {
   // Delete game state
   await kv.delete(['games', gameId]);
+  await kv.delete(versionKey(gameId));
 
   // Delete all actions for this game
   const iter = kv.list({ prefix: ['actions', gameId] });

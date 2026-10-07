@@ -64,8 +64,15 @@ export const getLeaderboard = () => getJson<LeaderboardResponse>('/api/leaderboa
 
 export const createGame = () => postJson<CreateGameResponse>('/api/games');
 
-export const getGame = (gameId: string, { silent = false } = {}) =>
-  getJson<GameResponse>(gamePath(gameId), silent);
+// With since (a lastUpdated), null when the game hasn't changed since then
+export const getGame = async (
+  gameId: string,
+  { silent = false, since }: { silent?: boolean; since?: number } = {},
+) => {
+  const query = since === undefined ? '' : `?since=${since}`;
+  const response = await send(gamePath(gameId) + query, undefined, silent);
+  return response && response.status !== 204 ? await response.json() as GameResponse : null;
+};
 
 export const sendAction = (gameId: string, action: ClientAction) =>
   postJson<ActionResponse>(gamePath(gameId), { action } satisfies ActionRequest);

@@ -22,6 +22,7 @@ import {
   getAllGames,
   getGameEntry,
   getGameState,
+  getGameVersion,
   getLeaderboard,
   getPlayerActions,
   saveMove,
@@ -113,9 +114,17 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
     await deleteGame(gameId);
     return ctx.body(null, 204);
   });
-  // Get game
+  // Get game. With ?since=<lastUpdated>, it's 204 No Content if the game hasn't changed since then,
+  // which costs a poll one small read instead of the whole game
   app.get('/api/games/:id', requireAuth, async (ctx) => {
     const gameId = ctx.req.param('id') || '';
+    const since = Number(ctx.req.query('since'));
+    if (Number.isFinite(since)) {
+      const version = await getGameVersion(gameId);
+      if (version !== null && version <= since) {
+        return ctx.body(null, 204);
+      }
+    }
     const game = await getGameState(gameId);
     if (!game) {
       return ctx.json({ error: 'Game not found' }, 404);

@@ -1,6 +1,7 @@
 import './dom.ts';
 import { assertEquals } from '@std/assert';
 import { stub } from '@std/testing/mock';
+import { FakeTime } from '@std/testing/time';
 
 import { GamePhase, type GameView, type PlayerView } from '@acquire/engine/types';
 import '../GameBoardView.ts';
@@ -175,6 +176,52 @@ Deno.test('GameBoardView - the status line says whose move it is', async () => {
   await settle(board);
   assertEquals(text('.game-status.your-move'), 'Your turn: play a tile');
   board.remove();
+});
+
+Deno.test('GameBoardView - checks less often as the game sits quiet, then pauses', async () => {
+  using time = new FakeTime(0);
+  // When each poll went out; nothing ever changes, so the service answers 204
+  const polls: number[] = [];
+  const fetchStub = stub(globalThis, 'fetch', (input) => {
+    if (!String(input).includes('since=100')) {
+      return Promise.resolve(
+        new Response(JSON.stringify({ game: makePlayerView({ currentPlayer: 1 }) })),
+      );
+    }
+    polls.push(Date.now());
+    return Promise.resolve(new Response(null, { status: 204 }));
+  });
+  // Steps through fake time a second at a time, letting each poll finish and set the next
+  const wait = async (ms: number) => {
+    for (let elapsed = 0; elapsed < ms; elapsed += 1000) await time.tickAsync(1000);
+  };
+  const paused = () => board.querySelector('.polling-paused');
+
+  const board = document.createElement('game-board-view') as HTMLElement & Record<string, unknown>;
+  Object.assign(board, { gameId: 'test-game', user: 'nate' });
+  document.body.append(board);
+  try {
+    await wait(11 * 60_000);
+    const gaps = polls.slice(1).map((at, i) => at - polls[i]);
+    assertEquals(polls[0], 3_000);
+    assertEquals(new Set(gaps), new Set([3_000, 10_000, 30_000]));
+    // Every 3 seconds for the first minute, every 10 to five minutes, then every 30
+    assertEquals(gaps.indexOf(10_000), polls.indexOf(60_000));
+    assertEquals(gaps.indexOf(30_000), polls.indexOf(300_000));
+    assertEquals(polls.at(-1), 600_000);
+    assertEquals(paused() !== null, true);
+
+    // Coming back checks right away, then every 3 seconds again
+    document.dispatchEvent(new Event('pointerdown'));
+    await time.tickAsync(0);
+    assertEquals(polls.at(-1), 660_000);
+    await wait(3_000);
+    assertEquals(polls.at(-1), 663_000);
+    assertEquals(paused(), null);
+  } finally {
+    board.remove();
+    fetchStub.restore();
+  }
 });
 
 Deno.test('GameBoardView - polls as soon as the tab is visible again', async () => {

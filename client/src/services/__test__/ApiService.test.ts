@@ -90,6 +90,19 @@ Deno.test('ApiService - requests', async (t) => {
     restore();
   });
 
+  await t.step("getGame with since is null when the game hasn't changed", async () => {
+    const fetchStub = stub(
+      globalThis,
+      'fetch',
+      () => Promise.resolve(new Response(null, { status: 204 })),
+    );
+
+    assertEquals(await getGame('brave-otter', { since: 150 }), null);
+    assertEquals(fetchStub.calls[0].args[0], '/api/games/brave-otter?since=150');
+
+    restore();
+  });
+
   await t.step('sendAction posts the action without a player', async () => {
     const fetchStub = stub(
       globalThis,
