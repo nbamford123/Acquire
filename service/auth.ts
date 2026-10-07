@@ -66,6 +66,9 @@ export const validateUser = (email: string): string | null => {
 };
 
 // For testing - clears caches so env changes take effect
+// Everyone who can log in, by the name they play under
+export const allowedNames = (): Set<string> => new Set(Object.values(getAllowedUsers()));
+
 export const clearCache = () => {
   keyCache = null;
   allowedUsersCache = null;

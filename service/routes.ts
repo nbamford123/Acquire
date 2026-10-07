@@ -13,7 +13,7 @@ import type {
   LoginResponse,
 } from '@acquire/engine/types';
 import { GamePhase } from '@acquire/engine/types';
-import { createToken, validateUser } from './auth.ts';
+import { allowedNames, createToken, validateUser } from './auth.ts';
 import { onDenoDeploy } from './env.ts';
 import { newGameId } from './gameIds.ts';
 import {
@@ -143,9 +143,12 @@ export const setRoutes = (app: Hono<ServiceEnv>) => {
 
     return ctx.json({ games: gameList } satisfies GamesResponse);
   });
-  // Lifetime totals across finished games
+  // Lifetime totals across finished games. Only players who can still log in show, so removing
+  // someone from ALLOWED_EMAILS takes them off; their totals stay saved in case they come back.
   app.get('/api/leaderboard', requireAuth, async (ctx) => {
-    return ctx.json({ players: await getLeaderboard() } satisfies LeaderboardResponse);
+    const allowed = allowedNames();
+    const players = (await getLeaderboard()).filter(({ name }) => allowed.has(name));
+    return ctx.json({ players } satisfies LeaderboardResponse);
   });
   // Main game action endpoint
   app.post('/api/games/:id', requireAuth, async (ctx) => {

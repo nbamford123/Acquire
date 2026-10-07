@@ -5,6 +5,8 @@ import { expect } from '@std/expect';
 import { ActionTypes, createAction } from '@acquire/engine/types';
 import { setRoutes } from './routes.ts';
 import { clearCache } from './auth.ts';
+import { createGame, deleteGame, getGameEntry, saveMove } from './dataLayer.ts';
+import { initializeGame } from '@acquire/engine/core';
 import type { ServiceEnv } from './types.ts';
 
 // Build the app from the routes rather than importing main.ts, which starts a server
@@ -401,4 +403,26 @@ Deno.test('POST /games/:id rejects invalid moves without saving them', async () 
   const after = (await (await request(`/api/games/${gameId}`)).json()).game;
   assertEquals(after.lastUpdated, before.lastUpdated);
   assertEquals(after.error, undefined);
+});
+
+Deno.test('GET /api/leaderboard only shows players who can still log in', async () => {
+  const cookies = await login(app);
+  // A finished game between TestUser and a player since removed from ALLOWED_EMAILS
+  const game = initializeGame('leaderboard-test', 'TestUser');
+  assertEquals(await createGame(game), true);
+  const { versionstamp } = await getGameEntry(game.gameId);
+  const saved = await saveMove(game, versionstamp!, 0, [], [
+    { name: 'TestUser', money: 9000, won: true },
+    { name: 'Removed', money: 7000, won: false },
+  ]);
+  assertEquals(saved, true);
+
+  const response = await app.fetch(
+    new Request('http://localhost/api/leaderboard', { headers: { 'Cookie': cookies } }),
+  );
+  assertEquals(response.status, 200);
+  const names = (await response.json()).players.map(({ name }: { name: string }) => name);
+  assertEquals(names.includes('TestUser'), true);
+  assertEquals(names.includes('Removed'), false);
+  await deleteGame(game.gameId);
 });
