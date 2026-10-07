@@ -1,4 +1,4 @@
-import { assertEquals } from 'https://deno.land/std@0.203.0/assert/mod.ts';
+import { assertEquals } from '@std/assert';
 import { gameOver } from '../endGameOperations.ts';
 import type { BoardTile, Hotel } from '../../types/index.ts';
 

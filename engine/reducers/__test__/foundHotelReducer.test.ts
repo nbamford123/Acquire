@@ -4,7 +4,7 @@ import {
   assertEquals,
   assertExists,
   assertThrows,
-} from 'https://deno.land/std@0.203.0/assert/mod.ts';
+} from '@std/assert';
 import { GameErrorCodes } from '../../types/index.ts';
 import type { FoundHotelContext, Hotel, HOTEL_NAME, Tile } from '../../types/index.ts';
 

@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from 'jsr:@std/assert';
+import { assertEquals, assertThrows } from '@std/assert';
 import { buySharesValidation } from '../../domain/buySharesValidation.ts';
 import { GameError, GameErrorCodes, type Hotel, type Player } from '../../types/index.ts';
 

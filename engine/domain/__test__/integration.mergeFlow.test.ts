@@ -1,4 +1,4 @@
-import { assertEquals, assertNotEquals } from 'jsr:@std/assert';
+import { assertEquals, assertNotEquals } from '@std/assert';
 import { processMergerOrchestrator } from '../../orchestrators/processMergerOrchestrator.ts';
 import { breakMergerTieUseCase, resolveMergerUseCase } from '../../usecases/index.ts';
 import { getActivePlayer, getHotelPrice } from '../../utils/index.ts';

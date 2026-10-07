@@ -1,5 +1,5 @@
 import { buySharesReducer } from '../buySharesReducer.ts';
-import { assert, assertEquals, assertExists } from 'https://deno.land/std@0.203.0/assert/mod.ts';
+import { assert, assertEquals, assertExists } from '@std/assert';
 import type { GameState, HOTEL_NAME } from '../../types/index.ts';
 import { sharePrice } from '../../domain/index.ts';
 

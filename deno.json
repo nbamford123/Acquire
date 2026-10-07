@@ -27,6 +27,7 @@
     "@acquire/engine/types": "./engine/types/index.ts",
     "@acquire/engine/utils": "./engine/utils/index.ts",
     "@hono/deno": "jsr:@hono/deno@^1.0.2",
+    "@zaubrik/djwt": "jsr:@zaubrik/djwt@^3.0.2",
     "hono": "jsr:@hono/hono@^4.13.13"
   },
 

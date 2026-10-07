@@ -159,7 +159,7 @@ From the 2026-10-06 recheck in `assessments/stack.md`. Each is its own small PR.
       `@std/testing` to 1.0.21, and let the lock regenerate, which drops its dead entries (S)
 - [x] Define the 8 Pico colors the client uses instead of bundling all of `pico.colors.min.css`
       (75 KB), taking the bundle from 276 KB to about 201 KB minified (S)
-- [ ] Point every test's assertions at the mapped `@std/assert` (21 engine test files import
+- [x] Point every test's assertions at the mapped `@std/assert` (21 engine test files import
       `deno.land/std@0.203.0` by URL, 18 import `jsr:@std/assert` inline), and add `@zaubrik/djwt`
       to the import map (S)
 

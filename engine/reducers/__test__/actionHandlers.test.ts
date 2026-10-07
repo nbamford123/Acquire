@@ -1,5 +1,5 @@
 import { actionHandlers } from '../actionHandlers.ts';
-import { assert } from 'https://deno.land/std@0.203.0/assert/mod.ts';
+import { assert } from '@std/assert';
 
 Deno.test('actionHandlers: has handlers for all action types', () => {
   const actionTypes = [

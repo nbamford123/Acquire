@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from 'jsr:@std/assert';
+import { assertEquals, assertThrows } from '@std/assert';
 import { addPlayerValidation } from '../../domain/addPlayerValidation.ts';
 import { startGameValidation } from '../../domain/startGameValidation.ts';
 import { playTileValidation } from '../../domain/playTileValidation.ts';

@@ -1,4 +1,4 @@
-import { assertEquals } from 'jsr:@std/assert';
+import { assertEquals } from '@std/assert';
 import { analyzeTilePlacement } from '../../domain/analyzeTilePlacement.ts';
 import { type Tile } from '../../types/index.ts';
 
